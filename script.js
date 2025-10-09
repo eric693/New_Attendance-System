@@ -4,19 +4,9 @@
 let currentLang = localStorage.getItem("lang");
 let currentMonthDate = new Date();
 let translations = {};
-let monthDataCache = {}; // 用於快取月份打卡資料
-let isApiCalled = false; // 用於追蹤 API 呼叫狀態，避免重複呼叫
+let monthDataCache = {}; // 新增：用於快取月份打卡資料
+let isApiCalled = false; // 新增：用於追蹤 API 呼叫狀態，避免重複呼叫
 let userId = localStorage.getItem("sessionUserId");
-
-// 全域變數，用於儲存地圖實例
-let mapInstance = null;
-let mapLoadingText = null;
-let currentCoords = null;
-let marker = null;
-let circle = null;
-let locationMarkers = L.layerGroup();
-let locationCircles = L.layerGroup();
-let pendingRequests = [];
 
 // 載入語系檔
 async function loadTranslations(lang) {
@@ -50,7 +40,6 @@ function t(code, params = {}) {
     }
     return text;
 }
-
 // renderTranslations 可接受一個容器參數
 function renderTranslations(container = document) {
     // 翻譯網頁標題（只在整頁翻譯時執行）
@@ -88,6 +77,7 @@ function renderTranslations(container = document) {
         }
     });
 }
+
 
 /**
  * 透過 fetch API 呼叫後端 API。
@@ -456,523 +446,6 @@ async function renderDailyRecords(dateKey) {
     }
 }
 
-// ⭐ 將 switchTab 定義為全域函式（在 DOMContentLoaded 之外）
-async function switchTab(tabId) {
-    const tabs = ['dashboard-view', 'monthly-view', 'location-view', 'admin-view'];
-    const btns = ['tab-dashboard-btn', 'tab-monthly-btn', 'tab-location-btn', 'tab-admin-btn'];
-    
-    // 1. 移除舊的 active 類別和 CSS 屬性
-    tabs.forEach(id => {
-        const tabElement = document.getElementById(id);
-        tabElement.style.display = 'none'; // 隱藏內容
-        tabElement.classList.remove('active'); // 移除 active 類別
-    });
-    
-    // 2. 移除按鈕的選中狀態
-    btns.forEach(id => {
-        const btnElement = document.getElementById(id);
-        btnElement.classList.replace('bg-indigo-600', 'bg-gray-200');
-        btnElement.classList.replace('text-white', 'text-gray-600');
-    });
-    
-    // 3. 顯示新頁籤並新增 active 類別
-    const newTabElement = document.getElementById(tabId);
-    newTabElement.style.display = 'block'; // 顯示內容
-    newTabElement.classList.add('active'); // 新增 active 類別
-    
-    // 4. 設定新頁籤按鈕的選中狀態
-    const newBtnElement = document.getElementById(`tab-${tabId.replace('-view', '-btn')}`);
-    newBtnElement.classList.replace('bg-gray-200', 'bg-indigo-600');
-    newBtnElement.classList.replace('text-gray-600', 'text-white');
-    
-    // 5. 根據頁籤 ID 執行特定動作
-    if (tabId === 'monthly-view') {
-        renderCalendar(currentMonthDate);
-        // ⭐ 在切換到月份檢視時更新匯出按鈕可見性
-        await updateExportButtonsVisibility();
-    } else if (tabId === 'location-view') {
-        initLocationMap(); // <-- 這行保持不變
-    } else if (tabId === 'admin-view') {
-        fetchAndRenderReviewRequests();
-    }
-}
-
-// ⭐ 根據權限顯示/隱藏按鈕
-async function updateExportButtonsVisibility() {
-    try {
-        const res = await callApifetch("checkSession");
-        const exportMonthlyBtn = document.getElementById('export-monthly-btn');
-        if (res.ok && res.user && res.user.dept === "管理員") {
-            exportMonthlyBtn.style.display = 'block';
-        } else {
-            exportMonthlyBtn.style.display = 'none';
-        }
-    } catch (err) {
-        console.error('檢查權限失敗:', err);
-    }
-}
-
-/**
- * 取得並渲染所有待審核的請求。
- */
-async function fetchAndRenderReviewRequests() {
-    const loadingEl = document.getElementById('requests-loading');
-    const emptyEl = document.getElementById('requests-empty');
-    const listEl = document.getElementById('pending-requests-list');
-    
-    loadingEl.style.display = 'block';
-    emptyEl.style.display = 'none';
-    listEl.innerHTML = '';
-    
-    try {
-        const res = await callApifetch("getReviewRequest");
-        
-        if (res.ok && Array.isArray(res.reviewRequest)) {
-            pendingRequests = res.reviewRequest; // 快取所有請求
-            
-            if (pendingRequests.length === 0) {
-                emptyEl.style.display = 'block';
-            } else {
-                renderReviewRequests(pendingRequests);
-            }
-        } else {
-            showNotification("取得待審核請求失敗：" + res.msg, "error");
-            emptyEl.style.display = 'block';
-        }
-    } catch (error) {
-        showNotification("取得待審核請求失敗，請檢查網路。", "error");
-        emptyEl.style.display = 'block';
-        console.error("Failed to fetch review requests:", error);
-    } finally {
-        loadingEl.style.display = 'none';
-    }
-}
-
-/**
- * 根據資料渲染待審核列表。
- * @param {Array<Object>} requests - 請求資料陣列。
- */
-function renderReviewRequests(requests) {
-    const listEl = document.getElementById('pending-requests-list');
-    listEl.innerHTML = '';
-    
-    requests.forEach((req, index) => {
-        const li = document.createElement('li');
-        li.className = 'p-4 bg-gray-50 rounded-lg shadow-sm flex flex-col space-y-2 dark:bg-gray-700';
-        li.innerHTML = `
-         <div class="flex flex-col space-y-1">
-
-                    <div class="flex items-center justify-between w-full">
-                        <p class="text-sm font-semibold text-gray-800 dark:text-white">${req.name} - ${req.remark}</p>
-                        <span class="text-xs text-gray-500">${req.applicationPeriod}</span>
-                    </div>
-                </div>
-                
-            <div class="flex items-center justify-between w-full mt-2">
-                <p 
-                    data-i18n-key="${req.type}" 
-                    class="text-sm text-indigo-600 dark:text-indigo-400 font-medium">
-                </p> 
-                
-                <div class="flex space-x-2"> 
-                    <button data-i18n="ADMIN_APPROVE_BUTTON" data-index="${index}" class="approve-btn px-3 py-1 rounded-md text-sm font-bold btn-primary">核准</button>
-                    <button data-i18n="ADMIN_REJECT_BUTTON" data-index="${index}" class="reject-btn px-3 py-1 rounded-md text-sm font-bold btn-warning">拒絕</button>
-                </div>
-            </div>
-        `;
-        listEl.appendChild(li);
-        renderTranslations(li);
-    });
-    
-    listEl.querySelectorAll('.approve-btn').forEach(button => {
-        button.addEventListener('click', (e) => handleReviewAction(e.currentTarget, e.currentTarget.dataset.index, 'approve'));
-    });
-    
-    listEl.querySelectorAll('.reject-btn').forEach(button => {
-        button.addEventListener('click', (e) => handleReviewAction(e.currentTarget, e.currentTarget.dataset.index, 'reject'));
-    });
-}
-
-/**
- * 處理審核動作（核准或拒絕）。
- * @param {HTMLElement} button - 被點擊的按鈕元素。
- * @param {number} index - 請求在陣列中的索引。
- * @param {string} action - 'approve' 或 'reject'。
- */
-async function handleReviewAction(button, index, action) {
-    const request = pendingRequests[index];
-    if (!request) {
-        showNotification("找不到請求資料。", "error");
-        return;
-    }
-
-    const recordId = request.id;
-    const endpoint = action === 'approve' ? 'approveReview' : 'rejectReview';
-    const loadingText = t('LOADING') || '處理中...';
-    
-    // A. 進入處理中狀態
-    generalButtonState(button, 'processing', loadingText);
-    
-    try {
-        const res = await callApifetch(`${endpoint}&id=${recordId}`);
-        
-        if (res.ok) {
-            const translationKey = action === 'approve' ? 'REQUEST_APPROVED' : 'REQUEST_REJECTED';
-            showNotification(t(translationKey), "success");
-            
-            // 延遲執行，讓按鈕的禁用狀態能被看到
-            await new Promise(resolve => setTimeout(resolve, 500));
-            
-            // 列表重新整理會渲染新按鈕，覆蓋舊的按鈕
-            fetchAndRenderReviewRequests();
-        } else {
-            showNotification(t('REVIEW_FAILED', { msg: res.msg }), "error");
-        }
-        
-    } catch (err) {
-        showNotification(t("REVIEW_NETWORK_ERROR"), "error");
-        console.error(err);
-        
-    } finally {
-        // B. 無論成功或失敗，都需要將按鈕恢復到可點擊狀態
-        generalButtonState(button, 'idle');
-    }
-}
-
-/**
- * 從後端取得所有打卡地點，並將它們顯示在地圖上。
- */
-async function fetchAndRenderLocationsOnMap() {
-    try {
-        const res = await callApifetch("getLocations");
-        
-        // 清除舊的地點標記和圓形
-        locationMarkers.clearLayers();
-        locationCircles.clearLayers();
-        
-        if (res.ok && Array.isArray(res.locations)) {
-            // 遍歷所有地點並在地圖上放置標記和圓形
-            res.locations.forEach(loc => {
-                // 如果沒有容許誤差，則預設為 50 公尺
-                const punchInRadius = loc.scope || 50;
-                
-                // 加入圓形範圍
-                const locationCircle = L.circle([loc.lat, loc.lng], {
-                    color: 'red',
-                    fillColor: '#f03',
-                    fillOpacity: 0.2,
-                    radius: punchInRadius
-                });
-                locationCircle.bindPopup(`<b>${loc.name}</b><br>可打卡範圍：${punchInRadius}公尺`);
-                locationCircles.addLayer(locationCircle);
-            });
-            
-            // 將所有地點標記和圓形一次性加到地圖上
-            locationMarkers.addTo(mapInstance);
-            locationCircles.addTo(mapInstance);
-            
-            console.log("地點標記和範圍已成功載入地圖。");
-        } else {
-            showNotification("取得地點清單失敗：" + res.msg, "error");
-            console.error("Failed to fetch locations:", res.msg);
-        }
-    } catch (error) {
-        showNotification("取得地點清單失敗，請檢查網路。", "error");
-        console.error("Failed to fetch locations:", error);
-    }
-}
-
-// 初始化地圖並取得使用者位置
-function initLocationMap(forceReload = false){
-    const mapContainer = document.getElementById('map-container');
-    const statusEl = document.getElementById('location-status');
-    const coordsEl = document.getElementById('location-coords');
-    console.log(mapInstance && !forceReload);
-    // 取得載入文字元素
-    if (!mapLoadingText) {
-        mapLoadingText = document.getElementById('map-loading-text');
-    }
-    // 檢查地圖實例是否已存在
-    if (mapInstance) {
-        // 如果已經存在，並且沒有被要求強制重新載入，則直接返回
-        if (!forceReload) {
-            mapInstance.invalidateSize();
-            return;
-        }
-        
-        // 如果被要求強制重新載入，則先徹底銷毀舊的地圖實例
-        mapInstance.remove();
-        mapInstance = null;
-    }
-    
-    
-    // 顯示載入中的文字
-    mapLoadingText.style.display = 'block'; // 或 'block'，根據你的樣式決定
-    
-    // 建立地圖
-    mapInstance = L.map('map-container', {
-        center: [25.0330, 121.5654], // 預設中心點為台北市
-        zoom: 13
-    });
-    
-    // 加入 OpenStreetMap 圖層
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-    }).addTo(mapInstance);
-    
-    // 讓地圖在完成載入後隱藏載入中的文字
-    mapInstance.whenReady(() => {
-        mapLoadingText.style.display = 'none';
-        // 確保地圖的尺寸正確
-        mapInstance.invalidateSize();
-    });
-    
-    // 顯示載入狀態
-    //mapContainer.innerHTML = t("MAP_LOADING");
-    statusEl.textContent = t('DETECTING_LOCATION');
-    coordsEl.textContent = t('UNKNOWN_LOCATION');
-    
-    // 取得使用者地理位置
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                const { latitude, longitude } = position.coords;
-                currentCoords = [latitude, longitude];
-                
-                // 更新狀態顯示
-                statusEl.textContent = t('DETECTION_SUCCESS');
-                coordsEl.textContent = `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
-                
-                // 設定地圖視圖
-                mapInstance.setView(currentCoords, 18);
-                
-                // 在地圖上放置標記
-                if (marker) mapInstance.removeLayer(marker);
-                marker = L.marker(currentCoords).addTo(mapInstance)
-                .bindPopup(t('CURRENT_LOCATION'))
-                .openPopup();
-                
-                
-            },
-            (error) => {
-                // 處理定位失敗
-                statusEl.textContent = t('ERROR_GEOLOCATION_PERMISSION_DENIED');
-                console.error("Geolocation failed:", error);
-                
-                let message;
-                switch(error.code) {
-                    case error.PERMISSION_DENIED:
-                        message = t('ERROR_GEOLOCATION_PERMISSION_DENIED');
-                        break;
-                    case error.POSITION_UNAVAILABLE:
-                        message = t('ERROR_GEOLOCATION_UNAVAILABLE');
-                        break;
-                    case error.TIMEOUT:
-                        message = t('ERROR_GEOLOCATION_TIMEOUT');
-                        break;
-                    case error.UNKNOWN_ERROR:
-                        message = t('ERROR_GEOLOCATION_UNKNOWN');
-                        break;
-                }
-                showNotification(`定位失敗：${message}`, "error");
-            }
-        );
-        // 成功取得使用者位置後，載入所有打卡地點
-        fetchAndRenderLocationsOnMap();
-    } else {
-        showNotification(t('ERROR_BROWSER_NOT_SUPPORTED'), "error");
-        statusEl.textContent = '不支援定位';
-    }
-}
-
-/**
- * 通用匯出函式
- * @param {string} action - API action 名稱
- * @param {object} params - 額外參數
- * @param {HTMLElement} button - 按鈕元素（用於狀態控制）
- */
-async function exportReport(action, params = {}, button) {
-    const token = localStorage.getItem("sessionToken");
-    const month = currentMonthDate.getFullYear() + "-" + 
-                 String(currentMonthDate.getMonth() + 1).padStart(2, "0");
-    
-    // 組合參數
-    const queryParams = new URLSearchParams({
-        action: action,
-        token: token,
-        month: month,
-        format: 'csv',
-        ...params
-    });
-    
-    const url = `${API_CONFIG.apiUrl}?${queryParams.toString()}`;
-    
-    // 進入處理中狀態
-    generalButtonState(button, 'processing', t('EXPORTING'));
-    
-    try {
-        // 使用 fetch 下載檔案
-        const response = await fetch(url);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        // 檢查是否為 JSON 錯誤回應
-        const contentType = response.headers.get('content-type');
-        if (contentType && contentType.includes('application/json')) {
-            const error = await response.json();
-            throw new Error(error.msg || t('EXPORT_FAILED'));
-        }
-        
-        // 取得檔案 blob
-        const blob = await response.blob();
-        
-        // 從 Content-Disposition 取得檔名
-        const contentDisposition = response.headers.get('content-disposition');
-        let filename = `出勤報表_${month}.csv`;
-        
-        if (contentDisposition) {
-            const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(contentDisposition);
-            if (matches != null && matches[1]) {
-                filename = decodeURIComponent(matches[1].replace(/['"]/g, ''));
-            }
-        }
-        
-        // 建立下載連結並觸發下載
-        const downloadUrl = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.style.display = 'none';
-        a.href = downloadUrl;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        
-        // 清理
-        window.URL.revokeObjectURL(downloadUrl);
-        document.body.removeChild(a);
-        
-        showNotification(t('EXPORT_SUCCESS'), 'success');
-        
-    } catch (error) {
-        console.error('匯出失敗:', error);
-        showNotification(t('EXPORT_FAILED') + ': ' + error.message, 'error');
-        
-    } finally {
-        // 恢復按鈕狀態
-        generalButtonState(button, 'idle');
-    }
-}
-
-/* ===== 打卡功能 ===== */
-function generalButtonState(button, state, loadingText = '處理中...') {
-    if (!button) return;
-    const loadingClasses = 'opacity-50 cursor-not-allowed';
-
-    if (state === 'processing') {
-        // --- 進入處理中狀態 ---
-        
-        // 1. 儲存原始文本 (用於恢復)
-        button.dataset.originalText = button.textContent;
-        
-        // 2. 儲存原始類別 (用於恢復樣式)
-        button.dataset.loadingClasses = 'opacity-50 cursor-not-allowed';
-
-        // 3. 禁用並設置處理中文字
-        button.disabled = true;
-        button.textContent = loadingText; // 使用傳入的 loadingText
-        
-        // 4. 添加視覺反饋 (禁用時的樣式)
-        button.classList.add(...loadingClasses.split(' '));
-        
-    } else {
-        // --- 恢復到原始狀態 ---
-        
-        // 1. 移除視覺反饋
-        if (button.dataset.loadingClasses) {
-            button.classList.remove(...button.dataset.loadingClasses.split(' '));
-        }
-
-        // 2. 恢復禁用狀態
-        button.disabled = false;
-        
-        // 3. 恢復原始文本
-        if (button.dataset.originalText) {
-            button.textContent = button.dataset.originalText;
-            delete button.dataset.originalText; // 清除儲存，讓它在下一次點擊時再次儲存
-        }
-    }
-}
-
-async function doPunch(type) {
-    const punchButtonId = type === '上班' ? 'punch-in-btn' : 'punch-out-btn';
-    
-    // ✨ 修正點 1: 獲取按鈕元素
-    const button = document.getElementById(punchButtonId);
-    const loadingText = t('LOADING') || '處理中...';
-
-    // 檢查按鈕是否存在，若不存在則直接返回
-    if (!button) return;
-
-    // A. 進入處理中狀態
-    generalButtonState(button, 'processing', loadingText);
-    
-    if (!navigator.geolocation) {
-        showNotification(t("ERROR_GEOLOCATION", { msg: "您的瀏覽器不支援地理位置功能。" }), "error");
-        
-        // B. 退出點 1: 不支援定位，恢復按鈕狀態
-        generalButtonState(button, 'idle');
-        return;
-    }
-    
-    // C. 處理地理位置的異步回呼
-    navigator.geolocation.getCurrentPosition(async (pos) => {
-        // --- 定位成功：執行 API 請求 ---
-        const lat = pos.coords.latitude;
-        const lng = pos.coords.longitude;
-        const action = `punch&type=${encodeURIComponent(type)}&lat=${lat}&lng=${lng}&note=${encodeURIComponent(navigator.userAgent)}`;
-        
-        try {
-            const res = await callApifetch(action);
-            const msg = t(res.code || "UNKNOWN_ERROR", res.params || {});
-            showNotification(msg, res.ok ? "success" : "error");
-            
-            // D. 退出點 2: API 成功，恢復按鈕狀態
-            generalButtonState(button, 'idle');
-        } catch (err) {
-            console.error(err);
-            
-            // E. 退出點 3: API 失敗，恢復按鈕狀態
-            generalButtonState(button, 'idle');
-        }
-        
-    }, (err) => {
-        // --- 定位失敗：處理權限錯誤等 ---
-        showNotification(t("ERROR_GEOLOCATION", { msg: err.message }), "error");
-        
-        // F. 退出點 4: 定位回呼失敗，恢復按鈕狀態
-        generalButtonState(button, 'idle');
-    });
-}
-
-function validateAdjustTime(value) {
-    const selected = new Date(value);
-    const now = new Date();
-    const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    if (selected < monthStart) {
-        showNotification(t("ERR_BEFORE_MONTH_START"), "error");
-        return false;
-    }
-    // 不允許選今天以後
-    if (selected > today) {
-        showNotification(t("ERR_AFTER_TODAY"), "error");
-        return false;
-    }
-    return true;
-}
-
 document.addEventListener('DOMContentLoaded', async () => {
     
     const loginBtn = document.getElementById('login-btn');
@@ -991,25 +464,301 @@ document.addEventListener('DOMContentLoaded', async () => {
     const locationLatInput = document.getElementById('location-lat');
     const locationLngInput = document.getElementById('location-lng');
     const addLocationBtn = document.getElementById('add-location-btn');
-    const exportPersonalBtn = document.getElementById('export-personal-btn');
-    const exportAbnormalBtn = document.getElementById('export-abnormal-btn');
-    const exportMonthlyBtn = document.getElementById('export-monthly-btn');
     
-    exportPersonalBtn.addEventListener('click', () => {
-        const userId = localStorage.getItem("sessionUserId");
-        exportReport('exportAttendance', { userId }, exportPersonalBtn);
-    });
+    let pendingRequests = []; // 新增：用於快取待審核的請求
     
-    exportAbnormalBtn.addEventListener('click', () => {
-        exportReport('exportAbnormalReport', {}, exportAbnormalBtn);
-    });
+    // 全域變數，用於儲存地圖實例
+    let mapInstance = null;
+    let mapLoadingText = null;
+    let currentCoords = null;
+    let marker = null;
+    let circle = null;
+    /**
+     * 從後端取得所有打卡地點，並將它們顯示在地圖上。
+     */
+    // 全域變數，用於儲存地點標記和圓形
+    let locationMarkers = L.layerGroup();
+    let locationCircles = L.layerGroup();
     
-    exportMonthlyBtn.addEventListener('click', () => {
-        exportReport('exportMonthlyReport', {}, exportMonthlyBtn);
-    });
+    /**
+     * 取得並渲染所有待審核的請求。
+     */
+    async function fetchAndRenderReviewRequests() {
+        const loadingEl = document.getElementById('requests-loading');
+        const emptyEl = document.getElementById('requests-empty');
+        const listEl = document.getElementById('pending-requests-list');
+        
+        loadingEl.style.display = 'block';
+        emptyEl.style.display = 'none';
+        listEl.innerHTML = '';
+        
+        try {
+            const res = await callApifetch("getReviewRequest");
+            
+            if (res.ok && Array.isArray(res.reviewRequest)) {
+                pendingRequests = res.reviewRequest; // 快取所有請求
+                
+                if (pendingRequests.length === 0) {
+                    emptyEl.style.display = 'block';
+                } else {
+                    renderReviewRequests(pendingRequests);
+                }
+            } else {
+                showNotification("取得待審核請求失敗：" + res.msg, "error");
+                emptyEl.style.display = 'block';
+            }
+        } catch (error) {
+            showNotification("取得待審核請求失敗，請檢查網路。", "error");
+            emptyEl.style.display = 'block';
+            console.error("Failed to fetch review requests:", error);
+        } finally {
+            loadingEl.style.display = 'none';
+        }
+    }
+    
+    /**
+     * 根據資料渲染待審核列表。
+     * @param {Array<Object>} requests - 請求資料陣列。
+     */
+    function renderReviewRequests(requests) {
+        const listEl = document.getElementById('pending-requests-list');
+        listEl.innerHTML = '';
+        
+        requests.forEach((req, index) => {
+            // ... (省略 li.innerHTML 內容，維持不變) ...
+            const li = document.createElement('li');
+            li.className = 'p-4 bg-gray-50 rounded-lg shadow-sm flex flex-col space-y-2 dark:bg-gray-700';
+            li.innerHTML = `
+             <div class="flex flex-col space-y-1">
+
+                        <div class="flex items-center justify-between w-full">
+                            <p class="text-sm font-semibold text-gray-800 dark:text-white">${req.name} - ${req.remark}</p>
+                            <span class="text-xs text-gray-500">${req.applicationPeriod}</span>
+                        </div>
+                    </div>
+                    
+                <div class="flex items-center justify-between w-full mt-2">
+                    <p 
+                        data-i18n-key="${req.type}" 
+                        class="text-sm text-indigo-600 dark:text-indigo-400 font-medium">
+                    </p> 
+                    
+                    <div class="flex space-x-2"> 
+                        <button data-i18n="ADMIN_APPROVE_BUTTON" data-index="${index}" class="approve-btn px-3 py-1 rounded-md text-sm font-bold btn-primary">核准</button>
+                        <button data-i18n="ADMIN_REJECT_BUTTON" data-index="${index}" class="reject-btn px-3 py-1 rounded-md text-sm font-bold btn-warning">拒絕</button>
+                    </div>
+                </div>
+            `;
+            listEl.appendChild(li);
+            renderTranslations(li);
+        });
+        
+        listEl.querySelectorAll('.approve-btn').forEach(button => {
+            button.addEventListener('click', (e) => handleReviewAction(e.currentTarget, e.currentTarget.dataset.index, 'approve'));
+        });
+        
+        listEl.querySelectorAll('.reject-btn').forEach(button => {
+            button.addEventListener('click', (e) => handleReviewAction(e.currentTarget, e.currentTarget.dataset.index, 'reject'));
+        });
+    }
+    
+    /**
+     * 處理審核動作（核准或拒絕）。
+     * @param {HTMLElement} button - 被點擊的按鈕元素。 ✨ 新增此參數
+     * @param {number} index - 請求在陣列中的索引。
+     * @param {string} action - 'approve' 或 'reject'。
+     */
+    async function handleReviewAction(button, index, action) {
+        const request = pendingRequests[index];
+        if (!request) {
+            showNotification("找不到請求資料。", "error");
+            return;
+        }
+
+        const recordId = request.id;
+        const endpoint = action === 'approve' ? 'approveReview' : 'rejectReview';
+        const loadingText = t('LOADING') || '處理中...';
+        
+        // A. 進入處理中狀態
+        generalButtonState(button, 'processing', loadingText);
+        
+        try {
+            const res = await callApifetch(`${endpoint}&id=${recordId}`);
+            
+            if (res.ok) {
+                const translationKey = action === 'approve' ? 'REQUEST_APPROVED' : 'REQUEST_REJECTED';
+                showNotification(t(translationKey), "success");
+                
+                // 由於成功後列表會被重新整理，這裡可以不立即恢復按鈕狀態
+                // 但是為了保險起見，我們仍然在 finally 中恢復。
+                
+                // 延遲執行，讓按鈕的禁用狀態能被看到
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                // 列表重新整理會渲染新按鈕，覆蓋舊的按鈕
+                fetchAndRenderReviewRequests();
+            } else {
+                showNotification(t('REVIEW_FAILED', { msg: res.msg }), "error");
+            }
+            
+        } catch (err) {
+            showNotification(t("REVIEW_NETWORK_ERROR"), "error");
+            console.error(err);
+            
+        } finally {
+            // B. 無論成功或失敗，都需要將按鈕恢復到可點擊狀態
+            // 只有在列表沒有被重新整理時，這個恢復才有意義
+            generalButtonState(button, 'idle');
+        }
+    }
+    /**
+     * 從後端取得所有打卡地點，並將它們顯示在地圖上。
+     */
+    async function fetchAndRenderLocationsOnMap() {
+        try {
+            const res = await callApifetch("getLocations");
+            
+            // 清除舊的地點標記和圓形
+            locationMarkers.clearLayers();
+            locationCircles.clearLayers();
+            
+            if (res.ok && Array.isArray(res.locations)) {
+                // 遍歷所有地點並在地圖上放置標記和圓形
+                res.locations.forEach(loc => {
+                    // 如果沒有容許誤差，則預設為 50 公尺
+                    const punchInRadius = loc.scope || 50;
+                    
+                    // 加入圓形範圍
+                    const locationCircle = L.circle([loc.lat, loc.lng], {
+                        color: 'red',
+                        fillColor: '#f03',
+                        fillOpacity: 0.2,
+                        radius: punchInRadius
+                    });
+                    locationCircle.bindPopup(`<b>${loc.name}</b><br>可打卡範圍：${punchInRadius}公尺`);
+                    locationCircles.addLayer(locationCircle);
+                });
+                
+                // 將所有地點標記和圓形一次性加到地圖上
+                locationMarkers.addTo(mapInstance);
+                locationCircles.addTo(mapInstance);
+                
+                console.log("地點標記和範圍已成功載入地圖。");
+            } else {
+                showNotification("取得地點清單失敗：" + res.msg, "error");
+                console.error("Failed to fetch locations:", res.msg);
+            }
+        } catch (error) {
+            showNotification("取得地點清單失敗，請檢查網路。", "error");
+            console.error("Failed to fetch locations:", error);
+        }
+    }
+    // 初始化地圖並取得使用者位置
+    function initLocationMap(forceReload = false){
+        const mapContainer = document.getElementById('map-container');
+        const statusEl = document.getElementById('location-status');
+        const coordsEl = document.getElementById('location-coords');
+        console.log(mapInstance && !forceReload);
+        // 取得載入文字元素
+        if (!mapLoadingText) {
+            mapLoadingText = document.getElementById('map-loading-text');
+        }
+        // 檢查地圖實例是否已存在
+        if (mapInstance) {
+            // 如果已經存在，並且沒有被要求強制重新載入，則直接返回
+            if (!forceReload) {
+                mapInstance.invalidateSize();
+                return;
+            }
+            
+            // 如果被要求強制重新載入，則先徹底銷毀舊的地圖實例
+            mapInstance.remove();
+            mapInstance = null;
+        }
+        
+        
+        // 顯示載入中的文字
+        mapLoadingText.style.display = 'block'; // 或 'block'，根據你的樣式決定
+        
+        // 建立地圖
+        mapInstance = L.map('map-container', {
+            center: [25.0330, 121.5654], // 預設中心點為台北市
+            zoom: 13
+        });
+        
+        // 加入 OpenStreetMap 圖層
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(mapInstance);
+        
+        // 讓地圖在完成載入後隱藏載入中的文字
+        mapInstance.whenReady(() => {
+            mapLoadingText.style.display = 'none';
+            // 確保地圖的尺寸正確
+            mapInstance.invalidateSize();
+        });
+        
+        // 顯示載入狀態
+        //mapContainer.innerHTML = t("MAP_LOADING");
+        statusEl.textContent = t('DETECTING_LOCATION');
+        coordsEl.textContent = t('UNKNOWN_LOCATION');
+        
+        // 取得使用者地理位置
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                                                     (position) => {
+                                                         const { latitude, longitude } = position.coords;
+                                                         currentCoords = [latitude, longitude];
+                                                         
+                                                         // 更新狀態顯示
+                                                         statusEl.textContent = t('DETECTION_SUCCESS');
+                                                         coordsEl.textContent = `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
+                                                         
+                                                         // 設定地圖視圖
+                                                         mapInstance.setView(currentCoords, 18);
+                                                         
+                                                         // 在地圖上放置標記
+                                                         if (marker) mapInstance.removeLayer(marker);
+                                                         marker = L.marker(currentCoords).addTo(mapInstance)
+                                                         .bindPopup(t('CURRENT_LOCATION'))
+                                                         .openPopup();
+                                                         
+                                                         
+                                                     },
+                                                     (error) => {
+                                                         // 處理定位失敗
+                                                         statusEl.textContent = t('ERROR_GEOLOCATION_PERMISSION_DENIED');
+                                                         console.error("Geolocation failed:", error);
+                                                         
+                                                         let message;
+                                                         switch(error.code) {
+                                                             case error.PERMISSION_DENIED:
+                                                                 message = t('ERROR_GEOLOCATION_PERMISSION_DENIED');
+                                                                 break;
+                                                             case error.POSITION_UNAVAILABLE:
+                                                                 message = t('ERROR_GEOLOCATION_UNAVAILABLE');
+                                                                 break;
+                                                             case error.TIMEOUT:
+                                                                 message = t('ERROR_GEOLOCATION_TIMEOUT');
+                                                                 break;
+                                                             case error.UNKNOWN_ERROR:
+                                                                 message = t('ERROR_GEOLOCATION_UNKNOWN');
+                                                                 break;
+                                                         }
+                                                         showNotification(`定位失敗：${message}`, "error");
+                                                     }
+                                                     );
+            // 成功取得使用者位置後，載入所有打卡地點
+            fetchAndRenderLocationsOnMap();
+        } else {
+            showNotification(t('ERROR_BROWSER_NOT_SUPPORTED'), "error");
+            statusEl.textContent = '不支援定位';
+        }
+    }
+    
     
     // 處理 API 測試按鈕事件
-    document.getElementById('test-api-btn')?.addEventListener('click', async () => {
+    document.getElementById('test-api-btn').addEventListener('click', async () => {
         // 這裡替換成您想要測試的 API action 名稱
         const testAction = "testEndpoint";
         
@@ -1082,6 +831,44 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.error(err);
         }
     });
+    // UI切換邏輯
+    const switchTab = (tabId) => {
+        const tabs = ['dashboard-view', 'monthly-view', 'location-view', 'admin-view'];
+        const btns = ['tab-dashboard-btn', 'tab-monthly-btn', 'tab-location-btn', 'tab-admin-btn'];
+        
+        // 1. 移除舊的 active 類別和 CSS 屬性
+        tabs.forEach(id => {
+            const tabElement = document.getElementById(id);
+            tabElement.style.display = 'none'; // 隱藏內容
+            tabElement.classList.remove('active'); // 移除 active 類別
+        });
+        
+        // 2. 移除按鈕的選中狀態
+        btns.forEach(id => {
+            const btnElement = document.getElementById(id);
+            btnElement.classList.replace('bg-indigo-600', 'bg-gray-200');
+            btnElement.classList.replace('text-white', 'text-gray-600');
+        });
+        
+        // 3. 顯示新頁籤並新增 active 類別
+        const newTabElement = document.getElementById(tabId);
+        newTabElement.style.display = 'block'; // 顯示內容
+        newTabElement.classList.add('active'); // 新增 active 類別
+        
+        // 4. 設定新頁籤按鈕的選中狀態
+        const newBtnElement = document.getElementById(`tab-${tabId.replace('-view', '-btn')}`);
+        newBtnElement.classList.replace('bg-gray-200', 'bg-indigo-600');
+        newBtnElement.classList.replace('text-gray-600', 'text-white');
+        
+        // 5. 根據頁籤 ID 執行特定動作
+        if (tabId === 'monthly-view') {
+            renderCalendar(currentMonthDate);
+        } else if (tabId === 'location-view') {
+            initLocationMap(); // <-- 這行保持不變
+        } else if (tabId === 'admin-view') {
+            fetchAndRenderReviewRequests();
+        }
+    };
     
     // 語系初始化
     let currentLang = localStorage.getItem("lang"); // 先從 localStorage 讀取上次的設定
@@ -1142,6 +929,116 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.location.href = "/New_Attendance-System"
     };
     
+    /* ===== 打卡功能 ===== */
+    function punchButtonState(buttonId, state) {
+        const button = document.getElementById(buttonId);
+        if (!button) return;
+        
+        if (state === 'processing') {
+            button.disabled = true;
+            button.textContent = t('LOADING');
+        } else {
+            button.disabled = false;
+            if (buttonId === 'punch-in-btn') {
+                button.textContent = t('PUNCH_IN_LABEL');
+            } else if (buttonId === 'punch-out-btn') {
+                button.textContent = t('PUNCH_IN_LABEL');
+            }
+        }
+    }
+    function generalButtonState(button, state, loadingText = '處理中...') {
+        if (!button) return;
+        const loadingClasses = 'opacity-50 cursor-not-allowed';
+
+        if (state === 'processing') {
+            // --- 進入處理中狀態 ---
+            
+            // 1. 儲存原始文本 (用於恢復)
+            button.dataset.originalText = button.textContent;
+            
+            // 2. 儲存原始類別 (用於恢復樣式)
+            // 這是為了在恢復時移除我們為了禁用而添加的類別
+            button.dataset.loadingClasses = 'opacity-50 cursor-not-allowed';
+
+            // 3. 禁用並設置處理中文字
+            button.disabled = true;
+            button.textContent = loadingText; // 使用傳入的 loadingText
+            
+            // 4. 添加視覺反饋 (禁用時的樣式)
+            button.classList.add(...loadingClasses.split(' '));
+            
+            // 可選：移除 hover 效果，防止滑鼠移動時顏色變化
+            // 假設您的按鈕有 hover:opacity-100 之類的類別，這裡需要調整
+            
+        } else {
+            // --- 恢復到原始狀態 ---
+            
+            // 1. 移除視覺反饋
+            if (button.dataset.loadingClasses) {
+                button.classList.remove(...button.dataset.loadingClasses.split(' '));
+            }
+
+            // 2. 恢復禁用狀態
+            button.disabled = false;
+            
+            // 3. 恢復原始文本
+            if (button.dataset.originalText) {
+                button.textContent = button.dataset.originalText;
+                delete button.dataset.originalText; // 清除儲存，讓它在下一次點擊時再次儲存
+            }
+        }
+    }
+    async function doPunch(type) {
+        const punchButtonId = type === '上班' ? 'punch-in-btn' : 'punch-out-btn';
+        
+        // ✨ 修正點 1: 獲取按鈕元素
+        const button = document.getElementById(punchButtonId);
+        const loadingText = t('LOADING') || '處理中...';
+
+        // 檢查按鈕是否存在，若不存在則直接返回
+        if (!button) return;
+
+        // A. 進入處理中狀態
+        generalButtonState(button, 'processing', loadingText);
+        
+        if (!navigator.geolocation) {
+            showNotification(t("ERROR_GEOLOCATION", { msg: "您的瀏覽器不支援地理位置功能。" }), "error");
+            
+            // B. 退出點 1: 不支援定位，恢復按鈕狀態
+            generalButtonState(button, 'idle');
+            return;
+        }
+        
+        // C. 處理地理位置的異步回呼
+        navigator.geolocation.getCurrentPosition(async (pos) => {
+            // --- 定位成功：執行 API 請求 ---
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
+            const action = `punch&type=${encodeURIComponent(type)}&lat=${lat}&lng=${lng}&note=${encodeURIComponent(navigator.userAgent)}`;
+            
+            try {
+                const res = await callApifetch(action);
+                const msg = t(res.code || "UNKNOWN_ERROR", res.params || {});
+                showNotification(msg, res.ok ? "success" : "error");
+                
+                // D. 退出點 2: API 成功，恢復按鈕狀態
+                generalButtonState(button, 'idle');
+            } catch (err) {
+                console.error(err);
+                
+                // E. 退出點 3: API 失敗，恢復按鈕狀態
+                generalButtonState(button, 'idle');
+            }
+            
+        }, (err) => {
+            // --- 定位失敗：處理權限錯誤等 ---
+            showNotification(t("ERROR_GEOLOCATION", { msg: err.message }), "error");
+            
+            // F. 退出點 4: 定位回呼失敗，恢復按鈕狀態
+            generalButtonState(button, 'idle');
+        });
+    }
+    
     punchInBtn.addEventListener('click', () => doPunch("上班"));
     punchOutBtn.addEventListener('click', () => doPunch("下班"));
     
@@ -1179,6 +1076,24 @@ document.addEventListener('DOMContentLoaded', async () => {
             adjustDateTimeInput.value = `${date}T${defaultTime}`;
         }
     });
+    
+    function validateAdjustTime(value) {
+        const selected = new Date(value);
+        const now = new Date();
+        const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        if (selected < monthStart) {
+            showNotification(t("ERR_BEFORE_MONTH_START"), "error");
+            return false;
+        }
+        // 不允許選今天以後
+        if (selected > today) {
+            showNotification(t("ERR_AFTER_TODAY"), "error");
+            return false;
+        }
+        return true;
+    }
     
     adjustmentFormContainer.addEventListener('click', async (e) => {
         
