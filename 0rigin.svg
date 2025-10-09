@@ -1,0 +1,47 @@
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+  <!-- 外圈藍色圓環 -->
+  <defs>
+    <linearGradient id="blueGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4169E1;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#1E90FF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0047AB;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- 外圓環 -->
+  <circle cx="200" cy="200" r="180" fill="url(#blueGradient)" />
+  <circle cx="200" cy="200" r="145" fill="white" />
+  
+  <!-- 時鐘刻度 -->
+  <line x1="200" y1="70" x2="200" y2="90" stroke="#6B7280" stroke-width="6" stroke-linecap="round"/>
+  <line x1="200" y1="310" x2="200" y2="330" stroke="#6B7280" stroke-width="6" stroke-linecap="round"/>
+  <line x1="70" y1="200" x2="90" y2="200" stroke="#6B7280" stroke-width="6" stroke-linecap="round"/>
+  <line x1="310" y1="200" x2="330" y2="200" stroke="#6B7280" stroke-width="6" stroke-linecap="round"/>
+  
+  <!-- 時針 (藍色) -->
+  <line x1="200" y1="200" x2="200" y2="130" stroke="#4169E1" stroke-width="10" stroke-linecap="round"/>
+  
+  <!-- 分針 (綠色) -->
+  <line x1="200" y1="200" x2="270" y2="140" stroke="#5ECC8C" stroke-width="10" stroke-linecap="round"/>
+  
+  <!-- 中心點 -->
+  <circle cx="200" cy="200" r="8" fill="#2C3E50"/>
+  
+  <!-- 右上星星 (金黃色) -->
+  <g transform="translate(320, 60)">
+    <path d="M 0,-20 L 5.88,-6.18 L 20.64,-6.18 L 9.51,2.94 L 15.39,16.76 L 0,7.64 L -15.39,16.76 L -9.51,2.94 L -20.64,-6.18 L -5.88,-6.18 Z" 
+          fill="#FFD700" stroke="#FFA500" stroke-width="1.5"/>
+  </g>
+  
+  <!-- 左下星星 (金黃色) -->
+  <g transform="translate(80, 340)">
+    <path d="M 0,-20 L 5.88,-6.18 L 20.64,-6.18 L 9.51,2.94 L 15.39,16.76 L 0,7.64 L -15.39,16.76 L -9.51,2.94 L -20.64,-6.18 L -5.88,-6.18 Z" 
+          fill="#FFD700" stroke="#FFA500" stroke-width="1.5"/>
+  </g>
+  
+  <!-- 右側小圓點 (金黃色) -->
+  <circle cx="350" cy="80" r="8" fill="#FFD700"/>
+  
+  <!-- 底部小圓點 (金黃色) -->
+  <circle cx="240" cy="360" r="8" fill="#FFD700"/>
+</svg>
