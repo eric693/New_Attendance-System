@@ -22,17 +22,21 @@ body {
 
 /* --- Main Image (Logo) --- */
 .main-image {
-    width: auto;           /* 保持寬度自動 */
-    max-width: 280px;      /* 限制最大寬度 */
-    height: auto;          /* 保持高度自動 */
-    margin: 0 auto 1.5rem; /* 置中並加入底部間距 */
-    display: block;        /* 讓圖片成為區塊元素以便置中 */
-    object-fit: contain;   /* 確保圖片保持原始比例 */
+    width: auto;
+    max-width: 400px;           /* 改大 */
+    height: auto;
+    margin: 0 auto 1.5rem;
+    display: block;
+    object-fit: contain;
+    background-color: white;    /* 強制白底 */
+    padding: 1.5rem;            /* 加大內距 */
+    border-radius: 1rem;        /* 圓角 */
 }
 
 /* 暗黑模式下的 Logo 調整 */
 html.dark .main-image {
-    filter: brightness(0.95);
+    background-color: white;    /* 暗黑模式也保持白底 */
+    filter: none;               /* 移除濾鏡 */
 }
 
 /* --- Primary Button --- */
