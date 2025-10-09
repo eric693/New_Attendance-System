@@ -456,6 +456,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const tabMonthlyBtn = document.getElementById('tab-monthly-btn');
     const tabLocationBtn = document.getElementById('tab-location-btn');
     const tabAdminBtn = document.getElementById('tab-admin-btn');
+    const tabOvertimeBtn = document.getElementById('tab-overtime-btn'); // 👈 新增這行
     const abnormalList = document.getElementById('abnormal-list');
     const adjustmentFormContainer = document.getElementById('adjustment-form-container');
     const calendarGrid = document.getElementById('calendar-grid');
@@ -833,9 +834,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
     // UI切換邏輯
     const switchTab = (tabId) => {
-        const tabs = ['dashboard-view', 'monthly-view', 'location-view', 'admin-view'];
-        const btns = ['tab-dashboard-btn', 'tab-monthly-btn', 'tab-location-btn', 'tab-admin-btn'];
-        
+        const tabs = ['dashboard-view', 'monthly-view', 'location-view', 'admin-view', 'overtime-view'];
+        const btns = ['tab-dashboard-btn', 'tab-monthly-btn', 'tab-location-btn', 'tab-admin-btn', 'tab-overtime-btn'];
+    
         // 1. 移除舊的 active 類別和 CSS 屬性
         tabs.forEach(id => {
             const tabElement = document.getElementById(id);
@@ -864,9 +865,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (tabId === 'monthly-view') {
             renderCalendar(currentMonthDate);
         } else if (tabId === 'location-view') {
-            initLocationMap(); // <-- 這行保持不變
+            initLocationMap();
         } else if (tabId === 'admin-view') {
             fetchAndRenderReviewRequests();
+            loadPendingOvertimeRequests(); // 👈 在管理員頁面也載入加班審核
+        } else if (tabId === 'overtime-view') { // 👈 新增這個條件
+            initOvertimeTab();
         }
     };
     
@@ -1041,7 +1045,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     punchInBtn.addEventListener('click', () => doPunch("上班"));
     punchOutBtn.addEventListener('click', () => doPunch("下班"));
-    
+
     // 處理補打卡表單
     abnormalList.addEventListener('click', (e) => {
         if (e.target.classList.contains('adjust-btn')) {
@@ -1155,8 +1159,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     tabLocationBtn.addEventListener('click', () => switchTab('location-view'));
     tabMonthlyBtn.addEventListener('click', () => switchTab('monthly-view'));
+    tabOvertimeBtn.addEventListener('click', () => {
+        switchTab('overtime-view');
+        initOvertimeTab();
+    });
+
     tabAdminBtn.addEventListener('click', async () => {
-        
+    
         // 獲取按鈕元素和處理中文字
         const button = tabAdminBtn; // tabAdminBtn 變數本身就是按鈕元素
         const loadingText = t('CHECKING') || '檢查中...'; // 可以使用更貼切的翻譯

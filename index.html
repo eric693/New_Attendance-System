@@ -118,7 +118,9 @@
                     <button id="tab-dashboard-btn" data-i18n="TAB_DASHBOARD" class="py-2 px-4 rounded-full font-bold text-sm text-white bg-indigo-600">儀表板</button>
                     <button id="tab-monthly-btn" data-i18n="TAB_MONTHLY" class="py-2 px-4 rounded-full font-bold text-sm text-gray-600 bg-gray-200">月份檢視</button>
                     <button id="tab-location-btn" data-i18n="TAB_LOCATION" class="py-2 px-4 rounded-full font-bold text-sm text-gray-600 bg-gray-200">定位</button>
-                    <button id="tab-admin-btn" data-i18n="TAB_ADMIN" class="py-2 px-4 rounded-full font-bold text-sm text-gray-600 bg-gray-200" style="display: none";>管理員</button>
+                    <!-- 👇 新增加班按鈕 -->
+                    <button id="tab-overtime-btn" data-i18n="TAB_OVERTIME" class="py-2 px-4 rounded-full font-bold text-sm text-gray-600 bg-gray-200">加班</button>
+                    <button id="tab-admin-btn" data-i18n="TAB_ADMIN" class="py-2 px-4 rounded-full font-bold text-sm text-gray-600 bg-gray-200" style="display: none;">管理員</button>
                 </div>
                 
                 <!-- Dashboard View -->
@@ -128,7 +130,7 @@
                             class="text-xl font-bold text-gray-800 dark:text-white mb-1">
                             打卡專區
                         </h2>
-                        <p  data-i18n="PUNCH_SECTION_DESCRIPTION" lass="text-gray-500 mb-4">請點擊下方按鈕進行上班或下班打卡。</p>
+                        <p  data-i18n="PUNCH_SECTION_DESCRIPTION" class="text-gray-500 mb-4">請點擊下方按鈕進行上班或下班打卡。</p>
                         <div id="punch-actions" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <button id="punch-in-btn" data-i18n="PUNCH_IN_LABEL"
                                 class="w-full py-3 px-4 rounded-lg font-bold btn-primary">上班打卡</button>
@@ -194,14 +196,132 @@
                         <div class="bg-gray-50 p-4 dark:bg-gray-700 rounded-lg">
                             <p class="text-sm text-gray-600 dark:text-white">
                             <strong data-i18n="LOCATION_STATUS_LABEL">狀態：</strong>
-                            <span id="location-status" ata-i18n="LOCATION_STATUS_PENDING">未偵測</span>
+                            <span id="location-status" data-i18n="LOCATION_STATUS_PENDING">未偵測</span>
                             </p>
-                            <p  dclass="text-sm text-gray-600">
+                            <p class="text-sm text-gray-600">
                             <strong data-i18n="COORDINATES_LABEL">經緯度：</strong>
                             <span id="location-coords" data-i18n="COORDINATES_UNKNOWN">未知</span>
                             </p>
                         </div>
                     </div>
+                </section>
+                
+                <!-- 👇 加班頁面 (Overtime View) -->
+                <section id="overtime-view" class="space-y-6" style="display: none;">
+                    
+                    <!-- 加班申請表單 -->
+                    <div class="card p-6">
+                        <h2 data-i18n="OVERTIME_APPLY_TITLE" 
+                            class="text-xl font-bold text-gray-800 dark:text-white mb-2">
+                            申請加班
+                        </h2>
+                        <p data-i18n="OVERTIME_APPLY_DESCRIPTION" 
+                           class="text-gray-500 dark:text-gray-400 mb-4">
+                            填寫以下資訊提交加班申請
+                        </p>
+                        
+                        <div class="space-y-4">
+                            <!-- 加班日期 -->
+                            <div>
+                                <label data-i18n="OVERTIME_DATE_LABEL" 
+                                       for="overtime-date" 
+                                       class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                    加班日期
+                                </label>
+                                <input type="date" 
+                                       id="overtime-date" 
+                                       class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm dark:bg-gray-700 dark:text-white focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+                            
+                            <!-- 開始時間 -->
+                            <div>
+                                <label data-i18n="OVERTIME_START_TIME_LABEL" 
+                                       for="overtime-start-time" 
+                                       class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                    開始時間
+                                </label>
+                                <input type="time" 
+                                       id="overtime-start-time" 
+                                       class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm dark:bg-gray-700 dark:text-white focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+                            
+                            <!-- 結束時間 -->
+                            <div>
+                                <label data-i18n="OVERTIME_END_TIME_LABEL" 
+                                       for="overtime-end-time" 
+                                       class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                    結束時間
+                                </label>
+                                <input type="time" 
+                                       id="overtime-end-time" 
+                                       class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm dark:bg-gray-700 dark:text-white focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+                            
+                            <!-- 加班時數（自動計算） -->
+                            <div>
+                                <label data-i18n="OVERTIME_HOURS_LABEL" 
+                                       for="overtime-hours" 
+                                       class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                    加班時數
+                                </label>
+                                <input type="number" 
+                                       id="overtime-hours" 
+                                       step="0.5" 
+                                       readonly 
+                                       class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-gray-100 dark:bg-gray-600 dark:text-white">
+                            </div>
+                            
+                            <!-- 申請原因 -->
+                            <div>
+                                <label data-i18n="OVERTIME_REASON_LABEL" 
+                                       for="overtime-reason" 
+                                       class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                    申請原因
+                                </label>
+                                <textarea id="overtime-reason" 
+                                          rows="3" 
+                                          placeholder="請說明加班原因..."
+                                          class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm dark:bg-gray-700 dark:text-white focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+                            </div>
+                            
+                            <!-- 提交按鈕 -->
+                            <button id="submit-overtime-btn" 
+                                    data-i18n="OVERTIME_SUBMIT_BTN" 
+                                    class="w-full py-3 px-4 rounded-lg font-bold btn-primary">
+                                提交申請
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 我的加班記錄 -->
+                    <div class="card p-6">
+                        <h2 data-i18n="OVERTIME_RECORDS_TITLE" 
+                            class="text-xl font-bold text-gray-800 dark:text-white mb-2">
+                            我的加班記錄
+                        </h2>
+                        <p data-i18n="OVERTIME_RECORDS_DESCRIPTION" 
+                           class="text-gray-500 dark:text-gray-400 mb-4">
+                            查看您的加班申請歷史記錄
+                        </p>
+                        
+                        <div id="overtime-records-container">
+                            <div id="overtime-records-loading" 
+                                 data-i18n="RECORDS_LOADING" 
+                                 class="text-center text-gray-500 py-4">
+                                正在載入記錄...
+                            </div>
+                            <div id="overtime-records-empty" 
+                                 class="text-center text-gray-600 bg-gray-50 dark:bg-gray-700 p-4 rounded-lg" 
+                                 style="display: none;">
+                                <p data-i18n="OVERTIME_NO_RECORDS" 
+                                   class="font-semibold">
+                                    目前沒有加班記錄
+                                </p>
+                            </div>
+                            <ul id="overtime-records-list" class="space-y-3"></ul>
+                        </div>
+                    </div>
+                    
                 </section>
                 
                 <!-- Admin View -->
@@ -213,12 +333,41 @@
                             <div id="requests-loading" data-i18n="REQUESTS_LOADING" class="text-center text-gray-500 py-4">正在載入請求...</div>
                             <div id="requests-empty" class="text-center text-green-600 bg-green-50 p-4 rounded-lg" style="display: none;">
                                 <p data-i18n="REQUESTS_EMPTY_TITLE" class="font-semibold">太棒了！</p>
-                                <p
-                                data-i18n="REQUESTS_EMPTY_MESSAGE">目前沒有任何待審核的請求。</p>
+                                <p data-i18n="REQUESTS_EMPTY_MESSAGE">目前沒有任何待審核的請求。</p>
                             </div>
                             <ul id="pending-requests-list" class="space-y-3"></ul>
                         </div>
                     </div>
+                    
+                    <!-- 👇 加班審核區塊 -->
+                    <div class="card p-6 mt-6">
+                        <h2 data-i18n="OVERTIME_PENDING_TITLE" 
+                            class="text-xl font-bold text-gray-800 dark:text-white mb-2">
+                            待審核加班申請
+                        </h2>
+                        <p data-i18n="OVERTIME_PENDING_DESCRIPTION" 
+                           class="text-gray-500 dark:text-gray-400 mb-4">
+                            審核員工提出的加班申請
+                        </p>
+                        
+                        <div id="pending-overtime-container">
+                            <div id="overtime-requests-loading" 
+                                 data-i18n="REQUESTS_LOADING" 
+                                 class="text-center text-gray-500 py-4">
+                                正在載入請求...
+                            </div>
+                            <div id="overtime-requests-empty" 
+                                 class="text-center text-green-600 bg-green-50 dark:bg-green-900 p-4 rounded-lg" 
+                                 style="display: none;">
+                                <p data-i18n="OVERTIME_NO_PENDING" 
+                                   class="font-semibold">
+                                    太棒了！目前沒有待審核的加班申請。
+                                </p>
+                            </div>
+                            <ul id="pending-overtime-list" class="space-y-3"></ul>
+                        </div>
+                    </div>
+                    
                     <div class="card p-6 mt-6">
                         <h2 data-i18n="ADD_LOCATION_TITLE" class="text-xl font-bold text-gray-800 mb-2  dark:text-white mb-1">新增打卡地點</h2>
                         <p data-i18n="ADD_LOCATION_DESCRIPTION" class="text-gray-500 mb-4">輸入地點名稱，並使用您的當前位置作為經緯度。</p>
@@ -267,5 +416,7 @@
         
         <script src="config.js"></script>
         <script src="script.js"></script>
+        <!-- 👇 新增 overtime.js -->
+        <script src="overtime.js"></script>
     </body>
 </html>
