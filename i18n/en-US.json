@@ -139,5 +139,12 @@
   "STATUS_REPAIR_PENDING": "Make-up Punch (Pending)",
   "STATUS_REPAIR_APPROVED": "Make-up Punch Approved",
   "PUNCH_IN": "Punch In",
-  "PUNCH_OUT": "Punch Out"
+  "PUNCH_OUT": "Punch Out",
+  "EXPORT_PERSONAL": "Export Personal Records",
+  "EXPORT_ABNORMAL": "Export Abnormal Records",
+  "EXPORT_MONTHLY": "Export Monthly Summary",
+  "EXPORTING": "Exporting...",
+  "EXPORT_SUCCESS": "Report exported successfully!",
+  "EXPORT_FAILED": "Export failed",
+  "ERR_NO_PERMISSION": "Insufficient permissions to perform this action"
 }

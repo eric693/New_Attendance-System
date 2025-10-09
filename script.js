@@ -464,6 +464,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const locationLatInput = document.getElementById('location-lat');
     const locationLngInput = document.getElementById('location-lng');
     const addLocationBtn = document.getElementById('add-location-btn');
+    const exportPersonalBtn = document.getElementById('export-personal-btn');
+    const exportAbnormalBtn = document.getElementById('export-abnormal-btn');
+    const exportMonthlyBtn = document.getElementById('export-monthly-btn');
     
     let pendingRequests = []; // 新增：用於快取待審核的請求
     
@@ -479,6 +482,121 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 全域變數，用於儲存地點標記和圓形
     let locationMarkers = L.layerGroup();
     let locationCircles = L.layerGroup();
+    
+    /**
+     * 通用匯出函式
+     * @param {string} action - API action 名稱
+     * @param {object} params - 額外參數
+     * @param {HTMLElement} button - 按鈕元素（用於狀態控制）
+     */
+    async function exportReport(action, params = {}, button) {
+        const token = localStorage.getItem("sessionToken");
+        const month = currentMonthDate.getFullYear() + "-" + 
+                     String(currentMonthDate.getMonth() + 1).padStart(2, "0");
+        
+        // 組合參數
+        const queryParams = new URLSearchParams({
+            action: action,
+            token: token,
+            month: month,
+            format: 'csv',
+            ...params
+        });
+        
+        const url = `${API_CONFIG.apiUrl}?${queryParams.toString()}`;
+        
+        // 進入處理中狀態
+        generalButtonState(button, 'processing', t('EXPORTING'));
+        
+        try {
+            // 使用 fetch 下載檔案
+            const response = await fetch(url);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            // 檢查是否為 JSON 錯誤回應
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                const error = await response.json();
+                throw new Error(error.msg || t('EXPORT_FAILED'));
+            }
+            
+            // 取得檔案 blob
+            const blob = await response.blob();
+            
+            // 從 Content-Disposition 取得檔名
+            const contentDisposition = response.headers.get('content-disposition');
+            let filename = `出勤報表_${month}.csv`;
+            
+            if (contentDisposition) {
+                const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(contentDisposition);
+                if (matches != null && matches[1]) {
+                    filename = decodeURIComponent(matches[1].replace(/['"]/g, ''));
+                }
+            }
+            
+            // 建立下載連結並觸發下載
+            const downloadUrl = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = downloadUrl;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            
+            // 清理
+            window.URL.revokeObjectURL(downloadUrl);
+            document.body.removeChild(a);
+            
+            showNotification(t('EXPORT_SUCCESS'), 'success');
+            
+        } catch (error) {
+            console.error('匯出失敗:', error);
+            showNotification(t('EXPORT_FAILED') + ': ' + error.message, 'error');
+            
+        } finally {
+            // 恢復按鈕狀態
+            generalButtonState(button, 'idle');
+        }
+    }
+
+    exportPersonalBtn.addEventListener('click', () => {
+        const userId = localStorage.getItem("sessionUserId");
+        exportReport('exportAttendance', { userId }, exportPersonalBtn);
+    });
+    
+    exportAbnormalBtn.addEventListener('click', () => {
+        exportReport('exportAbnormalReport', {}, exportAbnormalBtn);
+    });
+    
+    exportMonthlyBtn.addEventListener('click', () => {
+        exportReport('exportMonthlyReport', {}, exportMonthlyBtn);
+    });
+    
+    // ⭐ 根據權限顯示/隱藏按鈕
+    async function updateExportButtonsVisibility() {
+        try {
+            const res = await callApifetch("checkSession");
+            if (res.ok && res.user && res.user.dept === "管理員") {
+                exportMonthlyBtn.style.display = 'block';
+            } else {
+                exportMonthlyBtn.style.display = 'none';
+            }
+        } catch (err) {
+            console.error('檢查權限失敗:', err);
+        }
+    }
+    
+    // 在切換到月份檢視時更新按鈕可見性
+    const originalSwitchTab = switchTab;
+    switchTab = async function(tabId) {
+        await originalSwitchTab(tabId);
+        if (tabId === 'monthly-view') {
+            await updateExportButtonsVisibility();
+        }
+    };
     
     /**
      * 取得並渲染所有待審核的請求。

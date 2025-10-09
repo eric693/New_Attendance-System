@@ -141,5 +141,13 @@
     "STATUS_REPAIR_PENDING": "補卡(審核中)",
     "STATUS_REPAIR_APPROVED": "補卡通過",
     "PUNCH_IN": "上班",
-    "PUNCH_OUT": "下班"
+    "PUNCH_OUT": "下班",
+    "_comment_export": "==== 匯出報表相關翻譯 ====",
+    "EXPORT_PERSONAL": "匯出個人明細",
+    "EXPORT_ABNORMAL": "匯出異常紀錄",
+    "EXPORT_MONTHLY": "匯出月度統計",
+    "EXPORTING": "匯出中...",
+    "EXPORT_SUCCESS": "報表匯出成功！",
+    "EXPORT_FAILED": "匯出失敗",
+    "ERR_NO_PERMISSION": "權限不足，無法執行此操作"
 }

@@ -159,6 +159,27 @@
                             <h3 id="month-title" class="font-bold text-xl text-gray-800 dark:text-white mb-1"></h3>
                             <button id="next-month" class="text-gray-600 p-2 rounded-full hover:bg-gray-100">►</button>
                         </div>
+                        
+                        <!-- ⭐ 新增：匯出按鈕區 -->
+                        <div class="flex justify-end mb-4 space-x-2">
+                            <button id="export-personal-btn" 
+                                    data-i18n="EXPORT_PERSONAL" 
+                                    class="px-4 py-2 text-sm font-bold btn-secondary rounded-lg">
+                                📥 匯出個人明細
+                            </button>
+                            <button id="export-abnormal-btn" 
+                                    data-i18n="EXPORT_ABNORMAL" 
+                                    class="px-4 py-2 text-sm font-bold btn-secondary rounded-lg">
+                                ⚠️ 匯出異常紀錄
+                            </button>
+                            <button id="export-monthly-btn" 
+                                    data-i18n="EXPORT_MONTHLY" 
+                                    class="px-4 py-2 text-sm font-bold btn-primary rounded-lg"
+                                    style="display: none;">
+                                📊 匯出月度統計
+                            </button>
+                        </div>
+                        
                         <div class="grid grid-cols-7 text-center text-sm font-semibold text-gray-500 mb-2">
                             <span data-i18n="WEEK_SUNDAY" >日</span>
                             <span data-i18n="WEEK_MONDAY" >一</span>

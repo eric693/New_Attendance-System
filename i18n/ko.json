@@ -139,5 +139,12 @@
     "STATUS_REPAIR_PENDING": "보충 기록 (심사 중)",
     "STATUS_REPAIR_APPROVED": "보충 기록 승인됨",
     "PUNCH_IN": "출근",
-    "PUNCH_OUT": "퇴근"
+    "PUNCH_OUT": "퇴근",
+    "EXPORT_PERSONAL": "개인 기록 내보내기",
+    "EXPORT_ABNORMAL": "이상 기록 내보내기",
+    "EXPORT_MONTHLY": "월간 통계 내보내기",
+    "EXPORTING": "내보내는 중...",
+    "EXPORT_SUCCESS": "보고서를 성공적으로 내보냈습니다!",
+    "EXPORT_FAILED": "내보내기 실패",
+    "ERR_NO_PERMISSION": "이 작업을 수행할 권한이 없습니다"
   }

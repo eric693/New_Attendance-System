@@ -139,5 +139,12 @@
   "STATUS_REPAIR_PENDING": "Chấm công bổ sung (Đang chờ duyệt)",
   "STATUS_REPAIR_APPROVED": "Chấm công bổ sung đã duyệt",
   "PUNCH_IN": "Chấm công vào",
-  "PUNCH_OUT": "Chấm công ra"
+  "PUNCH_OUT": "Chấm công ra",
+  "EXPORT_PERSONAL": "Xuất Chi Tiết Cá Nhân",
+  "EXPORT_ABNORMAL": "Xuất Bản Ghi Bất Thường",
+  "EXPORT_MONTHLY": "Xuất Thống Kê Tháng",
+  "EXPORTING": "Đang xuất...",
+  "EXPORT_SUCCESS": "Xuất báo cáo thành công!",
+  "EXPORT_FAILED": "Xuất thất bại",
+  "ERR_NO_PERMISSION": "Không đủ quyền để thực hiện hành động này"
 }
