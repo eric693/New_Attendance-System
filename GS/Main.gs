@@ -55,6 +55,6 @@ function doGet(e) {
                .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
     }
   } catch (err) {
-    return respond({ ok: false, msg: err.message });
+    return respond1({ ok: false, msg: err.message });
   }
 }
