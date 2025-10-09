@@ -139,12 +139,5 @@
   "STATUS_REPAIR_PENDING": "打刻修正（承認待ち）",
   "STATUS_REPAIR_APPROVED": "打刻修正済み",
   "PUNCH_IN": "出勤",
-  "PUNCH_OUT": "退勤",
-  "EXPORT_PERSONAL": "個人記録をエクスポート",
-  "EXPORT_ABNORMAL": "異常記録をエクスポート",
-  "EXPORT_MONTHLY": "月次統計をエクスポート",
-  "EXPORTING": "エクスポート中...",
-  "EXPORT_SUCCESS": "レポートのエクスポートに成功しました！",
-  "EXPORT_FAILED": "エクスポートに失敗しました",
-  "ERR_NO_PERMISSION": "この操作を実行する権限がありません"
+  "PUNCH_OUT": "退勤"
 }

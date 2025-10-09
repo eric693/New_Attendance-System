@@ -139,12 +139,5 @@
   "STATUS_REPAIR_PENDING": "Absen susulan (Tertunda)",
   "STATUS_REPAIR_APPROVED": "Absen susulan disetujui",
   "PUNCH_IN": "Absen Masuk",
-  "PUNCH_OUT": "Absen Keluar",
-  "EXPORT_PERSONAL": "Ekspor Catatan Pribadi",
-  "EXPORT_ABNORMAL": "Ekspor Catatan Abnormal",
-  "EXPORT_MONTHLY": "Ekspor Ringkasan Bulanan",
-  "EXPORTING": "Mengekspor...",
-  "EXPORT_SUCCESS": "Laporan berhasil diekspor!",
-  "EXPORT_FAILED": "Ekspor gagal",
-  "ERR_NO_PERMISSION": "Izin tidak mencukupi untuk melakukan tindakan ini"
+  "PUNCH_OUT": "Absen Keluar"
 }
