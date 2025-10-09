@@ -52,7 +52,7 @@
   "API_TEST_TITLE": "Kiểm thử API",
   "API_TEST_DESCRIPTION": "Nhấp vào đây để kiểm thử chức năng API.",
   "API_TEST_BTN": "Kiểm thử API",
-  "FOOTER_VERSION": "Anh Hùng Chấm Công v0.1",
+  "FOOTER_VERSION": "Anh Hùng Chấm Công v0.2",
   "FOOTER_CREDITS_PREFIX": "Được làm bởi",
   "FOOTER_CREDITS_SUFFIX": "",
   "FOOTER_SPONSOR": "Tài trợ cho dự án này",
@@ -139,5 +139,42 @@
   "STATUS_REPAIR_PENDING": "Chấm công bổ sung (Đang chờ duyệt)",
   "STATUS_REPAIR_APPROVED": "Chấm công bổ sung đã duyệt",
   "PUNCH_IN": "Chấm công vào",
-  "PUNCH_OUT": "Chấm công ra"
+  "PUNCH_OUT": "Chấm công ra",
+
+  "TAB_OVERTIME": "Làm thêm giờ",
+    
+  "OVERTIME_APPLY_TITLE": "Đăng ký làm thêm giờ",
+  "OVERTIME_APPLY_DESCRIPTION": "Điền thông tin sau để gửi đơn đăng ký làm thêm giờ",
+  "OVERTIME_DATE_LABEL": "Ngày làm thêm giờ",
+  "OVERTIME_START_TIME_LABEL": "Thời gian bắt đầu",
+  "OVERTIME_END_TIME_LABEL": "Thời gian kết thúc",
+  "OVERTIME_HOURS_LABEL": "Số giờ làm thêm",
+  "OVERTIME_REASON_LABEL": "Lý do đăng ký",
+  "OVERTIME_REASON_PLACEHOLDER": "Vui lòng giải thích lý do làm thêm giờ...",
+  "OVERTIME_SUBMIT_BTN": "Gửi đơn đăng ký",
+  
+  "OVERTIME_RECORDS_TITLE": "Hồ sơ làm thêm giờ của tôi",
+  "OVERTIME_RECORDS_DESCRIPTION": "Xem lịch sử đơn đăng ký làm thêm giờ của bạn",
+  "OVERTIME_NO_RECORDS": "Hiện tại không có hồ sơ làm thêm giờ",
+  
+  "OVERTIME_STATUS_PENDING": "Đang xem xét",
+  "OVERTIME_STATUS_APPROVED": "Đã phê duyệt",
+  "OVERTIME_STATUS_REJECTED": "Đã từ chối",
+  
+  "OVERTIME_REVIEW_COMMENT": "Ý kiến đánh giá",
+  
+  "OVERTIME_PENDING_TITLE": "Đơn đăng ký làm thêm giờ chờ phê duyệt",
+  "OVERTIME_PENDING_DESCRIPTION": "Xem xét đơn đăng ký làm thêm giờ do nhân viên gửi",
+  "OVERTIME_NO_PENDING": "Tuyệt vời! Hiện không có đơn đăng ký làm thêm giờ chờ phê duyệt.",
+  
+  "OVERTIME_FILL_ALL_FIELDS": "Vui lòng điền tất cả các trường",
+  "OVERTIME_INVALID_HOURS": "Số giờ làm thêm phải lớn hơn 0",
+  "OVERTIME_SUBMIT_SUCCESS": "✅ Đơn đăng ký làm thêm giờ đã được gửi",
+  "OVERTIME_APPROVED": "✅ Đơn đăng ký làm thêm giờ đã được phê duyệt",
+  "OVERTIME_REJECTED": "❌ Đơn đăng ký làm thêm giờ đã bị từ chối",
+  "OVERTIME_REJECT_REASON_PROMPT": "Vui lòng nhập lý do từ chối (tùy chọn)",
+  
+  "ERROR_LOAD_OVERTIME": "Không thể tải hồ sơ làm thêm giờ",
+  "ERROR_SUBMIT_OVERTIME": "Không thể gửi đơn đăng ký làm thêm giờ",
+  "ERR_NO_PERMISSION": "Bạn không có quyền thực hiện hành động này"
 }

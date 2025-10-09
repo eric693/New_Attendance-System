@@ -52,7 +52,7 @@
   "API_TEST_TITLE": "API 테스트",
   "API_TEST_DESCRIPTION": "아래 버튼을 클릭하여 새로운 API 기능을 테스트하세요.",
   "API_TEST_BTN": "API 테스트",
-  "FOOTER_VERSION": "출근 히어로 v0.1",
+  "FOOTER_VERSION": "출근 히어로 v0.2",
   "FOOTER_CREDITS_PREFIX": "제작:",
   "FOOTER_CREDITS_SUFFIX": "",
   "FOOTER_SPONSOR": "이 프로젝트 후원하기",
@@ -139,5 +139,42 @@
   "STATUS_REPAIR_PENDING": "보충 기록 (심사 중)",
   "STATUS_REPAIR_APPROVED": "보충 기록 승인됨",
   "PUNCH_IN": "출근",
-  "PUNCH_OUT": "퇴근"
+  "PUNCH_OUT": "퇴근",
+
+  "TAB_OVERTIME": "초과근무",
+    
+  "OVERTIME_APPLY_TITLE": "초과근무 신청",
+  "OVERTIME_APPLY_DESCRIPTION": "다음 정보를 작성하여 초과근무 신청을 제출하세요",
+  "OVERTIME_DATE_LABEL": "초과근무 날짜",
+  "OVERTIME_START_TIME_LABEL": "시작 시간",
+  "OVERTIME_END_TIME_LABEL": "종료 시간",
+  "OVERTIME_HOURS_LABEL": "초과근무 시간",
+  "OVERTIME_REASON_LABEL": "신청 사유",
+  "OVERTIME_REASON_PLACEHOLDER": "초과근무 사유를 설명해 주세요...",
+  "OVERTIME_SUBMIT_BTN": "신청 제출",
+  
+  "OVERTIME_RECORDS_TITLE": "내 초과근무 기록",
+  "OVERTIME_RECORDS_DESCRIPTION": "초과근무 신청 이력 보기",
+  "OVERTIME_NO_RECORDS": "현재 초과근무 기록이 없습니다",
+  
+  "OVERTIME_STATUS_PENDING": "검토 중",
+  "OVERTIME_STATUS_APPROVED": "승인됨",
+  "OVERTIME_STATUS_REJECTED": "거부됨",
+  
+  "OVERTIME_REVIEW_COMMENT": "검토 의견",
+  
+  "OVERTIME_PENDING_TITLE": "대기 중인 초과근무 신청",
+  "OVERTIME_PENDING_DESCRIPTION": "직원이 제출한 초과근무 신청 검토",
+  "OVERTIME_NO_PENDING": "좋습니다! 현재 대기 중인 초과근무 신청이 없습니다.",
+  
+  "OVERTIME_FILL_ALL_FIELDS": "모든 필드를 입력해 주세요",
+  "OVERTIME_INVALID_HOURS": "초과근무 시간은 0보다 커야 합니다",
+  "OVERTIME_SUBMIT_SUCCESS": "✅ 초과근무 신청이 제출되었습니다",
+  "OVERTIME_APPROVED": "✅ 초과근무 신청이 승인되었습니다",
+  "OVERTIME_REJECTED": "❌ 초과근무 신청이 거부되었습니다",
+  "OVERTIME_REJECT_REASON_PROMPT": "거부 사유를 입력하세요 (선택사항)",
+  
+  "ERROR_LOAD_OVERTIME": "초과근무 기록 로드 실패",
+  "ERROR_SUBMIT_OVERTIME": "초과근무 신청 제출 실패",
+  "ERR_NO_PERMISSION": "이 작업을 수행할 권한이 없습니다"
 }

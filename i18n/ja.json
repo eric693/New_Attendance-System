@@ -52,7 +52,7 @@
   "API_TEST_TITLE": "APIテストエリア",
   "API_TEST_DESCRIPTION": "下のボタンをクリックして、新しいAPI機能をテストしてください。",
   "API_TEST_BTN": "APIをテスト",
-  "FOOTER_VERSION": "打刻ヒーロー v0.1",
+  "FOOTER_VERSION": "打刻ヒーロー v0.2",
   "FOOTER_CREDITS_PREFIX": "制作：",
   "FOOTER_CREDITS_SUFFIX": "",
   "FOOTER_SPONSOR": "このプロジェクトを支援する",
@@ -139,5 +139,42 @@
   "STATUS_REPAIR_PENDING": "打刻修正（承認待ち）",
   "STATUS_REPAIR_APPROVED": "打刻修正済み",
   "PUNCH_IN": "出勤",
-  "PUNCH_OUT": "退勤"
+  "PUNCH_OUT": "退勤",
+
+  "TAB_OVERTIME": "残業",
+    
+  "OVERTIME_APPLY_TITLE": "残業申請",
+  "OVERTIME_APPLY_DESCRIPTION": "以下の情報を入力して残業申請を提出してください",
+  "OVERTIME_DATE_LABEL": "残業日",
+  "OVERTIME_START_TIME_LABEL": "開始時刻",
+  "OVERTIME_END_TIME_LABEL": "終了時刻",
+  "OVERTIME_HOURS_LABEL": "残業時間",
+  "OVERTIME_REASON_LABEL": "申請理由",
+  "OVERTIME_REASON_PLACEHOLDER": "残業理由を説明してください...",
+  "OVERTIME_SUBMIT_BTN": "申請を提出",
+  
+  "OVERTIME_RECORDS_TITLE": "私の残業記録",
+  "OVERTIME_RECORDS_DESCRIPTION": "残業申請履歴を表示",
+  "OVERTIME_NO_RECORDS": "現在残業記録はありません",
+  
+  "OVERTIME_STATUS_PENDING": "審査中",
+  "OVERTIME_STATUS_APPROVED": "承認済み",
+  "OVERTIME_STATUS_REJECTED": "却下済み",
+  
+  "OVERTIME_REVIEW_COMMENT": "審査コメント",
+  
+  "OVERTIME_PENDING_TITLE": "承認待ち残業申請",
+  "OVERTIME_PENDING_DESCRIPTION": "従業員から提出された残業申請を審査",
+  "OVERTIME_NO_PENDING": "素晴らしい！現在承認待ちの残業申請はありません。",
+  
+  "OVERTIME_FILL_ALL_FIELDS": "すべてのフィールドを入力してください",
+  "OVERTIME_INVALID_HOURS": "残業時間は0より大きい必要があります",
+  "OVERTIME_SUBMIT_SUCCESS": "✅ 残業申請が提出されました",
+  "OVERTIME_APPROVED": "✅ 残業申請が承認されました",
+  "OVERTIME_REJECTED": "❌ 残業申請が却下されました",
+  "OVERTIME_REJECT_REASON_PROMPT": "却下理由を入力してください（任意）",
+  
+  "ERROR_LOAD_OVERTIME": "残業記録の読み込みに失敗しました",
+  "ERROR_SUBMIT_OVERTIME": "残業申請の提出に失敗しました",
+  "ERR_NO_PERMISSION": "この操作を実行する権限がありません"
 }

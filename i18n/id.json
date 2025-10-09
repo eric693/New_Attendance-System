@@ -52,7 +52,7 @@
   "API_TEST_TITLE": "Uji API",
   "API_TEST_DESCRIPTION": "Klik tombol di bawah untuk menguji fungsi API.",
   "API_TEST_BTN": "Uji API",
-  "FOOTER_VERSION": "Pahlawan Absensi v0.1",
+  "FOOTER_VERSION": "Pahlawan Absensi v0.2",
   "FOOTER_CREDITS_PREFIX": "Dibuat oleh",
   "FOOTER_CREDITS_SUFFIX": "",
   "FOOTER_SPONSOR": "Sponsori proyek ini",
@@ -139,5 +139,42 @@
   "STATUS_REPAIR_PENDING": "Absen susulan (Tertunda)",
   "STATUS_REPAIR_APPROVED": "Absen susulan disetujui",
   "PUNCH_IN": "Absen Masuk",
-  "PUNCH_OUT": "Absen Keluar"
+  "PUNCH_OUT": "Absen Keluar",
+
+  "TAB_OVERTIME": "Lembur",
+    
+  "OVERTIME_APPLY_TITLE": "Ajukan Lembur",
+  "OVERTIME_APPLY_DESCRIPTION": "Isi informasi berikut untuk mengajukan lembur",
+  "OVERTIME_DATE_LABEL": "Tanggal Lembur",
+  "OVERTIME_START_TIME_LABEL": "Waktu Mulai",
+  "OVERTIME_END_TIME_LABEL": "Waktu Selesai",
+  "OVERTIME_HOURS_LABEL": "Jam Lembur",
+  "OVERTIME_REASON_LABEL": "Alasan Pengajuan",
+  "OVERTIME_REASON_PLACEHOLDER": "Mohon jelaskan alasan lembur...",
+  "OVERTIME_SUBMIT_BTN": "Ajukan Permohonan",
+  
+  "OVERTIME_RECORDS_TITLE": "Catatan Lembur Saya",
+  "OVERTIME_RECORDS_DESCRIPTION": "Lihat riwayat pengajuan lembur Anda",
+  "OVERTIME_NO_RECORDS": "Saat ini tidak ada catatan lembur",
+  
+  "OVERTIME_STATUS_PENDING": "Sedang Ditinjau",
+  "OVERTIME_STATUS_APPROVED": "Disetujui",
+  "OVERTIME_STATUS_REJECTED": "Ditolak",
+  
+  "OVERTIME_REVIEW_COMMENT": "Komentar Peninjauan",
+  
+  "OVERTIME_PENDING_TITLE": "Pengajuan Lembur Tertunda",
+  "OVERTIME_PENDING_DESCRIPTION": "Tinjau pengajuan lembur yang diajukan oleh karyawan",
+  "OVERTIME_NO_PENDING": "Bagus! Tidak ada pengajuan lembur tertunda saat ini.",
+  
+  "OVERTIME_FILL_ALL_FIELDS": "Mohon isi semua kolom",
+  "OVERTIME_INVALID_HOURS": "Jam lembur harus lebih dari 0",
+  "OVERTIME_SUBMIT_SUCCESS": "✅ Pengajuan lembur telah diajukan",
+  "OVERTIME_APPROVED": "✅ Pengajuan lembur telah disetujui",
+  "OVERTIME_REJECTED": "❌ Pengajuan lembur telah ditolak",
+  "OVERTIME_REJECT_REASON_PROMPT": "Mohon masukkan alasan penolakan (opsional)",
+  
+  "ERROR_LOAD_OVERTIME": "Gagal memuat catatan lembur",
+  "ERROR_SUBMIT_OVERTIME": "Gagal mengajukan permohonan lembur",
+  "ERR_NO_PERMISSION": "Anda tidak memiliki izin untuk melakukan tindakan ini"
 }

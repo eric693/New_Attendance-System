@@ -52,7 +52,7 @@
   "API_TEST_TITLE": "API Test",
   "API_TEST_DESCRIPTION": "Click to test new API functions.",
   "API_TEST_BTN": "Test API",
-  "FOOTER_VERSION": "Check-in Hero v0.1",
+  "FOOTER_VERSION": "Check-in Hero v0.2",
   "FOOTER_CREDITS_PREFIX": "Made by",
   "FOOTER_CREDITS_SUFFIX": "",
   "FOOTER_SPONSOR": "Sponsor this project",
@@ -139,5 +139,42 @@
   "STATUS_REPAIR_PENDING": "Make-up Punch (Pending)",
   "STATUS_REPAIR_APPROVED": "Make-up Punch Approved",
   "PUNCH_IN": "Punch In",
-  "PUNCH_OUT": "Punch Out"
+  "PUNCH_OUT": "Punch Out",
+
+  "TAB_OVERTIME": "Overtime",
+    
+  "OVERTIME_APPLY_TITLE": "Apply for Overtime",
+  "OVERTIME_APPLY_DESCRIPTION": "Fill in the following information to submit an overtime application",
+  "OVERTIME_DATE_LABEL": "Overtime Date",
+  "OVERTIME_START_TIME_LABEL": "Start Time",
+  "OVERTIME_END_TIME_LABEL": "End Time",
+  "OVERTIME_HOURS_LABEL": "Overtime Hours",
+  "OVERTIME_REASON_LABEL": "Reason for Application",
+  "OVERTIME_REASON_PLACEHOLDER": "Please explain the reason for overtime...",
+  "OVERTIME_SUBMIT_BTN": "Submit Application",
+  
+  "OVERTIME_RECORDS_TITLE": "My Overtime Records",
+  "OVERTIME_RECORDS_DESCRIPTION": "View your overtime application history",
+  "OVERTIME_NO_RECORDS": "No overtime records currently",
+  
+  "OVERTIME_STATUS_PENDING": "Under Review",
+  "OVERTIME_STATUS_APPROVED": "Approved",
+  "OVERTIME_STATUS_REJECTED": "Rejected",
+  
+  "OVERTIME_REVIEW_COMMENT": "Review Comment",
+  
+  "OVERTIME_PENDING_TITLE": "Pending Overtime Applications",
+  "OVERTIME_PENDING_DESCRIPTION": "Review overtime applications submitted by employees",
+  "OVERTIME_NO_PENDING": "Great! No pending overtime applications at this time.",
+  
+  "OVERTIME_FILL_ALL_FIELDS": "Please fill in all fields",
+  "OVERTIME_INVALID_HOURS": "Overtime hours must be greater than 0",
+  "OVERTIME_SUBMIT_SUCCESS": "✅ Overtime application submitted",
+  "OVERTIME_APPROVED": "✅ Overtime application approved",
+  "OVERTIME_REJECTED": "❌ Overtime application rejected",
+  "OVERTIME_REJECT_REASON_PROMPT": "Please enter reason for rejection (optional)",
+  
+  "ERROR_LOAD_OVERTIME": "Failed to load overtime records",
+  "ERROR_SUBMIT_OVERTIME": "Failed to submit overtime application",
+  "ERR_NO_PERMISSION": "You do not have permission to perform this action"
 }
