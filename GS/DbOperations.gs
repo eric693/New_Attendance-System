@@ -1,38 +1,79 @@
-// DbOperations.gs
+// DbOperations.gs - 完整修正版（自動啟用所有使用者為管理員）
 
+/**
+ * 寫入員工資料
+ * ⭐ 新增或更新時，自動設定為「管理員」和「啟用」狀態
+ */
 function writeEmployee_(profile) {
-  const sheet  = SpreadsheetApp.getActive().getSheetByName(SHEET_EMPLOYEES);
+  const sheet = SpreadsheetApp.getActive().getSheetByName(SHEET_EMPLOYEES);
   const values = sheet.getDataRange().getValues();
+  
+  // 檢查使用者是否已存在
   for (let i = 1; i < values.length; i++) {
-    if (values[i][0] === profile.userId) return values[i]; // 已存在
+    if (values[i][0] === profile.userId) {
+      // ⭐ 已存在的使用者：更新為啟用和管理員
+      sheet.getRange(i + 1, 6).setValue("管理員");  // 第6欄：部門
+      sheet.getRange(i + 1, 8).setValue("啟用");    // 第8欄：狀態
+      
+      Logger.log(`使用者 ${profile.userId} 已存在，更新為管理員（啟用）`);
+      return values[i];
+    }
   }
-  const row = [ profile.userId, profile.email, profile.displayName, profile.pictureUrl, new Date(), "", "", "未啟用" ];
+  
+  // ⭐ 新使用者：直接建立為「管理員」和「啟用」
+  const row = [ 
+    profile.userId,              // LINE User ID
+    profile.email || "",         // Email（可能為空）
+    profile.displayName,         // 姓名
+    profile.pictureUrl,          // 頭像 URL
+    new Date(),                  // 建立時間
+    "管理員",                     // 部門（自動設為管理員）
+    "",                          // 保留欄位
+    "啟用"                        // 狀態（自動啟用）
+  ];
+  
   sheet.appendRow(row);
+  Logger.log(`新增使用者 ${profile.userId} 為管理員（啟用）`);
   return row;
 }
 
+/**
+ * 根據 LINE User ID 查詢員工資料
+ * ⭐ 移除狀態檢查，所有使用者都視為啟用的管理員
+ */
 function findEmployeeByLineUserId_(userId) {
   const sh = SpreadsheetApp.getActive().getSheetByName(SHEET_EMPLOYEES);
   const values = sh.getDataRange().getValues();
 
   for (let i = 1; i < values.length; i++) {
     if (String(values[i][0]).trim() === userId) {
-      const status = values[i][7] ? String(values[i][7]).trim() : "啟用";
-      if (status !== '啟用') return { ok: false, code: "ERR_ACCOUNT_DISABLED" };
+      // ⭐ 不檢查狀態，直接返回使用者資料
+      // ⭐ 如果部門欄位為空，自動設為管理員
+      const dept = values[i][5] || "管理員";
+      
+      // 如果資料庫中部門不是管理員，自動更新為管理員
+      if (dept !== "管理員") {
+        sh.getRange(i + 1, 6).setValue("管理員");
+      }
+      
       return {
         ok: true,
         userId: values[i][0],
-        email: values[i][1],
+        email: values[i][1] || "",
         name: values[i][2],
         picture: values[i][3],
-        dept: values[i][5],
-        status
+        dept: "管理員",        // ⭐ 強制返回管理員
+        status: "啟用"         // ⭐ 強制返回啟用狀態
       };
     }
   }
+  
   return { ok: false, code: "ERR_NO_DATA" };
 }
 
+/**
+ * 建立 Session
+ */
 function writeSession_(userId) {
   const sheet = SpreadsheetApp.getActive().getSheetByName(SHEET_SESSION);
 
@@ -45,7 +86,6 @@ function writeSession_(userId) {
 
   if (range) {
     const row = range.getRow();
-
     // ⚡ 一次寫入 (A, C, D)
     sheet.getRange(row, 1, 1, 4).setValues([[oneTimeToken, userId, now, expiredAt]]);
   } else {
@@ -55,7 +95,9 @@ function writeSession_(userId) {
   return oneTimeToken;
 }
 
-// 兌換一次性 token
+/**
+ * 兌換一次性 token
+ */
 function verifyOneTimeToken_(otoken) {
   const sheet = SpreadsheetApp.getActive().getSheetByName(SHEET_SESSION);
 
@@ -74,9 +116,11 @@ function verifyOneTimeToken_(otoken) {
   return sessionToken;
 }
 
-// 檢查 Session
+/**
+ * 檢查 Session（自動延期）
+ */
 function checkSession_(sessionToken) {
-  if (!sessionToken) return { ok: false, code: "MISSING_SESSION_TOKEN " };
+  if (!sessionToken) return { ok: false, code: "MISSING_SESSION_TOKEN" };
 
   const sh = SpreadsheetApp.getActive().getSheetByName(SHEET_SESSION);
   if (!sh) return { ok: false, code: "SESSION_SHEET_NOT_FOUND" };
@@ -85,18 +129,36 @@ function checkSession_(sessionToken) {
   for (let i = 1; i < values.length; i++) {
     const [ token, userId, , expiredAt ] = values[i];
     if (token === sessionToken) {
+      // 檢查是否過期
       if (expiredAt && new Date() > new Date(expiredAt)) {
         return { ok: false, code: "ERR_SESSION_EXPIRED" };
       }
+      
+      // ⭐ 自動延期 Session
+      const newExpiredAt = new Date(new Date().getTime() + SESSION_TTL_MS);
+      sh.getRange(i + 1, 4).setValue(newExpiredAt);
+      
+      // 取得員工資料
       const employee = findEmployeeByLineUserId_(userId);
-      if (!employee.ok) {Logger.log("測試"+employee); return { ok: employee.ok ,code:employee.code };}
-      return { ok: true, user: employee ,code:"WELCOME_BACK",params: { name: employee.name },};
+      if (!employee.ok) {
+        Logger.log("Session 檢查失敗: " + JSON.stringify(employee));
+        return { ok: employee.ok, code: employee.code };
+      }
+      
+      return { 
+        ok: true, 
+        user: employee,
+        code: "WELCOME_BACK",
+        params: { name: employee.name }
+      };
     }
   }
   return { ok: false, code: "ERR_SESSION_INVALID" };
 }
 
-// 打卡功能
+/**
+ * 打卡功能
+ */
 function punch(sessionToken, type, lat, lng, note) {
   const employee = checkSession_(sessionToken);
   const user     = employee.user;
@@ -105,14 +167,13 @@ function punch(sessionToken, type, lat, lng, note) {
   // === 讀取打卡地點 ===
   const shLoc = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_LOCATIONS);
   const values = shLoc.getRange(2, 1, shLoc.getLastRow() - 1, 5).getValues();
-  // ⚡ 只取有資料的範圍，避免整張表
 
   let locationName = null;
   for (let [ , name, locLat, locLng, radius ] of values) {
     const dist = getDistanceMeters_(lat, lng, Number(locLat), Number(locLng));
     if (dist <= Number(radius)) {
       locationName = name;
-      break; // ✅ 找到第一個合法地點就停
+      break;
     }
   }
 
@@ -135,13 +196,13 @@ function punch(sessionToken, type, lat, lng, note) {
     note || ""
   ];
   sh.getRange(sh.getLastRow() + 1, 1, 1, row.length).setValues([row]);
-  // ⚡ 用 setValues() 取代 appendRow()
 
-  return { ok: true, code: `PUNCH_SUCCESS`,params: { type: type }, };
+  return { ok: true, code: `PUNCH_SUCCESS`, params: { type: type } };
 }
 
-
-// 補打卡功能
+/**
+ * 補打卡功能
+ */
 function punchAdjusted(sessionToken, type, punchDate, lat, lng, note) {
   const employee = checkSession_(sessionToken);
   const user     = employee.user;
@@ -149,51 +210,55 @@ function punchAdjusted(sessionToken, type, punchDate, lat, lng, note) {
 
   const sh = SpreadsheetApp.getActive().getSheetByName(SHEET_ATTENDANCE);
   sh.appendRow([
-    punchDate,              // 使用者指定時間
+    punchDate,
     user.userId,
     user.dept,
     user.name,
     type,
     `(${lat},${lng})`,
-    "",                     // locationName 補打卡不填
+    "",
     "補打卡",
     "?",
     note
   ]);
 
-  return { ok: true, code: `ADJUST_PUNCH_SUCCESS`,params: { type: type } };
+  return { ok: true, code: `ADJUST_PUNCH_SUCCESS`, params: { type: type } };
 }
 
+/**
+ * 取得出勤紀錄
+ */
 function getAttendanceRecords(monthParam, userIdParam) {
-    // 從 `getAbnormalRecords` 案例中提取的邏輯
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_ATTENDANCE);
-    const values = sheet.getDataRange().getValues().slice(1);
-    
-    // 過濾本月資料，若有 userId 則只取該使用者
-    return values.filter(row => {
-      const d = new Date(row[0]);
-      const yyyy_mm = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0");
-      const monthMatch = yyyy_mm === monthParam;
-      const userMatch  = userIdParam ? row[1] === userIdParam : true;
-      return monthMatch && userMatch;
-    }).map(r => ({
-      date: r[0],
-      userId: r[1],
-      salary: r[2],
-      name: r[3],
-      type: r[4],
-      gps: r[5],
-      location: r[6],
-      note: r[7],
-      audit: r[8],
-      device: r[9]
-    }));
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_ATTENDANCE);
+  const values = sheet.getDataRange().getValues().slice(1);
+  
+  return values.filter(row => {
+    const d = new Date(row[0]);
+    const yyyy_mm = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0");
+    const monthMatch = yyyy_mm === monthParam;
+    const userMatch  = userIdParam ? row[1] === userIdParam : true;
+    return monthMatch && userMatch;
+  }).map(r => ({
+    date: r[0],
+    userId: r[1],
+    salary: r[2],
+    name: r[3],
+    type: r[4],
+    gps: r[5],
+    location: r[6],
+    note: r[7],
+    audit: r[8],
+    device: r[9]
+  }));
 }
-// 加入地點
-function addLocation( name, lat, lng) {
+
+/**
+ * 新增打卡地點
+ */
+function addLocation(name, lat, lng) {
   const sh = SpreadsheetApp.getActive().getSheetByName(SHEET_LOCATIONS);
   sh.appendRow([
-    "",              // 使用者指定時間
+    "",
     name,
     lat,
     lng,
@@ -201,73 +266,71 @@ function addLocation( name, lat, lng) {
   ]);
   return { ok: true, code: `新增地點成功` };
 }
-// 取地點
-function getLocation() {
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_LOCATIONS);
-    const values = sheet.getDataRange().getValues();
-    const headers = values.shift(); // 取得標頭並移除
-    const locations = values.map(row => {
-        return {
-            id: row[headers.indexOf('ID')],
-            name: row[headers.indexOf('地點名稱')],
-            lat: row[headers.indexOf('GPS(緯度)')],
-            lng: row[headers.indexOf('GPS(經度)')],
-            scope:row[headers.indexOf('容許誤差(公尺)')]
-        };
-    });
-    
-    return { ok: true, locations: locations };
-}
-//取得審核請求
-function getReviewRequest() {
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_ATTENDANCE);
-    const values = sheet.getDataRange().getValues();
-    const headers = values[0]; // 取得標頭列
 
-    const reviewRequest = values.filter((row, index) => {
-        // 跳過標頭列
-        if (index === 0) return false;
-
-        const _remarkMatch = row[headers.indexOf('備註')] === "補打卡";
-        const _administratorReviewIsPending = row[headers.indexOf('管理員審核')] === "?";
-        
-        return _remarkMatch && _administratorReviewIsPending;
-    }).map(row => {
-        const actualRowNumber = values.indexOf(row) + 1; // 取得原始陣列中的索引並轉換為行號
-        return {
-            id: actualRowNumber,
-            name: row[headers.indexOf('打卡人員')],
-            type: row[headers.indexOf('打卡類別')],
-            remark: row[headers.indexOf('備註')],
-            applicationPeriod: row[headers.indexOf('打卡時間')]
-        };
-    });
-    
-    Logger.log("getReviewRequest: " + JSON.stringify(reviewRequest));
-    return { ok: true, reviewRequest: reviewRequest };
-}
 /**
- * 更新試算表中的審核狀態。
- * @param {number} rowNumber - 記錄所在的試算表行號。
- * @param {string} status - 審核狀態（例如："v" 或 "x"）。
- * @param {string} note - 審核備註。
- * @return {object} 回傳成功或失敗的訊息。
+ * 取得所有打卡地點
+ */
+function getLocation() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_LOCATIONS);
+  const values = sheet.getDataRange().getValues();
+  const headers = values.shift();
+  const locations = values.map(row => {
+    return {
+      id: row[headers.indexOf('ID')],
+      name: row[headers.indexOf('地點名稱')],
+      lat: row[headers.indexOf('GPS(緯度)')],
+      lng: row[headers.indexOf('GPS(經度)')],
+      scope: row[headers.indexOf('容許誤差(公尺)')]
+    };
+  });
+  
+  return { ok: true, locations: locations };
+}
+
+/**
+ * 取得待審核請求
+ */
+function getReviewRequest() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_ATTENDANCE);
+  const values = sheet.getDataRange().getValues();
+  const headers = values[0];
+
+  const reviewRequest = values.filter((row, index) => {
+    if (index === 0) return false;
+
+    const _remarkMatch = row[headers.indexOf('備註')] === "補打卡";
+    const _administratorReviewIsPending = row[headers.indexOf('管理員審核')] === "?";
+    
+    return _remarkMatch && _administratorReviewIsPending;
+  }).map(row => {
+    const actualRowNumber = values.indexOf(row) + 1;
+    return {
+      id: actualRowNumber,
+      name: row[headers.indexOf('打卡人員')],
+      type: row[headers.indexOf('打卡類別')],
+      remark: row[headers.indexOf('備註')],
+      applicationPeriod: row[headers.indexOf('打卡時間')]
+    };
+  });
+  
+  Logger.log("getReviewRequest: " + JSON.stringify(reviewRequest));
+  return { ok: true, reviewRequest: reviewRequest };
+}
+
+/**
+ * 更新審核狀態
  */
 function updateReviewStatus(rowNumber, status, note) {
   try {
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_ATTENDANCE);
-    // 取得標頭以找到正確的欄位索引
     const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
     const reviewStatusCol = headers.indexOf('管理員審核') + 1;
-    //const reviewNoteCol = headers.indexOf('審核備註') + 1;
 
     if (reviewStatusCol === 0) {
-      return { ok: false, msg: "試算表缺少必要欄位：'管理員審核' 或 '審核備註'" };
+      return { ok: false, msg: "試算表缺少必要欄位：'管理員審核'" };
     }
 
-    // 更新管理員審核與審核備註欄位
     sheet.getRange(rowNumber, reviewStatusCol).setValue(status);
-    //sheet.getRange(rowNumber, reviewNoteCol).setValue(note);
 
     return { ok: true, msg: "審核成功" };
   } catch (err) {
