@@ -80,6 +80,27 @@ async function loadEmployeeOvertimeRecords() {
 }
 
 /**
+ * 格式化時間顯示 - 只顯示 HH:mm 格式
+ * @param {string} timeStr - 時間字串
+ * @returns {string} 格式化後的時間
+ */
+function formatTimeDisplay(timeStr) {
+    if (!timeStr) return '';
+    
+    // 如果是完整的 datetime 格式 (包含 T)，只取時間部分
+    if (timeStr.includes('T')) {
+        return timeStr.split('T')[1].substring(0, 5); // 取 HH:mm
+    }
+    
+    // 如果已經是時間格式，確保只取 HH:mm
+    if (timeStr.length >= 5) {
+        return timeStr.substring(0, 5);
+    }
+    
+    return timeStr;
+}
+
+/**
  * 渲染加班記錄列表
  */
 function renderOvertimeRecords(requests, container) {
@@ -88,6 +109,10 @@ function renderOvertimeRecords(requests, container) {
     requests.forEach(req => {
         const li = document.createElement('li');
         li.className = 'p-4 bg-gray-50 dark:bg-gray-700 rounded-lg';
+        
+        // 格式化時間顯示
+        const startTime = formatTimeDisplay(req.startTime);
+        const endTime = formatTimeDisplay(req.endTime);
         
         // 狀態顯示
         let statusBadge = '';
@@ -113,7 +138,7 @@ function renderOvertimeRecords(requests, container) {
                 <div>
                     <p class="font-semibold text-gray-800 dark:text-white">${req.overtimeDate}</p>
                     <p class="text-sm text-gray-600 dark:text-gray-400">
-                        ${req.startTime} - ${req.endTime} (${req.hours}小時)
+                        ${startTime} - ${endTime} (${req.hours}小時)
                     </p>
                 </div>
                 <span class="px-2 py-1 text-xs font-semibold rounded ${statusClass}">
@@ -272,13 +297,17 @@ function renderPendingOvertimeRequests(requests, container) {
         const li = document.createElement('li');
         li.className = 'p-4 bg-gray-50 dark:bg-gray-700 rounded-lg';
         
+        // 格式化時間顯示
+        const startTime = formatTimeDisplay(req.startTime);
+        const endTime = formatTimeDisplay(req.endTime);
+        
         li.innerHTML = `
             <div class="space-y-2">
                 <div class="flex justify-between items-start">
                     <div>
                         <p class="font-semibold text-gray-800 dark:text-white">${req.employeeName}</p>
                         <p class="text-sm text-gray-600 dark:text-gray-400">
-                            ${req.overtimeDate} | ${req.startTime} - ${req.endTime}
+                            ${req.overtimeDate} | ${startTime} - ${endTime}
                         </p>
                         <p class="text-sm text-indigo-600 dark:text-indigo-400">
                             <strong data-i18n="OVERTIME_HOURS_LABEL">時數：</strong>${req.hours} 小時
