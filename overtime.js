@@ -341,6 +341,7 @@ function renderPendingOvertimeRequests(requests, container) {
 
 /**
  * 處理審核動作
+ * 🔧 修正：使用 reviewAction 而不是 action 避免衝突
  */
 async function handleOvertimeReview(button, action) {
     const rowNumber = button.dataset.row;
@@ -357,8 +358,9 @@ async function handleOvertimeReview(button, action) {
     generalButtonState(button, 'processing', loadingText);
     
     try {
+        // 🔧 關鍵修正：使用 reviewAction 而不是 action
         const res = await callApifetch(
-            `reviewOvertime&rowNumber=${rowNumber}&action=${action}&comment=${encodeURIComponent(comment)}`
+            `reviewOvertime&rowNumber=${rowNumber}&reviewAction=${action}&comment=${encodeURIComponent(comment)}`
         );
         
         console.log(`審核結果:`, res);
@@ -370,7 +372,6 @@ async function handleOvertimeReview(button, action) {
             
             showNotification(successMsg, 'success');
             
-            // 延遲後重新載入列表
             await new Promise(resolve => setTimeout(resolve, 500));
             await loadPendingOvertimeRequests();
         } else {
