@@ -1,36 +1,5 @@
 // overtime.js - 加班功能前端邏輯
 
-// ==================== 👇 新增：按鈕狀態控制函式 ====================
-/**
- * 控制按鈕的載入狀態
- * @param {HTMLElement} button - 按鈕元素
- * @param {string} state - 'processing' 或 'idle'
- * @param {string} loadingText - 處理中顯示的文字
- */
-function generalButtonState(button, state, loadingText = '處理中...') {
-    if (!button) return;
-    const loadingClasses = 'opacity-50 cursor-not-allowed';
-
-    if (state === 'processing') {
-        // 進入處理中狀態
-        button.dataset.originalText = button.textContent;
-        button.dataset.loadingClasses = 'opacity-50 cursor-not-allowed';
-        button.disabled = true;
-        button.textContent = loadingText;
-        button.classList.add(...loadingClasses.split(' '));
-    } else {
-        // 恢復到原始狀態
-        if (button.dataset.loadingClasses) {
-            button.classList.remove(...button.dataset.loadingClasses.split(' '));
-        }
-        button.disabled = false;
-        if (button.dataset.originalText) {
-            button.textContent = button.dataset.originalText;
-            delete button.dataset.originalText;
-        }
-    }
-}
-
 // ==================== 初始化加班頁面 ====================
 
 /**
@@ -75,7 +44,7 @@ async function loadEmployeeOvertimeRecords() {
     } catch (err) {
         console.error(err);
         recordsLoading.style.display = 'none';
-        showNotification(t('ERROR_LOAD_OVERTIME'), 'error');
+        showNotification(t('ERROR_LOAD_OVERTIME') || '載入失敗', 'error');
     }
 }
 
@@ -87,17 +56,21 @@ async function loadEmployeeOvertimeRecords() {
 function formatTimeDisplay(timeStr) {
     if (!timeStr) return '';
     
+    // 轉換為字串
+    const str = String(timeStr);
+    
     // 如果是完整的 datetime 格式 (包含 T)，只取時間部分
-    if (timeStr.includes('T')) {
-        return timeStr.split('T')[1].substring(0, 5); // 取 HH:mm
+    if (str.includes('T')) {
+        const timePart = str.split('T')[1];
+        return timePart.substring(0, 5); // 取 HH:mm
     }
     
     // 如果已經是時間格式，確保只取 HH:mm
-    if (timeStr.length >= 5) {
-        return timeStr.substring(0, 5);
+    if (str.includes(':')) {
+        return str.substring(0, 5);
     }
     
-    return timeStr;
+    return str;
 }
 
 /**
@@ -114,23 +87,34 @@ function renderOvertimeRecords(requests, container) {
         const startTime = formatTimeDisplay(req.startTime);
         const endTime = formatTimeDisplay(req.endTime);
         
+        // 🔧 確保時數正確顯示
+        const hours = parseFloat(req.hours) || 0;
+        
         // 狀態顯示
         let statusBadge = '';
         let statusClass = '';
         
-        switch(req.status) {
+        // 🔧 統一處理狀態（轉為小寫比對）
+        const status = String(req.status).toLowerCase().trim();
+        
+        console.log(`渲染加班記錄: 狀態=${status}, 時間=${startTime}-${endTime}, 時數=${hours}`);
+        
+        switch(status) {
             case 'pending':
-                statusBadge = t('OVERTIME_STATUS_PENDING');
+                statusBadge = t('OVERTIME_STATUS_PENDING') || '待審核';
                 statusClass = 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
                 break;
             case 'approved':
-                statusBadge = t('OVERTIME_STATUS_APPROVED');
+                statusBadge = t('OVERTIME_STATUS_APPROVED') || '已核准';
                 statusClass = 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
                 break;
             case 'rejected':
-                statusBadge = t('OVERTIME_STATUS_REJECTED');
+                statusBadge = t('OVERTIME_STATUS_REJECTED') || '已拒絕';
                 statusClass = 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
                 break;
+            default:
+                statusBadge = status;
+                statusClass = 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
         }
         
         li.innerHTML = `
@@ -138,7 +122,7 @@ function renderOvertimeRecords(requests, container) {
                 <div>
                     <p class="font-semibold text-gray-800 dark:text-white">${req.overtimeDate}</p>
                     <p class="text-sm text-gray-600 dark:text-gray-400">
-                        ${startTime} - ${endTime} (${req.hours}小時)
+                        ${startTime} - ${endTime} (${hours}小時)
                     </p>
                 </div>
                 <span class="px-2 py-1 text-xs font-semibold rounded ${statusClass}">
@@ -146,7 +130,7 @@ function renderOvertimeRecords(requests, container) {
                 </span>
             </div>
             <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                <strong data-i18n="OVERTIME_REASON_LABEL">原因：</strong>${req.reason}
+                <strong data-i18n="OVERTIME_REASON_LABEL">申請原因</strong> ${req.reason}
             </p>
             ${req.reviewComment ? `
                 <p class="text-sm text-gray-500 dark:text-gray-400 italic">
@@ -167,7 +151,10 @@ function bindOvertimeFormEvents() {
     const submitBtn = document.getElementById('submit-overtime-btn');
     
     if (submitBtn) {
-        submitBtn.addEventListener('click', handleOvertimeSubmit);
+        // 移除舊的事件監聽器，避免重複綁定
+        const newSubmitBtn = submitBtn.cloneNode(true);
+        submitBtn.parentNode.replaceChild(newSubmitBtn, submitBtn);
+        newSubmitBtn.addEventListener('click', handleOvertimeSubmit);
     }
     
     // 自動計算加班時數
@@ -217,17 +204,19 @@ async function handleOvertimeSubmit() {
     
     // 驗證
     if (!overtimeDate || !startTime || !endTime || !hours || !reason) {
-        showNotification(t('OVERTIME_FILL_ALL_FIELDS'), 'error');
+        showNotification(t('OVERTIME_FILL_ALL_FIELDS') || '請填寫所有欄位', 'error');
         return;
     }
     
     if (parseFloat(hours) <= 0) {
-        showNotification(t('OVERTIME_INVALID_HOURS'), 'error');
+        showNotification(t('OVERTIME_INVALID_HOURS') || '加班時數必須大於0', 'error');
         return;
     }
     
     const loadingText = t('LOADING') || '處理中...';
     generalButtonState(submitBtn, 'processing', loadingText);
+    
+    console.log(`提交加班申請: 日期=${overtimeDate}, 開始=${startTime}, 結束=${endTime}, 時數=${hours}`);
     
     try {
         const res = await callApifetch(
@@ -235,7 +224,7 @@ async function handleOvertimeSubmit() {
         );
         
         if (res.ok) {
-            showNotification(t('OVERTIME_SUBMIT_SUCCESS'), 'success');
+            showNotification(t('OVERTIME_SUBMIT_SUCCESS') || '加班申請提交成功', 'success');
             
             // 清空表單
             dateInput.value = '';
@@ -247,11 +236,11 @@ async function handleOvertimeSubmit() {
             // 重新載入記錄
             await loadEmployeeOvertimeRecords();
         } else {
-            showNotification(t(res.code) || t('ERROR_SUBMIT_OVERTIME'), 'error');
+            showNotification(t(res.code) || t('ERROR_SUBMIT_OVERTIME') || '提交失敗', 'error');
         }
     } catch (err) {
         console.error(err);
-        showNotification(t('NETWORK_ERROR'), 'error');
+        showNotification(t('NETWORK_ERROR') || '網路錯誤', 'error');
     } finally {
         generalButtonState(submitBtn, 'idle');
     }
@@ -283,7 +272,7 @@ async function loadPendingOvertimeRequests() {
     } catch (err) {
         console.error(err);
         requestsLoading.style.display = 'none';
-        showNotification(t('ERROR_LOAD_OVERTIME'), 'error');
+        showNotification(t('ERROR_LOAD_OVERTIME') || '載入失敗', 'error');
     }
 }
 
@@ -300,6 +289,9 @@ function renderPendingOvertimeRequests(requests, container) {
         // 格式化時間顯示
         const startTime = formatTimeDisplay(req.startTime);
         const endTime = formatTimeDisplay(req.endTime);
+        const hours = parseFloat(req.hours) || 0;
+        
+        console.log(`渲染待審核: 行號=${req.rowNumber}, 時間=${startTime}-${endTime}, 時數=${hours}`);
         
         li.innerHTML = `
             <div class="space-y-2">
@@ -310,12 +302,12 @@ function renderPendingOvertimeRequests(requests, container) {
                             ${req.overtimeDate} | ${startTime} - ${endTime}
                         </p>
                         <p class="text-sm text-indigo-600 dark:text-indigo-400">
-                            <strong data-i18n="OVERTIME_HOURS_LABEL">時數：</strong>${req.hours} 小時
+                            <strong data-i18n="OVERTIME_HOURS_LABEL">加班時數</strong> ${hours} 小時
                         </p>
                     </div>
                 </div>
                 <p class="text-sm text-gray-600 dark:text-gray-400">
-                    <strong data-i18n="OVERTIME_REASON_LABEL">原因：</strong>${req.reason}
+                    <strong data-i18n="OVERTIME_REASON_LABEL">申請原因</strong> ${req.reason}
                 </p>
                 <div class="flex space-x-2 mt-3">
                     <button 
@@ -355,34 +347,70 @@ async function handleOvertimeReview(button, action) {
     const rowNumber = button.dataset.row;
     const loadingText = t('LOADING') || '處理中...';
     
+    console.log(`審核動作: rowNumber=${rowNumber}, action=${action}`);
+    
     // 詢問審核意見
-    const comment = action === 'reject' 
-        ? prompt(t('OVERTIME_REJECT_REASON_PROMPT') || '請輸入拒絕原因（選填）') 
-        : '';
+    let comment = '';
+    if (action === 'reject') {
+        comment = prompt(t('OVERTIME_REJECT_REASON_PROMPT') || '請輸入拒絕原因（選填）') || '';
+    }
     
     generalButtonState(button, 'processing', loadingText);
     
     try {
         const res = await callApifetch(
-            `reviewOvertime&rowNumber=${rowNumber}&action=${action}&comment=${encodeURIComponent(comment || '')}`
+            `reviewOvertime&rowNumber=${rowNumber}&action=${action}&comment=${encodeURIComponent(comment)}`
         );
         
+        console.log(`審核結果:`, res);
+        
         if (res.ok) {
-            showNotification(
-                action === 'approve' ? t('OVERTIME_APPROVED') : t('OVERTIME_REJECTED'), 
-                'success'
-            );
+            const successMsg = action === 'approve' 
+                ? (t('OVERTIME_APPROVED') || '已核准加班申請') 
+                : (t('OVERTIME_REJECTED') || '已拒絕加班申請');
+            
+            showNotification(successMsg, 'success');
             
             // 延遲後重新載入列表
             await new Promise(resolve => setTimeout(resolve, 500));
-            loadPendingOvertimeRequests();
+            await loadPendingOvertimeRequests();
         } else {
-            showNotification(t(res.code) || t('REVIEW_FAILED'), 'error');
+            showNotification(t(res.code) || res.msg || t('REVIEW_FAILED') || '審核失敗', 'error');
+            generalButtonState(button, 'idle');
         }
     } catch (err) {
-        console.error(err);
-        showNotification(t('NETWORK_ERROR'), 'error');
-    } finally {
+        console.error('審核錯誤:', err);
+        showNotification(t('NETWORK_ERROR') || '網路錯誤', 'error');
         generalButtonState(button, 'idle');
+    }
+}
+
+/**
+ * 控制按鈕的載入狀態
+ * @param {HTMLElement} button - 按鈕元素
+ * @param {string} state - 'processing' 或 'idle'
+ * @param {string} loadingText - 處理中顯示的文字
+ */
+function generalButtonState(button, state, loadingText = '處理中...') {
+    if (!button) return;
+    const loadingClasses = 'opacity-50 cursor-not-allowed';
+
+    if (state === 'processing') {
+        // 進入處理中狀態
+        button.dataset.originalText = button.textContent;
+        button.dataset.loadingClasses = loadingClasses;
+        button.disabled = true;
+        button.textContent = loadingText;
+        button.classList.add(...loadingClasses.split(' '));
+    } else {
+        // 恢復到原始狀態
+        if (button.dataset.loadingClasses) {
+            button.classList.remove(...button.dataset.loadingClasses.split(' '));
+        }
+        button.disabled = false;
+        if (button.dataset.originalText) {
+            button.textContent = button.dataset.originalText;
+            delete button.dataset.originalText;
+        }
     }
 }
