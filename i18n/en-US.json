@@ -148,8 +148,8 @@
   "OVERTIME_DATE_LABEL": "Overtime Date",
   "OVERTIME_START_TIME_LABEL": "Start Time",
   "OVERTIME_END_TIME_LABEL": "End Time",
-  "OVERTIME_HOURS_LABEL": "Overtime Hours",
-  "OVERTIME_REASON_LABEL": "Reason for Application",
+  "OVERTIME_HOURS_LABEL": "Overtime Hours：",
+  "OVERTIME_REASON_LABEL": "Reason for Application：",
   "OVERTIME_REASON_PLACEHOLDER": "Please explain the reason for overtime...",
   "OVERTIME_SUBMIT_BTN": "Submit Application",
   
@@ -161,7 +161,7 @@
   "OVERTIME_STATUS_APPROVED": "Approved",
   "OVERTIME_STATUS_REJECTED": "Rejected",
   
-  "OVERTIME_REVIEW_COMMENT": "Review Comment",
+  "OVERTIME_REVIEW_COMMENT": "Review Comment：",
   
   "OVERTIME_PENDING_TITLE": "Pending Overtime Applications",
   "OVERTIME_PENDING_DESCRIPTION": "Review overtime applications submitted by employees",

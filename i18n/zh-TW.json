@@ -150,8 +150,8 @@
     "OVERTIME_DATE_LABEL": "加班日期",
     "OVERTIME_START_TIME_LABEL": "開始時間",
     "OVERTIME_END_TIME_LABEL": "結束時間",
-    "OVERTIME_HOURS_LABEL": "加班時數",
-    "OVERTIME_REASON_LABEL": "申請原因",
+    "OVERTIME_HOURS_LABEL": "加班時數：",
+    "OVERTIME_REASON_LABEL": "申請原因：",
     "OVERTIME_REASON_PLACEHOLDER": "請說明加班原因...",
     "OVERTIME_SUBMIT_BTN": "提交申請",
     
@@ -163,7 +163,7 @@
     "OVERTIME_STATUS_APPROVED": "已核准",
     "OVERTIME_STATUS_REJECTED": "已拒絕",
     
-    "OVERTIME_REVIEW_COMMENT": "審核意見",
+    "OVERTIME_REVIEW_COMMENT": "審核意見：",
     
     "OVERTIME_PENDING_TITLE": "待審核加班申請",
     "OVERTIME_PENDING_DESCRIPTION": "審核員工提出的加班申請",

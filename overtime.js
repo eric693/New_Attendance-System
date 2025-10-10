@@ -130,7 +130,7 @@ function renderOvertimeRecords(requests, container) {
                 </span>
             </div>
             <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                <strong data-i18n="OVERTIME_REASON_LABEL">申請原因</strong> ${req.reason}
+                <strong data-i18n="OVERTIME_REASON_LABEL">申請原因：</strong>${req.reason}
             </p>
             ${req.reviewComment ? `
                 <p class="text-sm text-gray-500 dark:text-gray-400 italic">
@@ -143,7 +143,6 @@ function renderOvertimeRecords(requests, container) {
         renderTranslations(li);
     });
 }
-
 /**
  * 綁定加班表單事件
  */
@@ -302,12 +301,12 @@ function renderPendingOvertimeRequests(requests, container) {
                             ${req.overtimeDate} | ${startTime} - ${endTime}
                         </p>
                         <p class="text-sm text-indigo-600 dark:text-indigo-400">
-                            <strong data-i18n="OVERTIME_HOURS_LABEL">加班時數</strong> ${hours} 小時
+                            <strong data-i18n="OVERTIME_HOURS_LABEL">加班時數：</strong>${hours} 小時
                         </p>
                     </div>
                 </div>
                 <p class="text-sm text-gray-600 dark:text-gray-400">
-                    <strong data-i18n="OVERTIME_REASON_LABEL">申請原因</strong> ${req.reason}
+                    <strong data-i18n="OVERTIME_REASON_LABEL">申請原因：</strong>${req.reason}
                 </p>
                 <div class="flex space-x-2 mt-3">
                     <button 

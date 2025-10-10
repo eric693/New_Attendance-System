@@ -148,8 +148,8 @@
   "OVERTIME_DATE_LABEL": "Ngày làm thêm giờ",
   "OVERTIME_START_TIME_LABEL": "Thời gian bắt đầu",
   "OVERTIME_END_TIME_LABEL": "Thời gian kết thúc",
-  "OVERTIME_HOURS_LABEL": "Số giờ làm thêm",
-  "OVERTIME_REASON_LABEL": "Lý do đăng ký",
+  "OVERTIME_HOURS_LABEL": "Số giờ làm thêm：",
+  "OVERTIME_REASON_LABEL": "Lý do đăng ký：",
   "OVERTIME_REASON_PLACEHOLDER": "Vui lòng giải thích lý do làm thêm giờ...",
   "OVERTIME_SUBMIT_BTN": "Gửi đơn đăng ký",
   
@@ -161,7 +161,7 @@
   "OVERTIME_STATUS_APPROVED": "Đã phê duyệt",
   "OVERTIME_STATUS_REJECTED": "Đã từ chối",
   
-  "OVERTIME_REVIEW_COMMENT": "Ý kiến đánh giá",
+  "OVERTIME_REVIEW_COMMENT": "Ý kiến đánh giá：",
   
   "OVERTIME_PENDING_TITLE": "Đơn đăng ký làm thêm giờ chờ phê duyệt",
   "OVERTIME_PENDING_DESCRIPTION": "Xem xét đơn đăng ký làm thêm giờ do nhân viên gửi",

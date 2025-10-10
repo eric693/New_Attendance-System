@@ -148,8 +148,8 @@
   "OVERTIME_DATE_LABEL": "Tanggal Lembur",
   "OVERTIME_START_TIME_LABEL": "Waktu Mulai",
   "OVERTIME_END_TIME_LABEL": "Waktu Selesai",
-  "OVERTIME_HOURS_LABEL": "Jam Lembur",
-  "OVERTIME_REASON_LABEL": "Alasan Pengajuan",
+  "OVERTIME_HOURS_LABEL": "Jam Lembur：",
+  "OVERTIME_REASON_LABEL": "Alasan Pengajuan：",
   "OVERTIME_REASON_PLACEHOLDER": "Mohon jelaskan alasan lembur...",
   "OVERTIME_SUBMIT_BTN": "Ajukan Permohonan",
   
@@ -161,7 +161,7 @@
   "OVERTIME_STATUS_APPROVED": "Disetujui",
   "OVERTIME_STATUS_REJECTED": "Ditolak",
   
-  "OVERTIME_REVIEW_COMMENT": "Komentar Peninjauan",
+  "OVERTIME_REVIEW_COMMENT": "Komentar Peninjauan：",
   
   "OVERTIME_PENDING_TITLE": "Pengajuan Lembur Tertunda",
   "OVERTIME_PENDING_DESCRIPTION": "Tinjau pengajuan lembur yang diajukan oleh karyawan",

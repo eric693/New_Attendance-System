@@ -148,8 +148,8 @@
   "OVERTIME_DATE_LABEL": "残業日",
   "OVERTIME_START_TIME_LABEL": "開始時刻",
   "OVERTIME_END_TIME_LABEL": "終了時刻",
-  "OVERTIME_HOURS_LABEL": "残業時間",
-  "OVERTIME_REASON_LABEL": "申請理由",
+  "OVERTIME_HOURS_LABEL": "残業時間：",
+  "OVERTIME_REASON_LABEL": "申請理由：",
   "OVERTIME_REASON_PLACEHOLDER": "残業理由を説明してください...",
   "OVERTIME_SUBMIT_BTN": "申請を提出",
   
@@ -161,7 +161,7 @@
   "OVERTIME_STATUS_APPROVED": "承認済み",
   "OVERTIME_STATUS_REJECTED": "却下済み",
   
-  "OVERTIME_REVIEW_COMMENT": "審査コメント",
+  "OVERTIME_REVIEW_COMMENT": "審査コメント：",
   
   "OVERTIME_PENDING_TITLE": "承認待ち残業申請",
   "OVERTIME_PENDING_DESCRIPTION": "従業員から提出された残業申請を審査",

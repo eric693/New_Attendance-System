@@ -148,8 +148,8 @@
   "OVERTIME_DATE_LABEL": "초과근무 날짜",
   "OVERTIME_START_TIME_LABEL": "시작 시간",
   "OVERTIME_END_TIME_LABEL": "종료 시간",
-  "OVERTIME_HOURS_LABEL": "초과근무 시간",
-  "OVERTIME_REASON_LABEL": "신청 사유",
+  "OVERTIME_HOURS_LABEL": "초과근무 시간：",
+  "OVERTIME_REASON_LABEL": "신청 사유：",
   "OVERTIME_REASON_PLACEHOLDER": "초과근무 사유를 설명해 주세요...",
   "OVERTIME_SUBMIT_BTN": "신청 제출",
   
@@ -161,7 +161,7 @@
   "OVERTIME_STATUS_APPROVED": "승인됨",
   "OVERTIME_STATUS_REJECTED": "거부됨",
   
-  "OVERTIME_REVIEW_COMMENT": "검토 의견",
+  "OVERTIME_REVIEW_COMMENT": "검토 의견：",
   
   "OVERTIME_PENDING_TITLE": "대기 중인 초과근무 신청",
   "OVERTIME_PENDING_DESCRIPTION": "직원이 제출한 초과근무 신청 검토",
