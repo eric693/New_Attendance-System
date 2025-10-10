@@ -48,6 +48,16 @@ function doGet(e) {
         return respond1(handleApproveReview(e.parameter));
       case "rejectReview":
         return respond1(handleRejectReview(e.parameter));
+      
+      case "submitOvertime":
+        return respond1(handleSubmitOvertime(e.parameter));
+      case "getEmployeeOvertime":
+        return respond1(handleGetEmployeeOvertime(e.parameter));
+      case "getPendingOvertime":
+        return respond1(handleGetPendingOvertime(e.parameter));
+      case "reviewOvertime":
+        return respond1(handleReviewOvertime(e.parameter));
+        
       case "testEndpoint": // 新增一個測試用的 action
         return respond1({ ok: true, msg: "CORS 測試成功!" });
       default:
