@@ -187,7 +187,7 @@
   "LEAVE_START_DATE_LABEL": "시작일",
   "LEAVE_END_DATE_LABEL": "종료일",
   "LEAVE_DAYS_LABEL": "일수",
-  "LEAVE_REASON_LABEL": "사유",
+  "LEAVE_REASON_LABEL": "사유:",
   "LEAVE_SUBMIT_BTN": "신청하기",
   "ANNUAL_LEAVE": "연차",
   "SICK_LEAVE": "병가",
