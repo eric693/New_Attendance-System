@@ -1,4 +1,23 @@
-// leave.js - 請假系統前端邏輯（完整版）
+// leave.js - 請假系統前端邏輯（完整修正版）
+
+/**
+ * 🆕 格式化日期函數
+ * 將任何日期格式轉換為 YYYY-MM-DD
+ */
+function formatLeaveDate(dateInput) {
+    if (!dateInput) return '';
+    
+    const date = new Date(dateInput);
+    
+    // 檢查是否為有效日期
+    if (isNaN(date.getTime())) return dateInput;
+    
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    
+    return `${year}-${month}-${day}`;
+}
 
 /**
  * 初始化請假頁籤
@@ -150,7 +169,7 @@ async function loadLeaveRecords() {
 }
 
 /**
- * 渲染請假記錄
+ * 渲染請假記錄（修正版）
  */
 function renderLeaveRecords(records) {
     const listEl = document.getElementById('leave-records-list');
@@ -170,6 +189,10 @@ function renderLeaveRecords(records) {
             statusClass = 'text-red-600 dark:text-red-400';
         }
         
+        // 🔧 修正：格式化日期
+        const startDate = formatLeaveDate(record.startDate);
+        const endDate = formatLeaveDate(record.endDate);
+        
         li.innerHTML = `
             <div class="flex justify-between items-start mb-2">
                 <div>
@@ -177,7 +200,7 @@ function renderLeaveRecords(records) {
                         <span data-i18n-key="${record.leaveType}">${t(record.leaveType)}</span>
                     </p>
                     <p class="text-sm text-gray-600 dark:text-gray-400">
-                        ${record.startDate} ~ ${record.endDate}
+                        ${startDate} ~ ${endDate}
                         <span class="ml-2">(${record.days} ${t('DAYS')})</span>
                     </p>
                 </div>
@@ -250,7 +273,7 @@ function calculateLeaveDays() {
 }
 
 /**
- * 提交請假申請
+ * 提交請假申請（修正版）
  */
 async function handleSubmitLeave() {
     const button = document.getElementById('submit-leave-btn');
@@ -274,14 +297,18 @@ async function handleSubmitLeave() {
         return;
     }
     
+    // 🔧 修正：確保日期格式為 YYYY-MM-DD
+    const formattedStartDate = formatLeaveDate(startDate);
+    const formattedEndDate = formatLeaveDate(endDate);
+    
     // 進入處理中狀態
     generalButtonState(button, 'processing', loadingText);
     
     try {
         const res = await callApifetch(
             `submitLeave&leaveType=${encodeURIComponent(leaveType)}` +
-            `&startDate=${encodeURIComponent(startDate)}` +
-            `&endDate=${encodeURIComponent(endDate)}` +
+            `&startDate=${encodeURIComponent(formattedStartDate)}` +
+            `&endDate=${encodeURIComponent(formattedEndDate)}` +
             `&days=${encodeURIComponent(days)}` +
             `&reason=${encodeURIComponent(reason)}`
         );
@@ -343,7 +370,7 @@ async function loadPendingLeaveRequests() {
 }
 
 /**
- * 渲染待審核請假列表
+ * 渲染待審核請假列表（修正版）
  */
 function renderPendingLeaveRequests(requests) {
     const listEl = document.getElementById('pending-leave-list');
@@ -355,6 +382,10 @@ function renderPendingLeaveRequests(requests) {
         const li = document.createElement('li');
         li.className = 'p-4 bg-gray-50 dark:bg-gray-700 rounded-lg';
         
+        // 🔧 修正：格式化日期
+        const startDate = formatLeaveDate(req.startDate);
+        const endDate = formatLeaveDate(req.endDate);
+        
         li.innerHTML = `
             <div class="flex flex-col space-y-2">
                 <div class="flex items-center justify-between">
@@ -363,7 +394,7 @@ function renderPendingLeaveRequests(requests) {
                             ${req.employeeName} - <span data-i18n-key="${req.leaveType}">${t(req.leaveType)}</span>
                         </p>
                         <p class="text-sm text-gray-600 dark:text-gray-400">
-                            ${req.startDate} ~ ${req.endDate} (${req.days} ${t('DAYS')})
+                            ${startDate} ~ ${endDate} (${req.days} ${t('DAYS')})
                         </p>
                         ${req.reason ? `
                             <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
