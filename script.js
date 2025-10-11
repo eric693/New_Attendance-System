@@ -40,6 +40,7 @@ function t(code, params = {}) {
     }
     return text;
 }
+
 // renderTranslations 可接受一個容器參數
 function renderTranslations(container = document) {
     // 翻譯網頁標題（只在整頁翻譯時執行）
@@ -77,7 +78,6 @@ function renderTranslations(container = document) {
         }
     });
 }
-
 
 /**
  * 透過 fetch API 呼叫後端 API。
@@ -267,7 +267,7 @@ async function renderCalendar(date) {
     } else {
         // 如果沒有，才發送 API 請求
         // 清空日曆，顯示載入狀態，並確保置中
-        calendarGrid.innerHTML = '<div data-i18n="LOADING" class="col-span-full text-center text-gray-500 py-4">正在載入...</div>';
+        calendarGrid.innerHTML = '<div data-i18n="LOADING" class="col-span-full text-center text-gray-500 dark:text-gray-400 py-4">正在載入...</div>';
         renderTranslations(calendarGrid);
         try {
             const res = await callApifetch(`getAttendanceDetails&month=${monthkey}&userId=${userId}`);
@@ -456,7 +456,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const tabMonthlyBtn = document.getElementById('tab-monthly-btn');
     const tabLocationBtn = document.getElementById('tab-location-btn');
     const tabAdminBtn = document.getElementById('tab-admin-btn');
-    const tabOvertimeBtn = document.getElementById('tab-overtime-btn'); // 👈 新增這行
+    const tabOvertimeBtn = document.getElementById('tab-overtime-btn');
+    const tabLeaveBtn = document.getElementById('tab-leave-btn'); // 👈 新增請假按鈕
     const abnormalList = document.getElementById('abnormal-list');
     const adjustmentFormContainer = document.getElementById('adjustment-form-container');
     const calendarGrid = document.getElementById('calendar-grid');
@@ -526,7 +527,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         listEl.innerHTML = '';
         
         requests.forEach((req, index) => {
-            // ... (省略 li.innerHTML 內容，維持不變) ...
             const li = document.createElement('li');
             li.className = 'p-4 bg-gray-50 rounded-lg shadow-sm flex flex-col space-y-2 dark:bg-gray-700';
             li.innerHTML = `
@@ -534,7 +534,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                         <div class="flex items-center justify-between w-full">
                             <p class="text-sm font-semibold text-gray-800 dark:text-white">${req.name} - ${req.remark}</p>
-                            <span class="text-xs text-gray-500">${req.applicationPeriod}</span>
+                            <span class="text-xs text-gray-500 dark:text-gray-400">${req.applicationPeriod}</span>
                         </div>
                     </div>
                     
@@ -565,7 +565,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     /**
      * 處理審核動作（核准或拒絕）。
-     * @param {HTMLElement} button - 被點擊的按鈕元素。 ✨ 新增此參數
+     * @param {HTMLElement} button - 被點擊的按鈕元素。
      * @param {number} index - 請求在陣列中的索引。
      * @param {string} action - 'approve' 或 'reject'。
      */
@@ -834,8 +834,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
     // UI切換邏輯
     const switchTab = (tabId) => {
-        const tabs = ['dashboard-view', 'monthly-view', 'location-view', 'admin-view', 'overtime-view'];
-        const btns = ['tab-dashboard-btn', 'tab-monthly-btn', 'tab-location-btn', 'tab-admin-btn', 'tab-overtime-btn'];
+        const tabs = ['dashboard-view', 'monthly-view', 'location-view', 'admin-view', 'overtime-view', 'leave-view']; // 👈 加入 leave-view
+        const btns = ['tab-dashboard-btn', 'tab-monthly-btn', 'tab-location-btn', 'tab-admin-btn', 'tab-overtime-btn', 'tab-leave-btn']; // 👈 加入 tab-leave-btn
     
         // 1. 移除舊的 active 類別和 CSS 屬性
         tabs.forEach(id => {
@@ -847,8 +847,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         // 2. 移除按鈕的選中狀態
         btns.forEach(id => {
             const btnElement = document.getElementById(id);
-            btnElement.classList.replace('bg-indigo-600', 'bg-gray-200');
-            btnElement.classList.replace('text-white', 'text-gray-600');
+            if (btnElement) {
+                btnElement.classList.replace('bg-indigo-600', 'bg-gray-200');
+                btnElement.classList.replace('text-white', 'text-gray-600');
+                btnElement.classList.add('dark:text-gray-300', 'dark:bg-gray-700');
+            }
         });
         
         // 3. 顯示新頁籤並新增 active 類別
@@ -858,8 +861,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         // 4. 設定新頁籤按鈕的選中狀態
         const newBtnElement = document.getElementById(`tab-${tabId.replace('-view', '-btn')}`);
-        newBtnElement.classList.replace('bg-gray-200', 'bg-indigo-600');
-        newBtnElement.classList.replace('text-gray-600', 'text-white');
+        if (newBtnElement) {
+            newBtnElement.classList.replace('bg-gray-200', 'bg-indigo-600');
+            newBtnElement.classList.replace('text-gray-600', 'text-white');
+            newBtnElement.classList.remove('dark:text-gray-300', 'dark:bg-gray-700');
+            newBtnElement.classList.add('dark:bg-indigo-500');
+        }
         
         // 5. 根據頁籤 ID 執行特定動作
         if (tabId === 'monthly-view') {
@@ -869,8 +876,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         } else if (tabId === 'admin-view') {
             fetchAndRenderReviewRequests();
             loadPendingOvertimeRequests(); // 👈 在管理員頁面也載入加班審核
+            loadPendingLeaveRequests(); // 👈 載入請假審核
         } else if (tabId === 'overtime-view') { // 👈 新增這個條件
             initOvertimeTab();
+        } else if (tabId === 'leave-view') { // 👈 新增請假頁籤初始化
+            initLeaveTab();
         }
     };
     
@@ -948,7 +958,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (buttonId === 'punch-in-btn') {
                 button.textContent = t('PUNCH_IN_LABEL');
             } else if (buttonId === 'punch-out-btn') {
-                button.textContent = t('PUNCH_IN_LABEL');
+                button.textContent = t('PUNCH_OUT_LABEL');
             }
         }
     }
@@ -1054,8 +1064,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             const date = e.target.dataset.date;
             const reason = e.target.dataset.reason;
             const formHtml = `
-                <div class="p-4 border-t border-gray-200 fade-in ">
-                    <p data-i18n="ADJUST_BUTTON_TEXT" class="font-semibold mb-2">補打卡：<span class="text-indigo-600">${date}</span></p>
+                <div class="p-4 border-t border-gray-200 dark:border-gray-600 fade-in ">
+                    <p data-i18n="ADJUST_BUTTON_TEXT" class="font-semibold mb-2 dark:text-white">補打卡：<span class="text-indigo-600 dark:text-indigo-400">${date}</span></p>
                     <div class="form-group mb-3">
                         <label for="adjustDateTime" data-i18n="SELECT_DATETIME_LABEL" class="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">選擇日期與時間：</label>
             <input id="adjustDateTime" 
@@ -1164,6 +1174,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     tabOvertimeBtn.addEventListener('click', () => {
         switchTab('overtime-view');
         initOvertimeTab();
+    });
+
+    // 👈 新增請假按鈕事件
+    tabLeaveBtn.addEventListener('click', () => {
+        switchTab('leave-view');
+        initLeaveTab();
     });
 
     tabAdminBtn.addEventListener('click', async () => {

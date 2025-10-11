@@ -52,7 +52,7 @@
     "API_TEST_TITLE": "API 測試區",
     "API_TEST_DESCRIPTION": "點擊下方按鈕以測試新的 API 功能。",
     "API_TEST_BTN": "測試 API",
-    "FOOTER_VERSION": "打卡救星 v0.6",
+    "FOOTER_VERSION": "打卡救星 v0.7",
     "FOOTER_CREDITS_PREFIX": "由",
     "FOOTER_CREDITS_SUFFIX": "製作",
     "FOOTER_SPONSOR": "點此贊助此專案",
@@ -178,5 +178,64 @@
     
     "ERROR_LOAD_OVERTIME": "載入加班記錄失敗",
     "ERROR_SUBMIT_OVERTIME": "提交加班申請失敗",
-    "ERR_NO_PERMISSION": "您沒有權限執行此操作"
+    "ERR_NO_PERMISSION": "您沒有權限執行此操作",
+
+
+    "TAB_LEAVE": "請假",
+  
+    "LEAVE_BALANCE_TITLE": "假期餘額",
+    "LEAVE_BALANCE_DESCRIPTION": "您的可用假期額度",
+    
+    "LEAVE_APPLY_TITLE": "申請請假",
+    "LEAVE_APPLY_DESCRIPTION": "填寫以下資訊提交請假申請",
+    
+    "LEAVE_TYPE_LABEL": "假別",
+    "LEAVE_START_DATE_LABEL": "開始日期",
+    "LEAVE_END_DATE_LABEL": "結束日期",
+    "LEAVE_DAYS_LABEL": "請假天數",
+    "LEAVE_REASON_LABEL": "請假原因",
+    "LEAVE_SUBMIT_BTN": "提交申請",
+    
+    "ANNUAL_LEAVE": "特休假",
+    "SICK_LEAVE": "病假",
+    "PERSONAL_LEAVE": "事假",
+    "MARRIAGE_LEAVE": "婚假",
+    "BEREAVEMENT_LEAVE": "喪假",
+    "MATERNITY_LEAVE": "產假",
+    "PATERNITY_LEAVE": "陪產假",
+    "FAMILY_CARE_LEAVE": "家庭照顧假",
+    "MENSTRUAL_LEAVE": "生理假",
+    
+    "DAYS": "天",
+    
+    "LEAVE_RECORDS_TITLE": "我的請假記錄",
+    "LEAVE_RECORDS_DESCRIPTION": "查看您的請假申請歷史記錄",
+    "LEAVE_NO_RECORDS": "目前沒有請假記錄",
+    
+    "PENDING": "待審核",
+    "APPROVED": "已核准",
+    "REJECTED": "已拒絕",
+    
+    "LEAVE_PENDING_TITLE": "待審核請假申請",
+    "LEAVE_PENDING_DESCRIPTION": "審核員工提出的請假申請",
+    "LEAVE_NO_PENDING": "太棒了！目前沒有待審核的請假申請。",
+    
+    "LEAVE_SUBMIT_SUCCESS": "請假申請已提交，等待主管審核",
+    "LEAVE_SUBMIT_FAILED": "請假申請失敗",
+    "LEAVE_APPROVED": "請假申請已核准",
+    "LEAVE_REJECTED": "請假申請已拒絕",
+    
+    "ERROR_FETCH_LEAVE_BALANCE": "無法載入假期餘額",
+    "ERR_INVALID_LEAVE_TYPE": "無效的假別",
+    "ERR_INSUFFICIENT_LEAVE_BALANCE": "{leaveType} 餘額不足（需要 {required} 天，剩餘 {available} 天）",
+    "ERR_MISSING_FIELDS": "請填寫所有必填欄位",
+    "ERR_INVALID_DAYS": "請假天數必須大於 0",
+    "ERR_END_DATE_BEFORE_START": "結束日期不能早於開始日期",
+    "ERR_NO_LEAVE_BALANCE": "找不到假期額度，請聯繫管理員",
+    "ERR_LEAVE_SYSTEM_NOT_INITIALIZED": "請假系統尚未初始化",
+    "ERR_LEAVE_RECORDS_NOT_FOUND": "找不到請假記錄",
+    "ERR_MISSING_REJECT_REASON": "拒絕請假時必須填寫原因",
+    
+    "ENTER_REJECT_REASON": "請輸入拒絕原因：",
+    "REVIEW_COMMENT_LABEL": "審核意見："
 }
