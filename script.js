@@ -1340,6 +1340,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         currentMonthDate.setMonth(currentMonthDate.getMonth() + 1);
         renderCalendar(currentMonthDate);
     });
+
+    const exportAttendanceBtn = document.getElementById('export-attendance-btn');
+    if (exportAttendanceBtn) {
+        exportAttendanceBtn.addEventListener('click', () => {
+            exportAttendanceReport(currentMonthDate);
+        });
+    }
     // 語系切換事件
     document.getElementById('language-switcher').addEventListener('change', (e) => {
         const newLang = e.target.value;
