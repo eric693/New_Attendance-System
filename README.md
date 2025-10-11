@@ -88,6 +88,9 @@ LINE-Attendance-System/
 ├── i18n/             # 語系檔目錄
 │   ├── en-US.json    # 英文語系
 │   ├── ja-JP.json    # 日文語系
+│   ├── id-JP.json    # 印尼文語系
+│   ├── ko-JP.json    # 韓文語系
+│   ├── vi-JP.json    # 越南文語系
 │   └── zh-TW.json    # 繁體中文語系
 └── README.md         # 專案說明文件
 # New_Attendance-System
