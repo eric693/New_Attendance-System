@@ -52,7 +52,7 @@
     "API_TEST_TITLE": "API 測試區",
     "API_TEST_DESCRIPTION": "點擊下方按鈕以測試新的 API 功能。",
     "API_TEST_BTN": "測試 API",
-    "FOOTER_VERSION": "打卡救星 v1.1",
+    "FOOTER_VERSION": "打卡救星 v1.2",
     "FOOTER_CREDITS_PREFIX": "由",
     "FOOTER_CREDITS_SUFFIX": "製作",
     "FOOTER_SPONSOR": "點此贊助此專案",
@@ -237,5 +237,11 @@
     "ERR_MISSING_REJECT_REASON": "拒絕請假時必須填寫原因",
     
     "ENTER_REJECT_REASON": "請輸入拒絕原因：",
-    "REVIEW_COMMENT_LABEL": "審核意見："
+    "REVIEW_COMMENT_LABEL": "審核意見：",
+
+    "EXPORT_ATTENDANCE_BTN": "匯出本月出勤報表",
+    "EXPORT_LOADING": "正在準備報表...",
+    "EXPORT_SUCCESS": "報表已成功匯出！",
+    "EXPORT_FAILED": "匯出失敗，請稍後再試",
+    "EXPORT_NO_DATA": "本月沒有出勤記錄"
 }

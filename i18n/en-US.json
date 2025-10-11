@@ -52,7 +52,7 @@
   "API_TEST_TITLE": "API Test",
   "API_TEST_DESCRIPTION": "Click to test new API functions.",
   "API_TEST_BTN": "Test API",
-  "FOOTER_VERSION": "Check-in Hero v1.1",
+  "FOOTER_VERSION": "Check-in Hero v1.2",
   "FOOTER_CREDITS_PREFIX": "Made by",
   "FOOTER_CREDITS_SUFFIX": "",
   "FOOTER_SPONSOR": "Sponsor this project",
@@ -223,5 +223,11 @@
   "ERR_LEAVE_RECORDS_NOT_FOUND": "Leave records not found",
   "ERR_MISSING_REJECT_REASON": "Rejection reason is required",
   "ENTER_REJECT_REASON": "Enter rejection reason:",
-  "REVIEW_COMMENT_LABEL": "Review Comment:"
+  "REVIEW_COMMENT_LABEL": "Review Comment:",
+
+  "EXPORT_ATTENDANCE_BTN": "Export Attendance Report",
+  "EXPORT_LOADING": "Preparing report...",
+  "EXPORT_SUCCESS": "Report exported successfully!",
+  "EXPORT_FAILED": "Export failed, please try again",
+  "EXPORT_NO_DATA": "No attendance records for this month"
 }

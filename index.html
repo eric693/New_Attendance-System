@@ -65,7 +65,9 @@
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
             integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
             crossorigin=""></script>
-        
+       
+        <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    
         <style>
             /* 確保日期選擇器在暗黑模式下正常顯示 */
             input[type="date"]::-webkit-calendar-picker-indicator,
@@ -187,6 +189,15 @@
                             <h3 id="month-title" class="font-bold text-xl text-gray-800 dark:text-white"></h3>
                             <button id="next-month" class="text-gray-600 dark:text-gray-400 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">►</button>
                         </div>
+
+                        <div class="mb-4">
+                            <button id="export-attendance-btn" 
+                                    data-i18n="EXPORT_ATTENDANCE_BTN"
+                                    class="w-full py-2 px-4 rounded-lg font-bold btn-secondary hover:opacity-90 transition-opacity">
+                                匯出本月出勤報表
+                            </button>
+                        </div>
+
                         <div class="grid grid-cols-7 text-center text-sm font-semibold text-gray-500 dark:text-gray-400 mb-2">
                             <span data-i18n="WEEK_SUNDAY">日</span>
                             <span data-i18n="WEEK_MONDAY">一</span>
@@ -609,7 +620,7 @@
             </div>
             <footer class="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
                 <p>
-                    <span data-i18n="APP_TITLE">打卡救星</span> v1.1 |
+                    <span data-i18n="APP_TITLE">打卡救星</span> v1.2 |
                     <span class="text-gray-400 dark:text-gray-500">
                         <span data-i18n="FOOTER_CREDITS_PREFIX">由</span>
                         <a href="https://github.com/eric693" class="hover:underline hover:text-indigo-600 dark:hover:text-indigo-400">艾瑞克科技坊</a>

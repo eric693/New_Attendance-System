@@ -116,6 +116,122 @@ async function callApifetch(action, loadingId = "loading") {
         if (loadingEl) loadingEl.style.display = "none";
     }
 }
+// ==================== 📊 匯出出勤報表功能 ====================
+
+/**
+ * 匯出指定月份的出勤報表為 Excel 檔案
+ * @param {Date} date - 要匯出的月份日期物件
+ */
+async function exportAttendanceReport(date) {
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    const monthKey = `${year}-${String(month).padStart(2, '0')}`;
+    const userId = localStorage.getItem("sessionUserId");
+    
+    // 取得匯出按鈕
+    const exportBtn = document.getElementById('export-attendance-btn');
+    const loadingText = t('EXPORT_LOADING') || '正在準備報表...';
+    
+    // 顯示載入提示
+    showNotification(loadingText, 'warning');
+    
+    // 按鈕進入處理中狀態
+    if (exportBtn) {
+        generalButtonState(exportBtn, 'processing', loadingText);
+    }
+    
+    try {
+        // 呼叫 API 取得出勤資料
+        const res = await callApifetch(`getAttendanceDetails&month=${monthKey}&userId=${userId}`);
+        
+        if (!res.ok || !res.records || res.records.length === 0) {
+            showNotification(t('EXPORT_NO_DATA') || '本月沒有出勤記錄', 'warning');
+            return;
+        }
+        
+        // 整理資料為 Excel 格式
+        const exportData = [];
+        
+        res.records.forEach(record => {
+            // 找出上班和下班的記錄
+            const punchIn = record.record.find(r => r.type === '上班');
+            const punchOut = record.record.find(r => r.type === '下班');
+            
+            // 計算工時
+            let workHours = '-';
+            if (punchIn && punchOut) {
+                try {
+                    const inTime = new Date(`${record.date} ${punchIn.time}`);
+                    const outTime = new Date(`${record.date} ${punchOut.time}`);
+                    const diffMs = outTime - inTime;
+                    const diffHours = (diffMs / (1000 * 60 * 60)).toFixed(2);
+                    workHours = diffHours > 0 ? diffHours : '-';
+                } catch (e) {
+                    console.error('計算工時失敗:', e);
+                    workHours = '-';
+                }
+            }
+            
+            // 翻譯狀態
+            const statusText = t(record.reason) || record.reason;
+            
+            // 處理備註
+            const notes = record.record
+                .filter(r => r.note && r.note !== '系統虛擬卡')
+                .map(r => r.note)
+                .join('; ');
+            
+            exportData.push({
+                '日期': record.date,
+                '上班時間': punchIn?.time || '-',
+                '上班地點': punchIn?.location || '-',
+                '下班時間': punchOut?.time || '-',
+                '下班地點': punchOut?.location || '-',
+                '工作時數': workHours,
+                '狀態': statusText,
+                '備註': notes || '-'
+            });
+        });
+        
+        // 使用 SheetJS 建立 Excel 檔案
+        const ws = XLSX.utils.json_to_sheet(exportData);
+        
+        // 設定欄位寬度
+        const wscols = [
+            { wch: 12 },  // 日期
+            { wch: 10 },  // 上班時間
+            { wch: 20 },  // 上班地點
+            { wch: 10 },  // 下班時間
+            { wch: 20 },  // 下班地點
+            { wch: 10 },  // 工作時數
+            { wch: 15 },  // 狀態
+            { wch: 30 }   // 備註
+        ];
+        ws['!cols'] = wscols;
+        
+        // 建立工作簿
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, `${month}月出勤記錄`);
+        
+        // 下載檔案
+        const fileName = `出勤記錄_${year}年${month}月.xlsx`;
+        XLSX.writeFile(wb, fileName);
+        
+        showNotification(t('EXPORT_SUCCESS') || '報表已成功匯出！', 'success');
+        
+    } catch (error) {
+        console.error('匯出失敗:', error);
+        showNotification(t('EXPORT_FAILED') || '匯出失敗，請稍後再試', 'error');
+        
+    } finally {
+        // 恢復按鈕狀態
+        if (exportBtn) {
+            generalButtonState(exportBtn, 'idle');
+        }
+    }
+}
+
+// ==================== 📊 匯出功能結束 ====================
 
 /* ===== 共用訊息顯示 ===== */
 const showNotification = (message, type = 'success') => {
