@@ -531,6 +531,38 @@
                         </div>
                     </div>
                     
+                    <!-- 👇 新增：管理員匯出所有員工報表 -->
+                    <div class="card p-6">
+                        <h2 data-i18n="ADMIN_EXPORT_TITLE" 
+                            class="text-xl font-bold text-gray-800 dark:text-white mb-2">
+                            匯出報表
+                        </h2>
+                        <p data-i18n="ADMIN_EXPORT_DESCRIPTION" 
+                        class="text-gray-500 dark:text-gray-400 mb-4">
+                            匯出所有員工的出勤報表
+                        </p>
+                        
+                        <div class="space-y-4">
+                            <!-- 選擇月份 -->
+                            <div>
+                                <label data-i18n="ADMIN_EXPORT_MONTH_LABEL" 
+                                    for="admin-export-month" 
+                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    選擇月份
+                                </label>
+                                <input type="month" 
+                                    id="admin-export-month" 
+                                    class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm dark:bg-gray-700 dark:text-white focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+                            
+                            <!-- 匯出按鈕 -->
+                            <button id="admin-export-all-btn" 
+                                    data-i18n="ADMIN_EXPORT_ALL_BTN"
+                                    class="w-full py-3 px-4 rounded-lg font-bold btn-primary">
+                                    匯出所有員工報表
+                            </button>
+                        </div>
+                    </div>
                     <!-- 👇 加班審核區塊 -->
                     <div class="card p-6 mt-6">
                         <h2 data-i18n="OVERTIME_PENDING_TITLE" 
@@ -620,7 +652,7 @@
             </div>
             <footer class="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
                 <p>
-                    <span data-i18n="APP_TITLE">打卡救星</span> v1.2 |
+                    <span data-i18n="APP_TITLE">打卡救星</span> v1.3 |
                     <span class="text-gray-400 dark:text-gray-500">
                         <span data-i18n="FOOTER_CREDITS_PREFIX">由</span>
                         <a href="https://github.com/eric693" class="hover:underline hover:text-indigo-600 dark:hover:text-indigo-400">艾瑞克科技坊</a>

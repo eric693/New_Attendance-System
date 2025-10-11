@@ -116,6 +116,133 @@ async function callApifetch(action, loadingId = "loading") {
         if (loadingEl) loadingEl.style.display = "none";
     }
 }
+
+// ==================== 📊 管理員匯出所有員工報表功能 ====================
+
+/**
+ * 管理員匯出所有員工的出勤報表
+ * @param {string} monthKey - 月份，格式: "YYYY-MM"
+ */
+async function exportAllEmployeesReport(monthKey) {
+    const exportBtn = document.getElementById('admin-export-all-btn');
+    const loadingText = t('EXPORT_LOADING') || '正在準備報表...';
+    
+    showNotification(loadingText, 'warning');
+    
+    if (exportBtn) {
+        generalButtonState(exportBtn, 'processing', loadingText);
+    }
+    
+    try {
+        // 呼叫 API 取得所有員工的出勤資料（不傳 userId）
+        const res = await callApifetch(`getAttendanceDetails&month=${monthKey}`);
+        
+        if (!res.ok || !res.records || res.records.length === 0) {
+            showNotification(t('EXPORT_NO_DATA') || '本月沒有出勤記錄', 'warning');
+            return;
+        }
+        
+        // 👇 修正：先檢查資料結構
+        console.log('API 回傳的資料:', res.records[0]); // 除錯用
+        
+        // 按員工分組
+        const employeeData = {};
+        
+        res.records.forEach(record => {
+            // 👇 修正：確保正確讀取 userId 和 name
+            const userId = record.userId || 'unknown';
+            const userName = record.name || '未知員工';
+            
+            if (!employeeData[userId]) {
+                employeeData[userId] = {
+                    name: userName,
+                    records: []
+                };
+            }
+            
+            // 找出上班和下班的記錄
+            const punchIn = record.record ? record.record.find(r => r.type === '上班') : null;
+            const punchOut = record.record ? record.record.find(r => r.type === '下班') : null;
+            
+            // 計算工時
+            let workHours = '-';
+            if (punchIn && punchOut) {
+                try {
+                    const inTime = new Date(`${record.date} ${punchIn.time}`);
+                    const outTime = new Date(`${record.date} ${punchOut.time}`);
+                    const diffMs = outTime - inTime;
+                    const diffHours = (diffMs / (1000 * 60 * 60)).toFixed(2);
+                    workHours = diffHours > 0 ? diffHours : '-';
+                } catch (e) {
+                    console.error('計算工時失敗:', e);
+                    workHours = '-';
+                }
+            }
+            
+            const statusText = t(record.reason) || record.reason;
+            
+            const notes = record.record
+                ? record.record
+                    .filter(r => r.note && r.note !== '系統虛擬卡')
+                    .map(r => r.note)
+                    .join('; ')
+                : '';
+            
+            employeeData[userId].records.push({
+                '日期': record.date,
+                '上班時間': punchIn?.time || '-',
+                '上班地點': punchIn?.location || '-',
+                '下班時間': punchOut?.time || '-',
+                '下班地點': punchOut?.location || '-',
+                '工作時數': workHours,
+                '狀態': statusText,
+                '備註': notes || '-'
+            });
+        });
+        
+        // 建立工作簿
+        const wb = XLSX.utils.book_new();
+        
+        // 為每位員工建立一個工作表
+        for (const userId in employeeData) {
+            const employee = employeeData[userId];
+            const ws = XLSX.utils.json_to_sheet(employee.records);
+            
+            const wscols = [
+                { wch: 12 },  // 日期
+                { wch: 10 },  // 上班時間
+                { wch: 20 },  // 上班地點
+                { wch: 10 },  // 下班時間
+                { wch: 20 },  // 下班地點
+                { wch: 10 },  // 工作時數
+                { wch: 15 },  // 狀態
+                { wch: 30 }   // 備註
+            ];
+            ws['!cols'] = wscols;
+            
+            const sheetName = employee.name.substring(0, 31);
+            XLSX.utils.book_append_sheet(wb, ws, sheetName);
+        }
+        
+        const [year, month] = monthKey.split('-');
+        const fileName = `所有員工出勤記錄_${year}年${month}月.xlsx`;
+        XLSX.writeFile(wb, fileName);
+        
+        showNotification(t('EXPORT_SUCCESS') || '報表已成功匯出！', 'success');
+        
+    } catch (error) {
+        console.error('匯出失敗:', error);
+        showNotification(t('EXPORT_FAILED') || '匯出失敗，請稍後再試', 'error');
+        
+    } finally {
+        if (exportBtn) {
+            generalButtonState(exportBtn, 'idle');
+        }
+    }
+}
+
+// ==================== 📊 管理員匯出功能結束 ====================
+
 // ==================== 📊 匯出出勤報表功能 ====================
 
 /**
@@ -1345,6 +1472,28 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (exportAttendanceBtn) {
         exportAttendanceBtn.addEventListener('click', () => {
             exportAttendanceReport(currentMonthDate);
+        });
+    }
+
+    const adminExportAllBtn = document.getElementById('admin-export-all-btn');
+    const adminExportMonthInput = document.getElementById('admin-export-month');
+
+    if (adminExportAllBtn && adminExportMonthInput) {
+        // 設定預設月份為當月
+        const now = new Date();
+        const defaultMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+        adminExportMonthInput.value = defaultMonth;
+        
+        // 綁定按鈕點擊事件
+        adminExportAllBtn.addEventListener('click', () => {
+            const selectedMonth = adminExportMonthInput.value;
+            
+            if (!selectedMonth) {
+                showNotification('請選擇要匯出的月份', 'error');
+                return;
+            }
+            
+            exportAllEmployeesReport(selectedMonth);
         });
     }
     // 語系切換事件
