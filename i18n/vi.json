@@ -52,7 +52,7 @@
   "API_TEST_TITLE": "Kiểm thử API",
   "API_TEST_DESCRIPTION": "Nhấp vào đây để kiểm thử chức năng API.",
   "API_TEST_BTN": "Kiểm thử API",
-  "FOOTER_VERSION": "Anh Hùng Chấm Công v1.3",
+  "FOOTER_VERSION": "Anh Hùng Chấm Công v1.4",
   "FOOTER_CREDITS_PREFIX": "Được làm bởi",
   "FOOTER_CREDITS_SUFFIX": "",
   "FOOTER_SPONSOR": "Tài trợ cho dự án này",
@@ -223,5 +223,15 @@
   "ERR_LEAVE_RECORDS_NOT_FOUND": "Không tìm thấy lịch sử nghỉ phép",
   "ERR_MISSING_REJECT_REASON": "Phải điền lý do từ chối",
   "ENTER_REJECT_REASON": "Nhập lý do từ chối:",
-  "REVIEW_COMMENT_LABEL": "Nhận xét đánh giá:"
+  "REVIEW_COMMENT_LABEL": "Nhận xét đánh giá:",
+
+  "EXPORT_ATTENDANCE_BTN": "Xuất báo cáo chấm công tháng này",
+  "EXPORT_LOADING": "Đang chuẩn bị báo cáo...",
+  "EXPORT_SUCCESS": "Xuất báo cáo thành công!",
+  "EXPORT_FAILED": "Xuất thất bại, vui lòng thử lại sau",
+  "EXPORT_NO_DATA": "Không có bản ghi chấm công trong tháng này",
+  "ADMIN_EXPORT_TITLE": "Xuất báo cáo",
+  "ADMIN_EXPORT_DESCRIPTION": "Xuất báo cáo chấm công của tất cả nhân viên",
+  "ADMIN_EXPORT_MONTH_LABEL": "Chọn tháng",
+  "ADMIN_EXPORT_ALL_BTN": "Xuất báo cáo tất cả nhân viên"
 }

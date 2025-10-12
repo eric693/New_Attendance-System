@@ -226,7 +226,7 @@ function punchAdjusted(sessionToken, type, punchDate, lat, lng, note) {
 }
 
 /**
- * 取得出勤紀錄
+ * 取得打卡紀錄
  */
 function getAttendanceRecords(monthParam, userIdParam) {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_ATTENDANCE);

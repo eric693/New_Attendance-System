@@ -52,7 +52,7 @@
   "API_TEST_TITLE": "APIテストエリア",
   "API_TEST_DESCRIPTION": "下のボタンをクリックして、新しいAPI機能をテストしてください。",
   "API_TEST_BTN": "APIをテスト",
-  "FOOTER_VERSION": "打刻ヒーロー v1.3",
+  "FOOTER_VERSION": "打刻ヒーロー v1.4",
   "FOOTER_CREDITS_PREFIX": "制作：",
   "FOOTER_CREDITS_SUFFIX": "",
   "FOOTER_SPONSOR": "このプロジェクトを支援する",
@@ -223,5 +223,15 @@
   "ERR_LEAVE_RECORDS_NOT_FOUND": "休暇履歴が見つかりません",
   "ERR_MISSING_REJECT_REASON": "却下理由を入力してください",
   "ENTER_REJECT_REASON": "却下理由を入力してください：",
-  "REVIEW_COMMENT_LABEL": "審査コメント："
+  "REVIEW_COMMENT_LABEL": "審査コメント：",
+
+  "EXPORT_ATTENDANCE_BTN": "今月の勤怠レポートをエクスポート",
+  "EXPORT_LOADING": "レポートを準備中...",
+  "EXPORT_SUCCESS": "レポートのエクスポートに成功しました！",
+  "EXPORT_FAILED": "エクスポートに失敗しました。後でもう一度お試しください",
+  "EXPORT_NO_DATA": "今月の勤怠記録はありません",
+  "ADMIN_EXPORT_TITLE": "レポートをエクスポート",
+  "ADMIN_EXPORT_DESCRIPTION": "全従業員の勤怠レポートをエクスポート",
+  "ADMIN_EXPORT_MONTH_LABEL": "月を選択",
+  "ADMIN_EXPORT_ALL_BTN": "全従業員レポートをエクスポート"
 }

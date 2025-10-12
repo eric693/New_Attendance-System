@@ -52,7 +52,7 @@
   "API_TEST_TITLE": "Uji API",
   "API_TEST_DESCRIPTION": "Klik tombol di bawah untuk menguji fungsi API.",
   "API_TEST_BTN": "Uji API",
-  "FOOTER_VERSION": "Pahlawan Absensi v1.3",
+  "FOOTER_VERSION": "Pahlawan Absensi v1.4",
   "FOOTER_CREDITS_PREFIX": "Dibuat oleh",
   "FOOTER_CREDITS_SUFFIX": "",
   "FOOTER_SPONSOR": "Sponsori proyek ini",
@@ -223,5 +223,15 @@
   "ERR_LEAVE_RECORDS_NOT_FOUND": "Riwayat cuti tidak ditemukan",
   "ERR_MISSING_REJECT_REASON": "Alasan penolakan diperlukan",
   "ENTER_REJECT_REASON": "Masukkan alasan penolakan:",
-  "REVIEW_COMMENT_LABEL": "Komentar Tinjauan:"
+  "REVIEW_COMMENT_LABEL": "Komentar Tinjauan:",
+
+  "EXPORT_ATTENDANCE_BTN": "Ekspor Laporan Kehadiran Bulan Ini",
+  "EXPORT_LOADING": "Menyiapkan laporan...",
+  "EXPORT_SUCCESS": "Laporan berhasil diekspor!",
+  "EXPORT_FAILED": "Ekspor gagal, silakan coba lagi nanti",
+  "EXPORT_NO_DATA": "Tidak ada catatan kehadiran bulan ini",
+  "ADMIN_EXPORT_TITLE": "Ekspor Laporan",
+  "ADMIN_EXPORT_DESCRIPTION": "Ekspor laporan kehadiran semua karyawan",
+  "ADMIN_EXPORT_MONTH_LABEL": "Pilih Bulan",
+  "ADMIN_EXPORT_ALL_BTN": "Ekspor Laporan Semua Karyawan"
 }

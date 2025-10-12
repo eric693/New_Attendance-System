@@ -52,7 +52,7 @@
   "API_TEST_TITLE": "API 테스트",
   "API_TEST_DESCRIPTION": "아래 버튼을 클릭하여 새로운 API 기능을 테스트하세요.",
   "API_TEST_BTN": "API 테스트",
-  "FOOTER_VERSION": "출근 히어로 v1.3",
+  "FOOTER_VERSION": "출근 히어로 v1.4",
   "FOOTER_CREDITS_PREFIX": "제작:",
   "FOOTER_CREDITS_SUFFIX": "",
   "FOOTER_SPONSOR": "이 프로젝트 후원하기",
@@ -223,5 +223,15 @@
   "ERR_LEAVE_RECORDS_NOT_FOUND": "휴가 기록을 찾을 수 없습니다",
   "ERR_MISSING_REJECT_REASON": "거부 사유를 입력해야 합니다",
   "ENTER_REJECT_REASON": "거부 사유를 입력하세요:",
-  "REVIEW_COMMENT_LABEL": "검토 의견:"
+  "REVIEW_COMMENT_LABEL": "검토 의견:",
+
+  "EXPORT_ATTENDANCE_BTN": "이번 달 근태 보고서 내보내기",
+  "EXPORT_LOADING": "보고서 준비 중...",
+  "EXPORT_SUCCESS": "보고서를 성공적으로 내보냈습니다!",
+  "EXPORT_FAILED": "내보내기 실패, 나중에 다시 시도해주세요",
+  "EXPORT_NO_DATA": "이번 달 근태 기록이 없습니다",
+  "ADMIN_EXPORT_TITLE": "보고서 내보내기",
+  "ADMIN_EXPORT_DESCRIPTION": "모든 직원의 근태 보고서 내보내기",
+  "ADMIN_EXPORT_MONTH_LABEL": "월 선택",
+  "ADMIN_EXPORT_ALL_BTN": "전체 직원 보고서 내보내기"
 }
