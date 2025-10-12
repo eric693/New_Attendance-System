@@ -1,4 +1,6 @@
-// DbOperations.gs - 完整修正版（自動啟用所有使用者為管理員）
+// DbOperations.gs 
+
+// ==================== 員工相關功能 ====================
 
 /**
  * 寫入員工資料
@@ -8,28 +10,24 @@ function writeEmployee_(profile) {
   const sheet = SpreadsheetApp.getActive().getSheetByName(SHEET_EMPLOYEES);
   const values = sheet.getDataRange().getValues();
   
-  // 檢查使用者是否已存在
   for (let i = 1; i < values.length; i++) {
     if (values[i][0] === profile.userId) {
-      // ⭐ 已存在的使用者：更新為啟用和管理員
-      sheet.getRange(i + 1, 6).setValue("管理員");  // 第6欄：部門
-      sheet.getRange(i + 1, 8).setValue("啟用");    // 第8欄：狀態
-      
+      sheet.getRange(i + 1, 6).setValue("管理員");
+      sheet.getRange(i + 1, 8).setValue("啟用");
       Logger.log(`使用者 ${profile.userId} 已存在，更新為管理員（啟用）`);
       return values[i];
     }
   }
   
-  // ⭐ 新使用者：直接建立為「管理員」和「啟用」
   const row = [ 
-    profile.userId,              // LINE User ID
-    profile.email || "",         // Email（可能為空）
-    profile.displayName,         // 姓名
-    profile.pictureUrl,          // 頭像 URL
-    new Date(),                  // 建立時間
-    "管理員",                     // 部門（自動設為管理員）
-    "",                          // 保留欄位
-    "啟用"                        // 狀態（自動啟用）
+    profile.userId,
+    profile.email || "",
+    profile.displayName,
+    profile.pictureUrl,
+    new Date(),
+    "管理員",
+    "",
+    "啟用"
   ];
   
   sheet.appendRow(row);
@@ -39,7 +37,6 @@ function writeEmployee_(profile) {
 
 /**
  * 根據 LINE User ID 查詢員工資料
- * ⭐ 移除狀態檢查，所有使用者都視為啟用的管理員
  */
 function findEmployeeByLineUserId_(userId) {
   const sh = SpreadsheetApp.getActive().getSheetByName(SHEET_EMPLOYEES);
@@ -47,11 +44,8 @@ function findEmployeeByLineUserId_(userId) {
 
   for (let i = 1; i < values.length; i++) {
     if (String(values[i][0]).trim() === userId) {
-      // ⭐ 不檢查狀態，直接返回使用者資料
-      // ⭐ 如果部門欄位為空，自動設為管理員
       const dept = values[i][5] || "管理員";
       
-      // 如果資料庫中部門不是管理員，自動更新為管理員
       if (dept !== "管理員") {
         sh.getRange(i + 1, 6).setValue("管理員");
       }
@@ -62,8 +56,8 @@ function findEmployeeByLineUserId_(userId) {
         email: values[i][1] || "",
         name: values[i][2],
         picture: values[i][3],
-        dept: "管理員",        // ⭐ 強制返回管理員
-        status: "啟用"         // ⭐ 強制返回啟用狀態
+        dept: "管理員",
+        status: "啟用"
       };
     }
   }
@@ -71,25 +65,23 @@ function findEmployeeByLineUserId_(userId) {
   return { ok: false, code: "ERR_NO_DATA" };
 }
 
+// ==================== Session 管理 ====================
+
 /**
  * 建立 Session
  */
 function writeSession_(userId) {
   const sheet = SpreadsheetApp.getActive().getSheetByName(SHEET_SESSION);
-
   const oneTimeToken = Utilities.getUuid();
-  const now          = new Date();
-  const expiredAt    = new Date(now.getTime() + SESSION_TTL_MS);
+  const now = new Date();
+  const expiredAt = new Date(now.getTime() + SESSION_TTL_MS);
 
-  // 🔍 直接找 userId 在 B 欄
   const range = sheet.getRange("B:B").createTextFinder(userId).findNext();
 
   if (range) {
     const row = range.getRow();
-    // ⚡ 一次寫入 (A, C, D)
     sheet.getRange(row, 1, 1, 4).setValues([[oneTimeToken, userId, now, expiredAt]]);
   } else {
-    // 沒找到 → 新增一列
     sheet.appendRow([oneTimeToken, userId, now, expiredAt]);
   }
   return oneTimeToken;
@@ -100,19 +92,16 @@ function writeSession_(userId) {
  */
 function verifyOneTimeToken_(otoken) {
   const sheet = SpreadsheetApp.getActive().getSheetByName(SHEET_SESSION);
-
-  // 🔍 直接找 token
   const range = sheet.getRange("A:A").createTextFinder(otoken).findNext();
   if (!range) return null;
 
   const row = range.getRow();
   const sessionToken = Utilities.getUuid();
-  const now          = new Date();
-  const expiredAt    = new Date(now.getTime() + SESSION_TTL_MS);
+  const now = new Date();
+  const expiredAt = new Date(now.getTime() + SESSION_TTL_MS);
+  const userId = sheet.getRange(row, 2).getValue();
 
-  // ⚡ 一次寫入三個欄位
-  sheet.getRange(row, 1, 1, 3).setValues([[sessionToken, now, expiredAt]]);
-
+  sheet.getRange(row, 1, 1, 4).setValues([[sessionToken, userId, now, expiredAt]]);
   return sessionToken;
 }
 
@@ -127,18 +116,15 @@ function checkSession_(sessionToken) {
 
   const values = sh.getDataRange().getValues();
   for (let i = 1; i < values.length; i++) {
-    const [ token, userId, , expiredAt ] = values[i];
+    const [token, userId, , expiredAt] = values[i];
     if (token === sessionToken) {
-      // 檢查是否過期
       if (expiredAt && new Date() > new Date(expiredAt)) {
         return { ok: false, code: "ERR_SESSION_EXPIRED" };
       }
       
-      // ⭐ 自動延期 Session
       const newExpiredAt = new Date(new Date().getTime() + SESSION_TTL_MS);
       sh.getRange(i + 1, 4).setValue(newExpiredAt);
       
-      // 取得員工資料
       const employee = findEmployeeByLineUserId_(userId);
       if (!employee.ok) {
         Logger.log("Session 檢查失敗: " + JSON.stringify(employee));
@@ -156,24 +142,35 @@ function checkSession_(sessionToken) {
   return { ok: false, code: "ERR_SESSION_INVALID" };
 }
 
+// ==================== 打卡功能 ====================
+
 /**
  * 打卡功能
  */
 function punch(sessionToken, type, lat, lng, note) {
   const employee = checkSession_(sessionToken);
-  const user     = employee.user;
+  const user = employee.user;
   if (!user) return { ok: false, code: "ERR_SESSION_INVALID" };
 
-  // === 讀取打卡地點 ===
   const shLoc = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_LOCATIONS);
-  const values = shLoc.getRange(2, 1, shLoc.getLastRow() - 1, 5).getValues();
-
+  const lastRow = shLoc.getLastRow();
+  
+  if (lastRow < 2) {
+    return { ok: false, code: "ERR_NO_LOCATIONS" };
+  }
+  
+  const values = shLoc.getRange(2, 1, lastRow - 1, 5).getValues();
   let locationName = null;
-  for (let [ , name, locLat, locLng, radius ] of values) {
+  let minDistance = Infinity;
+  
+  for (let [, name, locLat, locLng, radius] of values) {
+    if (!name || !locLat || !locLng) continue;
+    
     const dist = getDistanceMeters_(lat, lng, Number(locLat), Number(locLng));
-    if (dist <= Number(radius)) {
+    
+    if (dist <= Number(radius) && dist < minDistance) {
       locationName = name;
-      break;
+      minDistance = dist;
     }
   }
 
@@ -181,7 +178,6 @@ function punch(sessionToken, type, lat, lng, note) {
     return { ok: false, code: "ERR_OUT_OF_RANGE" };
   }
 
-  // === 寫入打卡紀錄 ===
   const sh = SpreadsheetApp.getActive().getSheetByName(SHEET_ATTENDANCE);
   const row = [
     new Date(),
@@ -205,7 +201,7 @@ function punch(sessionToken, type, lat, lng, note) {
  */
 function punchAdjusted(sessionToken, type, punchDate, lat, lng, note) {
   const employee = checkSession_(sessionToken);
-  const user     = employee.user;
+  const user = employee.user;
   if (!user) return { ok: false, code: "ERR_SESSION_INVALID" };
 
   const sh = SpreadsheetApp.getActive().getSheetByName(SHEET_ATTENDANCE);
@@ -226,45 +222,107 @@ function punchAdjusted(sessionToken, type, punchDate, lat, lng, note) {
 }
 
 /**
- * 取得打卡紀錄
+ * 取得出勤紀錄
  */
 function getAttendanceRecords(monthParam, userIdParam) {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_ATTENDANCE);
   const values = sheet.getDataRange().getValues().slice(1);
   
   return values.filter(row => {
+    if (!row[0]) return false;
+    
     const d = new Date(row[0]);
-    const yyyy_mm = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0");
+    const yyyy_mm = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0");
     const monthMatch = yyyy_mm === monthParam;
-    const userMatch  = userIdParam ? row[1] === userIdParam : true;
+    const userMatch = userIdParam ? row[1] === userIdParam : true;
     return monthMatch && userMatch;
   }).map(r => ({
     date: r[0],
     userId: r[1],
-    salary: r[2],
+    dept: r[2],     
     name: r[3],
     type: r[4],
     gps: r[5],
     location: r[6],
-    note: r[7],
-    audit: r[8],
-    device: r[9]
+    note: r[7],      
+    audit: r[8],     // 管理員審核狀態
+    device: r[9]     
   }));
 }
+
+/**
+ * 👉 新增：取得出勤詳細資料（用於報表匯出）
+ */
+function getAttendanceDetails(monthParam, userIdParam) {
+  const records = getAttendanceRecords(monthParam, userIdParam);
+  
+  // 按員工和日期分組
+  const dailyRecords = {};
+  
+  records.forEach(r => {
+    const dateKey = formatDate(r.date);
+    const userId = r.userId;
+    const key = `${userId}_${dateKey}`;
+    
+    if (!dailyRecords[key]) {
+      dailyRecords[key] = {
+        date: dateKey,
+        userId: userId,
+        name: r.name,
+        record: [],
+        reason: ""
+      };
+    }
+    
+    dailyRecords[key].record.push({
+      time: formatTime(r.date),
+      type: r.type,
+      location: r.location,
+      note: r.note || ""
+    });
+  });
+  
+  // 判斷每日狀態
+  const result = Object.values(dailyRecords).map(day => {
+    const hasIn = day.record.some(r => r.type === "上班");
+    const hasOut = day.record.some(r => r.type === "下班");
+    
+    let reason = "";
+    if (!hasIn && !hasOut) {
+      reason = "STATUS_NO_RECORD";
+    } else if (!hasIn) {
+      reason = "STATUS_PUNCH_IN_MISSING";
+    } else if (!hasOut) {
+      reason = "STATUS_PUNCH_OUT_MISSING";
+    } else {
+      reason = "STATUS_PUNCH_NORMAL";
+    }
+    
+    return {
+      date: day.date,
+      userId: day.userId,
+      name: day.name,
+      record: day.record,
+      reason: reason
+    };
+  });
+  
+  return { ok: true, records: result };
+}
+
+// ==================== 地點管理 ====================
 
 /**
  * 新增打卡地點
  */
 function addLocation(name, lat, lng) {
+  if (!name || !lat || !lng) {
+    return { ok: false, code: "ERR_INVALID_INPUT" };
+  }
+  
   const sh = SpreadsheetApp.getActive().getSheetByName(SHEET_LOCATIONS);
-  sh.appendRow([
-    "",
-    name,
-    lat,
-    lng,
-    "100"
-  ]);
-  return { ok: true, code: `新增地點成功` };
+  sh.appendRow(["", name, lat, lng, "100"]);
+  return { ok: true, code: "LOCATION_ADD_SUCCESS" };
 }
 
 /**
@@ -273,22 +331,29 @@ function addLocation(name, lat, lng) {
 function getLocation() {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_LOCATIONS);
   const values = sheet.getDataRange().getValues();
+  
+  if (values.length === 0) {
+    return { ok: true, locations: [] };
+  }
+  
   const headers = values.shift();
-  const locations = values.map(row => {
-    return {
-      id: row[headers.indexOf('ID')],
-      name: row[headers.indexOf('地點名稱')],
-      lat: row[headers.indexOf('GPS(緯度)')],
-      lng: row[headers.indexOf('GPS(經度)')],
-      scope: row[headers.indexOf('容許誤差(公尺)')]
-    };
-  });
+  const locations = values
+    .filter(row => row[1])
+    .map(row => ({
+      id: row[headers.indexOf('ID')] || '',
+      name: row[headers.indexOf('地點名稱')] || '',
+      lat: row[headers.indexOf('GPS(緯度)')] || 0,
+      lng: row[headers.indexOf('GPS(經度)')] || 0,
+      scope: row[headers.indexOf('容許誤差(公尺)')] || 100
+    }));
   
   return { ok: true, locations: locations };
 }
 
+// ==================== 審核功能 ====================
+
 /**
- * 取得待審核請求
+ * 取得待審核請求（補打卡）
  */
 function getReviewRequest() {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_ATTENDANCE);
@@ -296,12 +361,12 @@ function getReviewRequest() {
   const headers = values[0];
 
   const reviewRequest = values.filter((row, index) => {
-    if (index === 0) return false;
+    if (index === 0 || !row[0]) return false;
 
-    const _remarkMatch = row[headers.indexOf('備註')] === "補打卡";
-    const _administratorReviewIsPending = row[headers.indexOf('管理員審核')] === "?";
+    const remarkCol = headers.indexOf('備註');
+    const auditCol = headers.indexOf('管理員審核');
     
-    return _remarkMatch && _administratorReviewIsPending;
+    return row[remarkCol] === "補打卡" && row[auditCol] === "?";
   }).map(row => {
     const actualRowNumber = values.indexOf(row) + 1;
     return {
@@ -309,11 +374,10 @@ function getReviewRequest() {
       name: row[headers.indexOf('打卡人員')],
       type: row[headers.indexOf('打卡類別')],
       remark: row[headers.indexOf('備註')],
-      applicationPeriod: row[headers.indexOf('打卡時間')]
+      applicationPeriod: formatDateTime(row[headers.indexOf('打卡時間')])
     };
   });
   
-  Logger.log("getReviewRequest: " + JSON.stringify(reviewRequest));
   return { ok: true, reviewRequest: reviewRequest };
 }
 
@@ -331,9 +395,66 @@ function updateReviewStatus(rowNumber, status, note) {
     }
 
     sheet.getRange(rowNumber, reviewStatusCol).setValue(status);
-
     return { ok: true, msg: "審核成功" };
   } catch (err) {
+    Logger.log("updateReviewStatus 錯誤: " + err.message);
     return { ok: false, msg: `審核失敗：${err.message}` };
+  }
+}
+
+// ==================== 工具函數 ====================
+
+/**
+ * 計算兩點之間的距離（公尺）
+ */
+function getDistanceMeters_(lat1, lng1, lat2, lng2) {
+  const R = 6371e3;
+  const φ1 = lat1 * Math.PI / 180;
+  const φ2 = lat2 * Math.PI / 180;
+  const Δφ = (lat2 - lat1) * Math.PI / 180;
+  const Δλ = (lng2 - lng1) * Math.PI / 180;
+
+  const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+            Math.cos(φ1) * Math.cos(φ2) *
+            Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return R * c;
+}
+
+
+/**
+ * 格式化日期時間
+ */
+function formatDateTime(date) {
+  if (!date) return '';
+  try {
+    return Utilities.formatDate(date, Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm:ss');
+  } catch (e) {
+    return String(date);
+  }
+}
+
+/**
+ * 格式化日期
+ */
+function formatDate(date) {
+  if (!date) return '';
+  try {
+    return Utilities.formatDate(date, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+  } catch (e) {
+    return String(date);
+  }
+}
+
+/**
+ * 格式化時間
+ */
+function formatTime(date) {
+  if (!date) return '';
+  try {
+    return Utilities.formatDate(date, Session.getScriptTimeZone(), 'HH:mm:ss');
+  } catch (e) {
+    return String(date);
   }
 }

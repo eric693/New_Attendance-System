@@ -123,29 +123,29 @@ function checkAttendance(attendanceRows) {
 
   for (const userId in dailyRecords) {
     for (const date in dailyRecords[userId]) {
-      // 確保 rows 是一個陣列，即使原始資料不是
       const rows = dailyRecords[userId][date] || [];
 
-    // 過濾系統虛擬卡
-    const filteredRows = rows.filter(r => r.note !== "系統虛擬卡");
+      // ✅ 新增：取得員工姓名（從第一筆記錄中取得）
+      const userName = rows[0]?.name || '未知員工';
+      const userDept = rows[0]?.dept || '';
 
-    const record = filteredRows.map(r => ({
-      time: getHhMmFromRow(r),
-      type: r.type || '未知類型',
-      note: r.note || "",
-      audit: r.audit || "",
-      location: r.location || ""
-    }));
+      // 過濾系統虛擬卡
+      const filteredRows = rows.filter(r => r.note !== "系統虛擬卡");
 
-    const types = record.map(r => r.type);
-    const notes = record.map(r => r.note);
-    const audits = record.map(r => r.audit);
+      const record = filteredRows.map(r => ({
+        time: getHhMmFromRow(r),
+        type: r.type || '未知類型',
+        note: r.note || "",
+        audit: r.audit || "",
+        location: r.location || ""
+      }));
+
+      const types = record.map(r => r.type);
+      const notes = record.map(r => r.note);
+      const audits = record.map(r => r.audit);
 
       let reason = "";
       let id = "normal";
-
-      // notes = 每筆打卡的 note
-      // audits = 每筆打卡的 audit 狀態 (假設 "v" 代表通過)
 
       const hasAdjustment = notes.some(note => note === "補打卡");
       
@@ -153,8 +153,7 @@ function checkAttendance(attendanceRows) {
       const isAllApproved = approvedAdjustments.length > 0 &&
                       approvedAdjustments.every(r => r.audit === "v");
 
-
-        // 計算成對數量
+      // 計算成對數量
       const typeCounts = { 上班: 0, 下班: 0 };
       record.forEach(r => {
         if (r.type === "上班") typeCounts["上班"]++;
@@ -176,7 +175,7 @@ function checkAttendance(attendanceRows) {
         reason = "補卡通過";
       } else if (hasAdjustment) {
         reason = "有補卡(審核中)";
-      }else{
+      } else {
         reason = "正常";
       }
 
@@ -188,6 +187,9 @@ function checkAttendance(attendanceRows) {
       dailyStatus.push({
         ok: !reason,
         date: date,
+        userId: userId,      // ✅ 新增：回傳 userId
+        name: userName,      // ✅ 新增：回傳員工姓名
+        dept: userDept,      // ✅ 新增：回傳部門（選用）
         record: record,
         reason: reason,
         id: id

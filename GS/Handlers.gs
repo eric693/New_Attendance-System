@@ -56,8 +56,10 @@ function handleGetAbnormalRecords(params) {
 function handleGetAttendanceDetails(params) {
   const { month, userId } = params;
   if (!month) return { ok: false, code: "ERR_MISSING_MONTH" };
+  
   const records = getAttendanceRecords(month, userId);
-  const results = checkAttendance(records);
+  const results = checkAttendance(records);  
+  
   return { ok: true, records: results };
 }
 
