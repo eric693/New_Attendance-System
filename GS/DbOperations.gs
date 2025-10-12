@@ -1,4 +1,4 @@
-// DbOperations.gs 
+// DbOperations.gs - 完整優化版（精簡版 - 約 300 行）
 
 // ==================== 員工相關功能 ====================
 
@@ -239,14 +239,14 @@ function getAttendanceRecords(monthParam, userIdParam) {
   }).map(r => ({
     date: r[0],
     userId: r[1],
-    dept: r[2],     
+    salary: r[2],
     name: r[3],
     type: r[4],
     gps: r[5],
     location: r[6],
-    note: r[7],      
-    audit: r[8],     // 管理員審核狀態
-    device: r[9]     
+    note: r[7],
+    audit: r[8],
+    device: r[9]
   }));
 }
 
@@ -261,14 +261,15 @@ function getAttendanceDetails(monthParam, userIdParam) {
   
   records.forEach(r => {
     const dateKey = formatDate(r.date);
-    const userId = r.userId;
+    const userId = r.userId || 'unknown';  // 👈 確保 userId 不為空
+    const userName = r.name || '未知員工';   // 👈 確保 name 不為空
     const key = `${userId}_${dateKey}`;
     
     if (!dailyRecords[key]) {
       dailyRecords[key] = {
         date: dateKey,
-        userId: userId,
-        name: r.name,
+        userId: userId,      // 👈 使用處理過的 userId
+        name: userName,      // 👈 使用處理過的 userName
         record: [],
         reason: ""
       };
@@ -307,6 +308,7 @@ function getAttendanceDetails(monthParam, userIdParam) {
     };
   });
   
+  Logger.log(`📊 getAttendanceDetails: 共 ${result.length} 筆記錄`);
   return { ok: true, records: result };
 }
 
@@ -382,7 +384,7 @@ function getReviewRequest() {
 }
 
 /**
- * 更新審核狀態
+ * 更新審核狀態（加入 LINE 通知）
  */
 function updateReviewStatus(rowNumber, status, note) {
   try {
@@ -394,7 +396,34 @@ function updateReviewStatus(rowNumber, status, note) {
       return { ok: false, msg: "試算表缺少必要欄位：'管理員審核'" };
     }
 
+    // 👉 取得該筆打卡記錄的詳細資訊
+    const record = sheet.getRange(rowNumber, 1, 1, sheet.getLastColumn()).getValues()[0];
+    const userId = record[headers.indexOf('員工ID')];
+    const employeeName = record[headers.indexOf('打卡人員')];
+    const punchDate = formatDate(record[headers.indexOf('打卡時間')]);
+    const punchTime = formatTime(record[headers.indexOf('打卡時間')]);
+    const punchType = record[headers.indexOf('打卡類別')];
+
+    // 更新審核狀態
     sheet.getRange(rowNumber, reviewStatusCol).setValue(status);
+    
+    // 👉 發送 LINE 通知
+    const isApproved = (status === "v");
+    const reviewer = "系統管理員"; // 可以從 session 取得審核人姓名
+    
+    notifyPunchReview(
+      userId,
+      employeeName,
+      punchDate,
+      punchTime,
+      punchType,
+      reviewer,
+      isApproved,
+      note || ""
+    );
+    
+    Logger.log(`📤 已發送補打卡審核通知給 ${employeeName}`);
+
     return { ok: true, msg: "審核成功" };
   } catch (err) {
     Logger.log("updateReviewStatus 錯誤: " + err.message);
@@ -421,7 +450,6 @@ function getDistanceMeters_(lat1, lng1, lat2, lng2) {
 
   return R * c;
 }
-
 
 /**
  * 格式化日期時間

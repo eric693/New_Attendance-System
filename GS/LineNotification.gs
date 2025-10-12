@@ -1,4 +1,4 @@
-// LineNotification.gs - LINE 推播通知系統
+// LineNotification.gs - LINE 推播通知系統（完整版）
 
 // ==================== 常數設定 ====================
 const LINE_CHANNEL_ACCESS_TOKEN = PropertiesService.getScriptProperties().getProperty("LINE_CHANNEL_ACCESS_TOKEN");
@@ -892,6 +892,341 @@ function createLeaveRejectedNotification(employeeName, leaveType, startDate, end
   };
 }
 
+/**
+ * ✅ 加班審核通知（核准）
+ */
+function createOvertimeApprovedNotification(employeeName, date, hours, reviewer) {
+  return {
+    type: "flex",
+    altText: `✅ 您的加班申請已核准`,
+    contents: {
+      type: "bubble",
+      size: "mega",
+      header: {
+        type: "box",
+        layout: "vertical",
+        contents: [
+          {
+            type: "text",
+            text: "✅ 加班核准通知",
+            weight: "bold",
+            size: "xl",
+            color: "#FFFFFF",
+            align: "center"
+          }
+        ],
+        backgroundColor: "#FF9800",
+        paddingAll: "20px"
+      },
+      body: {
+        type: "box",
+        layout: "vertical",
+        contents: [
+          {
+            type: "text",
+            text: `${employeeName}，您好！`,
+            size: "lg",
+            weight: "bold",
+            margin: "md"
+          },
+          {
+            type: "text",
+            text: "您的加班申請已通過審核",
+            size: "sm",
+            color: "#666666",
+            margin: "md"
+          },
+          {
+            type: "separator",
+            margin: "lg"
+          },
+          {
+            type: "box",
+            layout: "vertical",
+            margin: "lg",
+            spacing: "sm",
+            contents: [
+              {
+                type: "box",
+                layout: "baseline",
+                spacing: "sm",
+                contents: [
+                  {
+                    type: "text",
+                    text: "日期",
+                    color: "#999999",
+                    size: "sm",
+                    flex: 2
+                  },
+                  {
+                    type: "text",
+                    text: date,
+                    wrap: true,
+                    color: "#333333",
+                    size: "sm",
+                    flex: 5,
+                    weight: "bold"
+                  }
+                ]
+              },
+              {
+                type: "box",
+                layout: "baseline",
+                spacing: "sm",
+                contents: [
+                  {
+                    type: "text",
+                    text: "時數",
+                    color: "#999999",
+                    size: "sm",
+                    flex: 2
+                  },
+                  {
+                    type: "text",
+                    text: `${hours} 小時`,
+                    wrap: true,
+                    color: "#FF9800",
+                    size: "sm",
+                    flex: 5,
+                    weight: "bold"
+                  }
+                ]
+              },
+              {
+                type: "box",
+                layout: "baseline",
+                spacing: "sm",
+                contents: [
+                  {
+                    type: "text",
+                    text: "審核人",
+                    color: "#999999",
+                    size: "sm",
+                    flex: 2
+                  },
+                  {
+                    type: "text",
+                    text: reviewer,
+                    wrap: true,
+                    color: "#333333",
+                    size: "sm",
+                    flex: 5
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            type: "separator",
+            margin: "lg"
+          },
+          {
+            type: "text",
+            text: "💪 辛苦了！",
+            size: "sm",
+            color: "#FF9800",
+            margin: "lg",
+            align: "center",
+            weight: "bold"
+          }
+        ]
+      },
+      footer: {
+        type: "box",
+        layout: "vertical",
+        spacing: "sm",
+        contents: [
+          {
+            type: "button",
+            style: "primary",
+            height: "sm",
+            action: {
+              type: "uri",
+              label: "查看詳情",
+              uri: "https://eric693.github.io/New_Attendance-System/"
+            },
+            color: "#FF9800"
+          }
+        ],
+        flex: 0
+      }
+    }
+  };
+}
+
+/**
+ * ❌ 加班審核通知（拒絕）
+ */
+function createOvertimeRejectedNotification(employeeName, date, hours, reviewer, reason) {
+  return {
+    type: "flex",
+    altText: `❌ 您的加班申請已被拒絕`,
+    contents: {
+      type: "bubble",
+      size: "mega",
+      header: {
+        type: "box",
+        layout: "vertical",
+        contents: [
+          {
+            type: "text",
+            text: "❌ 加班未核准",
+            weight: "bold",
+            size: "xl",
+            color: "#FFFFFF",
+            align: "center"
+          }
+        ],
+        backgroundColor: "#9E9E9E",
+        paddingAll: "20px"
+      },
+      body: {
+        type: "box",
+        layout: "vertical",
+        contents: [
+          {
+            type: "text",
+            text: `${employeeName}，您好！`,
+            size: "lg",
+            weight: "bold",
+            margin: "md"
+          },
+          {
+            type: "text",
+            text: "您的加班申請未通過審核",
+            size: "sm",
+            color: "#666666",
+            margin: "md"
+          },
+          {
+            type: "separator",
+            margin: "lg"
+          },
+          {
+            type: "box",
+            layout: "vertical",
+            margin: "lg",
+            spacing: "sm",
+            contents: [
+              {
+                type: "box",
+                layout: "baseline",
+                spacing: "sm",
+                contents: [
+                  {
+                    type: "text",
+                    text: "日期",
+                    color: "#999999",
+                    size: "sm",
+                    flex: 2
+                  },
+                  {
+                    type: "text",
+                    text: date,
+                    wrap: true,
+                    color: "#333333",
+                    size: "sm",
+                    flex: 5
+                  }
+                ]
+              },
+              {
+                type: "box",
+                layout: "baseline",
+                spacing: "sm",
+                contents: [
+                  {
+                    type: "text",
+                    text: "時數",
+                    color: "#999999",
+                    size: "sm",
+                    flex: 2
+                  },
+                  {
+                    type: "text",
+                    text: `${hours} 小時`,
+                    wrap: true,
+                    color: "#333333",
+                    size: "sm",
+                    flex: 5
+                  }
+                ]
+              },
+              {
+                type: "box",
+                layout: "baseline",
+                spacing: "sm",
+                contents: [
+                  {
+                    type: "text",
+                    text: "審核人",
+                    color: "#999999",
+                    size: "sm",
+                    flex: 2
+                  },
+                  {
+                    type: "text",
+                    text: reviewer,
+                    wrap: true,
+                    color: "#333333",
+                    size: "sm",
+                    flex: 5
+                  }
+                ]
+              },
+              {
+                type: "separator",
+                margin: "md"
+              },
+              {
+                type: "box",
+                layout: "baseline",
+                spacing: "sm",
+                margin: "md",
+                contents: [
+                  {
+                    type: "text",
+                    text: "拒絕原因",
+                    color: "#999999",
+                    size: "sm",
+                    flex: 2
+                  },
+                  {
+                    type: "text",
+                    text: reason || "未提供",
+                    wrap: true,
+                    color: "#9E9E9E",
+                    size: "sm",
+                    flex: 5
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      footer: {
+        type: "box",
+        layout: "vertical",
+        spacing: "sm",
+        contents: [
+          {
+            type: "button",
+            style: "link",
+            height: "sm",
+            action: {
+              type: "uri",
+              label: "重新申請",
+              uri: "https://eric693.github.io/New_Attendance-System/"
+            }
+          }
+        ],
+        flex: 0
+      }
+    }
+  };
+}
+
 // ==================== 觸發通知函式 ====================
 
 /**
@@ -924,22 +1259,42 @@ function notifyLeaveReview(userId, employeeName, leaveType, startDate, endDate, 
   return sendLineNotification_(userId, message);
 }
 
+/**
+ * 發送加班審核結果通知
+ */
+function notifyOvertimeReview(userId, employeeName, date, hours, reviewer, isApproved, reason = "") {
+  const message = isApproved
+    ? createOvertimeApprovedNotification(employeeName, date, hours, reviewer)
+    : createOvertimeRejectedNotification(employeeName, date, hours, reviewer, reason);
+  
+  return sendLineNotification_(userId, message);
+}
+
 // ==================== 定時檢查忘記打卡 ====================
 
 /**
- * 每日檢查忘記打卡（設定觸發器：每天晚上 20:00 執行）
+ * 每日早上檢查昨天忘記下班打卡（改為檢查昨天）
+ * 設定觸發器：每天早上 9:00 執行
  */
 function checkForgotPunchDaily() {
-  const today = new Date();
-  const dateStr = Utilities.formatDate(today, "GMT+8", "yyyy-MM-dd");
+  // 👉 改為檢查昨天，而不是今天
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const dateStr = Utilities.formatDate(yesterday, "GMT+8", "yyyy-MM-dd");
   
   const attendanceSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_ATTENDANCE);
   const employeeSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_EMPLOYEES);
   
-  if (!attendanceSheet || !employeeSheet) return;
+  if (!attendanceSheet || !employeeSheet) {
+    Logger.log("❌ 找不到必要的工作表");
+    return;
+  }
   
   const employees = employeeSheet.getDataRange().getValues();
   const attendances = attendanceSheet.getDataRange().getValues();
+  const headers = attendances[0];
+  
+  Logger.log(`📅 開始檢查 ${dateStr} 的下班打卡`);
   
   // 遍歷所有員工
   for (let i = 1; i < employees.length; i++) {
@@ -949,31 +1304,226 @@ function checkForgotPunchDaily() {
     
     if (status !== '啟用') continue;
     
-    // 檢查今天的打卡記錄
-    let hasPunchIn = false;
+    // 檢查昨天的打卡記錄
     let hasPunchOut = false;
     
     for (let j = 1; j < attendances.length; j++) {
-      if (attendances[j][0] === userId && attendances[j][1] === dateStr) {
-        const type = attendances[j][2];
-        if (type === '上班') hasPunchIn = true;
-        if (type === '下班') hasPunchOut = true;
+      const recordDate = formatDate(attendances[j][0]);
+      const recordUserId = attendances[j][1];
+      const recordType = attendances[j][4]; // 打卡類別
+      
+      if (recordUserId === userId && recordDate === dateStr && recordType === '下班') {
+        hasPunchOut = true;
+        break;
       }
     }
     
     // 發送通知
-    if (!hasPunchIn) {
-      notifyForgotPunch(userId, name, dateStr, "上班");
-      Logger.log(`📤 已提醒 ${name} 忘記上班打卡`);
-    }
-    
     if (!hasPunchOut) {
-      notifyForgotPunch(userId, name, dateStr, "下班");
-      Logger.log(`📤 已提醒 ${name} 忘記下班打卡`);
+      try {
+        notifyForgotPunch(userId, name, dateStr, "下班");
+        Logger.log(`📤 已提醒 ${name} 昨天忘記下班打卡`);
+      } catch (err) {
+        Logger.log(`⚠️ 提醒 ${name} 失敗: ${err.message}`);
+      }
     }
   }
+  
+  Logger.log("✅ 下班打卡檢查完成");
 }
 
-function testNotification() {
-  notifyForgotPunch("U7211ffe337b29ad1f738815cb8bfdf81", "哈囉", "2025-10-11", "上班");
+/**
+ * 每日早上檢查昨天忘記上班打卡
+ * 設定觸發器：每天早上 9:00 執行
+ */
+function checkForgotPunchInMorning() {
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const dateStr = Utilities.formatDate(yesterday, "GMT+8", "yyyy-MM-dd");
+  
+  const attendanceSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_ATTENDANCE);
+  const employeeSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_EMPLOYEES);
+  
+  if (!attendanceSheet || !employeeSheet) {
+    Logger.log("❌ 找不到必要的工作表");
+    return;
+  }
+  
+  const employees = employeeSheet.getDataRange().getValues();
+  const attendances = attendanceSheet.getDataRange().getValues();
+  
+  Logger.log(`📅 開始檢查 ${dateStr} 的上班打卡`);
+  
+  for (let i = 1; i < employees.length; i++) {
+    const userId = employees[i][EMPLOYEE_COL.USER_ID];
+    const name = employees[i][EMPLOYEE_COL.NAME];
+    const status = employees[i][EMPLOYEE_COL.STATUS];
+    
+    if (status !== '啟用') continue;
+    
+    let hasPunchIn = false;
+    
+    for (let j = 1; j < attendances.length; j++) {
+      const recordDate = formatDate(attendances[j][0]);
+      const recordUserId = attendances[j][1];
+      const recordType = attendances[j][4];
+      
+      if (recordUserId === userId && recordDate === dateStr && recordType === '上班') {
+        hasPunchIn = true;
+        break;
+      }
+    }
+    
+    if (!hasPunchIn) {
+      try {
+        notifyForgotPunch(userId, name, dateStr, "上班");
+        Logger.log(`📤 已提醒 ${name} 昨天忘記上班打卡`);
+      } catch (err) {
+        Logger.log(`⚠️ 提醒 ${name} 失敗: ${err.message}`);
+      }
+    }
+  }
+  
+  Logger.log("✅ 上班打卡檢查完成");
+}
+
+// ==================== 測試函式 ====================
+
+/**
+ * 測試忘記打卡通知
+ */
+function testForgotPunchNotification() {
+  const testUserId = "U7211ffe337b29ad1f738815cb8bfdf81";
+  const testName = "測試員工";
+  const testDate = "2025-10-12";
+  
+  Logger.log("📤 測試發送忘記打卡通知...");
+  const result = notifyForgotPunch(testUserId, testName, testDate, "上班");
+  Logger.log(result.ok ? "✅ 通知發送成功" : "❌ 通知發送失敗: " + result.error);
+}
+
+/**
+ * 測試補打卡審核通知（核准）
+ */
+function testPunchApprovedNotification() {
+  const testUserId = "U7211ffe337b29ad1f738815cb8bfdf81";
+  const testName = "測試員工";
+  const testDate = "2025-10-12";
+  const testTime = "09:00";
+  const reviewer = "管理員";
+  
+  Logger.log("📤 測試發送補打卡核准通知...");
+  const result = notifyPunchReview(testUserId, testName, testDate, testTime, "上班", reviewer, true);
+  Logger.log(result.ok ? "✅ 通知發送成功" : "❌ 通知發送失敗: " + result.error);
+}
+
+/**
+ * 測試補打卡審核通知（拒絕）
+ */
+function testPunchRejectedNotification() {
+  const testUserId = "U7211ffe337b29ad1f738815cb8bfdf81";
+  const testName = "測試員工";
+  const testDate = "2025-10-12";
+  const testTime = "09:00";
+  const reviewer = "管理員";
+  const reason = "時間不符，請重新申請";
+  
+  Logger.log("📤 測試發送補打卡拒絕通知...");
+  const result = notifyPunchReview(testUserId, testName, testDate, testTime, "上班", reviewer, false, reason);
+  Logger.log(result.ok ? "✅ 通知發送成功" : "❌ 通知發送失敗: " + result.error);
+}
+
+/**
+ * 測試請假審核通知（核准）
+ */
+function testLeaveApprovedNotification() {
+  const testUserId = "U7211ffe337b29ad1f738815cb8bfdf81";
+  const testName = "測試員工";
+  const leaveType = "特休假";
+  const startDate = "2025-10-15";
+  const endDate = "2025-10-17";
+  const days = 3;
+  const reviewer = "管理員";
+  
+  Logger.log("📤 測試發送請假核准通知...");
+  const result = notifyLeaveReview(testUserId, testName, leaveType, startDate, endDate, days, reviewer, true);
+  Logger.log(result.ok ? "✅ 通知發送成功" : "❌ 通知發送失敗: " + result.error);
+}
+
+/**
+ * 測試請假審核通知（拒絕）
+ */
+function testLeaveRejectedNotification() {
+  const testUserId = "U7211ffe337b29ad1f738815cb8bfdf81";
+  const testName = "測試員工";
+  const leaveType = "特休假";
+  const startDate = "2025-10-15";
+  const endDate = "2025-10-17";
+  const days = 3;
+  const reviewer = "管理員";
+  const reason = "該時段人力不足，請調整日期";
+  
+  Logger.log("📤 測試發送請假拒絕通知...");
+  const result = notifyLeaveReview(testUserId, testName, leaveType, startDate, endDate, days, reviewer, false, reason);
+  Logger.log(result.ok ? "✅ 通知發送成功" : "❌ 通知發送失敗: " + result.error);
+}
+
+/**
+ * 測試加班審核通知（核准）
+ */
+function testOvertimeApprovedNotification() {
+  const testUserId = "U7211ffe337b29ad1f738815cb8bfdf81";
+  const testName = "測試員工";
+  const date = "2025-10-12";
+  const hours = 3;
+  const reviewer = "管理員";
+  
+  Logger.log("📤 測試發送加班核准通知...");
+  const result = notifyOvertimeReview(testUserId, testName, date, hours, reviewer, true);
+  Logger.log(result.ok ? "✅ 通知發送成功" : "❌ 通知發送失敗: " + result.error);
+}
+
+/**
+ * 測試加班審核通知（拒絕）
+ */
+function testOvertimeRejectedNotification() {
+  const testUserId = "U7211ffe337b29ad1f738815cb8bfdf81";
+  const testName = "測試員工";
+  const date = "2025-10-12";
+  const hours = 3;
+  const reviewer = "管理員";
+  const reason = "未事先申請，請下次提前告知";
+  
+  Logger.log("📤 測試發送加班拒絕通知...");
+  const result = notifyOvertimeReview(testUserId, testName, date, hours, reviewer, false, reason);
+  Logger.log(result.ok ? "✅ 通知發送成功" : "❌ 通知發送失敗: " + result.error);
+}
+
+/**
+ * 測試所有通知（一次執行所有測試）
+ */
+function testAllNotifications() {
+  Logger.log("========== 開始測試所有通知類型 ==========\n");
+  
+  testForgotPunchNotification();
+  Utilities.sleep(1000);
+  
+  testPunchApprovedNotification();
+  Utilities.sleep(1000);
+  
+  testPunchRejectedNotification();
+  Utilities.sleep(1000);
+  
+  testLeaveApprovedNotification();
+  Utilities.sleep(1000);
+  
+  testLeaveRejectedNotification();
+  Utilities.sleep(1000);
+  
+  testOvertimeApprovedNotification();
+  Utilities.sleep(1000);
+  
+  testOvertimeRejectedNotification();
+  
+  Logger.log("\n========== 所有測試完成 ==========");
 }

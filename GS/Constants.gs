@@ -191,6 +191,7 @@ function formatDate(date) {
   return `${year}-${month}-${day}`;
 }
 
+
 // ==================== 系統版本資訊 ====================
 const SYSTEM_VERSION = {
   version: '0.7.0',
