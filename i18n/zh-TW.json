@@ -52,7 +52,7 @@
     "API_TEST_TITLE": "API 測試區",
     "API_TEST_DESCRIPTION": "點擊下方按鈕以測試新的 API 功能。",
     "API_TEST_BTN": "測試 API",
-    "FOOTER_VERSION": "打卡救星 v1.5",
+    "FOOTER_VERSION": "打卡救星 v1.6",
     "FOOTER_CREDITS_PREFIX": "由",
     "FOOTER_CREDITS_SUFFIX": "製作",
     "FOOTER_SPONSOR": "點此贊助此專案",
@@ -248,5 +248,27 @@
     "ADMIN_EXPORT_TITLE": "匯出報表",
     "ADMIN_EXPORT_DESCRIPTION": "匯出所有員工的出勤報表",
     "ADMIN_EXPORT_MONTH_LABEL": "選擇月份",
-    "ADMIN_EXPORT_ALL_BTN": "匯出所有員工報表"
+    "ADMIN_EXPORT_ALL_BTN": "匯出所有員工報表",
+
+
+
+    "TAB_SHIFT": "排班",
+    "SHIFT_TITLE": "排班管理",
+    "SHIFT_DESCRIPTION": "查看和管理員工排班資訊",
+    "BTN_SHIFT_MANAGEMENT": "進入排班管理",
+    
+    "SHIFT_TODAY_TITLE": "今日排班",
+    "SHIFT_TODAY_EMPTY": "今日無排班",
+    "SHIFT_WEEK_TITLE": "本週排班",
+    "SHIFT_WEEK_EMPTY": "本週無排班",
+    "SHIFT_LOADING": "載入中...",
+    
+    "SHIFT_TYPE_LABEL": "班別",
+    "SHIFT_TIME_LABEL": "時間",
+    "SHIFT_LOCATION_LABEL": "地點",
+
+    "SHIFT_INFO_NOTIFICATION": "今日排班：{shiftType} ({startTime}-{endTime})",
+    "EARLY_PUNCH_WARNING": "注意：您的排班時間是 {startTime}，目前提前超過 30 分鐘打卡。",
+    "LATE_PUNCH_WARNING": "注意：您的排班時間是 {startTime}，目前已遲到超過 30 分鐘。",
+    "NO_SHIFT_TODAY": "今日無排班記錄"
 }

@@ -6,30 +6,25 @@
         <title data-i18n="APP_TITLE">APP_TITLE</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <script>
-            // 💡 啟用 'class' 模式的暗黑模式，這是切換開關的關鍵
             tailwind.config = {
                 darkMode: 'class',
                 theme: {
-                    extend: {
-                        // 這裡可以放您的自訂主題，但對於暗黑模式不是必須的
-                    }
+                    extend: {}
                 }
             }
             document.addEventListener('DOMContentLoaded', () => {
                 const toggleButton = document.getElementById('theme-toggle');
-                const htmlElement = document.documentElement; // 指向 <html> 標籤
-                const themeIcon = document.getElementById('theme-icon'); // 取得圖標的元素
+                const htmlElement = document.documentElement;
+                const themeIcon = document.getElementById('theme-icon');
                 
-                // --- 核心函式：根據主題更新圖標 ---
                 function updateThemeIcon() {
                     if (htmlElement.classList.contains('dark')) {
-                        themeIcon.textContent = '☀️';
+                        themeIcon.textContent = '[亮]';
                     } else {
-                        themeIcon.textContent = '🌙';
+                        themeIcon.textContent = '[暗]';
                     }
                 }
                 
-                // --- 1. 載入保存的主題 ---
                 const savedTheme = localStorage.getItem('theme');
                 if (savedTheme === 'dark') {
                     htmlElement.classList.add('dark');
@@ -37,22 +32,17 @@
                     htmlElement.classList.remove('dark');
                 }
                 
-                // 💡 載入後立即更新圖標狀態
                 updateThemeIcon();
                 
-                // --- 2. 處理點擊事件 ---
                 toggleButton.addEventListener('click', () => {
-                    // 切換 <html> 標籤上的 'dark' class
                     htmlElement.classList.toggle('dark');
                     
-                    // 將新的主題偏好保存到 localStorage
                     if (htmlElement.classList.contains('dark')) {
                         localStorage.setItem('theme', 'dark');
                     } else {
                         localStorage.setItem('theme', 'light');
                     }
                     
-                    // 💡 點擊後更新圖標狀態
                     updateThemeIcon();
                 });
             });
@@ -69,7 +59,6 @@
         <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     
         <style>
-            /* 確保日期選擇器在暗黑模式下正常顯示 */
             input[type="date"]::-webkit-calendar-picker-indicator,
             input[type="time"]::-webkit-calendar-picker-indicator {
                 filter: var(--date-picker-filter, none);
@@ -80,7 +69,6 @@
                 --date-picker-filter: invert(1);
             }
 
-            /* 選擇器樣式優化 */
             select option {
                 background-color: white;
                 color: black;
@@ -111,7 +99,7 @@
                         <button id="logout-btn" data-i18n="BTN_LOGOUT" class="text-sm font-medium text-gray-600 hover:text-indigo-600 dark:text-gray-400 dark:hover:text-indigo-400">登出</button>
                         <button id="theme-toggle"
                             class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
-                            <span id="theme-icon">🌙</span>
+                            <span id="theme-icon">[暗]</span>
                         </button>
                     </div>
                     <select id="language-switcher" class="text-sm font-medium text-gray-600 rounded-md p-1 dark:text-gray-300 dark:bg-gray-700 max-w-xs">
@@ -144,6 +132,8 @@
                     <button id="tab-dashboard-btn" data-i18n="TAB_DASHBOARD" class="py-2 px-4 rounded-full font-bold text-sm text-white bg-indigo-600 dark:bg-indigo-500">儀表板</button>
                     <button id="tab-monthly-btn" data-i18n="TAB_MONTHLY" class="py-2 px-4 rounded-full font-bold text-sm text-gray-600 bg-gray-200 dark:text-gray-300 dark:bg-gray-700">出勤記錄</button>
                     <button id="tab-location-btn" data-i18n="TAB_LOCATION" class="py-2 px-4 rounded-full font-bold text-sm text-gray-600 bg-gray-200 dark:text-gray-300 dark:bg-gray-700">定位</button>
+                    <!-- 👇 排班按鈕 (新增) -->
+                    <button id="tab-shift-btn" data-i18n="TAB_SHIFT" class="py-2 px-4 rounded-full font-bold text-sm text-gray-600 bg-gray-200 dark:text-gray-300 dark:bg-gray-700">排班</button>
                     <!-- 👇 加班按鈕 -->
                     <button id="tab-overtime-btn" data-i18n="TAB_OVERTIME" class="py-2 px-4 rounded-full font-bold text-sm text-gray-600 bg-gray-200 dark:text-gray-300 dark:bg-gray-700">加班</button>
                     <!-- 👇 請假按鈕 -->
@@ -158,25 +148,32 @@
                             class="text-xl font-bold text-gray-800 dark:text-white mb-1">
                             打卡專區
                         </h2>
-                        <p data-i18n="PUNCH_SECTION_DESCRIPTION" class="text-gray-500 dark:text-gray-400 mb-4">請點擊下方按鈕進行上班或下班打卡。</p>
-                        <div id="punch-actions" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <button id="punch-in-btn" data-i18n="PUNCH_IN_LABEL"
-                                class="w-full py-3 px-4 rounded-lg font-bold btn-primary">上班打卡</button>
-                            <button id="punch-out-btn" data-i18n="PUNCH_OUT_LABEL" class="w-full py-3 px-4 rounded-lg font-bold btn-secondary">下班打卡</button>
+                        <p data-i18n="PUNCH_SECTION_DESC"
+                           class="text-gray-500 dark:text-gray-400 mb-4">
+                            請點擊下方按鈕進行上班或下班打卡。
+                        </p>
+                        <div class="flex space-x-4">
+                            <button id="punch-in-btn" 
+                                    data-i18n="BTN_PUNCH_IN"
+                                    class="flex-1 py-3 rounded-lg font-bold btn-primary">
+                                上班打卡
+                            </button>
+                            <button id="punch-out-btn" 
+                                    data-i18n="BTN_PUNCH_OUT"
+                                    class="flex-1 py-3 rounded-lg font-bold btn-secondary">
+                                下班打卡
+                            </button>
                         </div>
                     </div>
                     
-                    <div id="abnormal-records-section" class="card p-6" style="display: none;">
-                        <h2 data-i18n="ABNORMAL_RECORDS_TITLE" class="text-xl font-bold text-gray-800 dark:text-white mb-1">考勤紀錄</h2>
+                    <div class="card p-6">
+                        <h2 data-i18n="ABNORMAL_RECORDS_TITLE" class="text-xl font-bold text-gray-800 dark:text-white mb-2">考勤紀錄</h2>
                         <p data-i18n="ABNORMAL_RECORDS_DESCRIPTION" class="text-gray-500 dark:text-gray-400 mb-4">系統會自動偵測本月異常紀錄，您可以在此進行補打卡。</p>
-                        <div id="abnormal-records-container">
-                            <div id="records-loading" data-i18n="RECORDS_LOADING" class="text-center text-gray-500 dark:text-gray-400 py-4">正在載入紀錄...</div>
-                            <div id="records-empty" class="text-center text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/30 p-4 rounded-lg" style="display: none;">
-                                <p data-i18n="RECORDS_EMPTY_TITLE" class="font-semibold">太棒了！</p>
-                                <p data-i18n="RECORDS_EMPTY_MESSAGE">本月目前沒有任何異常紀錄。</p>
-                            </div>
-                            <ul id="abnormal-list" class="space-y-3"></ul>
+                        <div id="abnormal-records-loading" data-i18n="RECORDS_LOADING" class="text-center text-gray-500 dark:text-gray-400">正在載入記錄...</div>
+                        <div id="abnormal-records-empty" class="text-center text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/30 p-4 rounded-lg" style="display: none;">
+                            <p data-i18n="ABNORMAL_RECORDS_EMPTY" class="font-semibold">太棒了！本月目前沒有任何異常紀錄。</p>
                         </div>
+                        <ul id="abnormal-list" class="space-y-3"></ul>
                         <div id="adjustment-form-container" class="mt-4"></div>
                     </div>
                 </main>
@@ -185,9 +182,9 @@
                 <section id="monthly-view" class="space-y-6" style="display: none;">
                     <div class="card p-6">
                         <div class="flex justify-between items-center mb-4">
-                            <button id="prev-month" class="text-gray-600 dark:text-gray-400 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">◄</button>
+                            <button id="prev-month" class="text-gray-600 dark:text-gray-400 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">&lt;</button>
                             <h3 id="month-title" class="font-bold text-xl text-gray-800 dark:text-white"></h3>
-                            <button id="next-month" class="text-gray-600 dark:text-gray-400 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">►</button>
+                            <button id="next-month" class="text-gray-600 dark:text-gray-400 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">&gt;</button>
                         </div>
 
                         <div class="mb-4">
@@ -243,6 +240,53 @@
                     </div>
                 </section>
                 
+                <!-- 👇 排班頁面 (Shift View) - 新增 -->
+                <section id="shift-view" class="space-y-6" style="display: none;">
+                    <div class="card p-6">
+                        <h2 data-i18n="SHIFT_TITLE" class="text-xl font-bold text-gray-800 dark:text-white mb-4">排班管理</h2>
+                        <p data-i18n="SHIFT_DESCRIPTION" class="text-gray-500 dark:text-gray-400 mb-4">查看和管理員工排班資訊</p>
+                        
+                        <div class="space-y-4">
+                            <button onclick="window.location.href='shift.html'" 
+                                    data-i18n="BTN_SHIFT_MANAGEMENT" 
+                                    class="w-full py-3 px-4 rounded-lg font-bold btn-primary">
+                                進入排班管理
+                            </button>
+                            
+                            <div class="bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-700 rounded-lg p-4">
+                                <h3 data-i18n="SHIFT_TODAY_TITLE" class="font-semibold text-indigo-800 dark:text-indigo-300 mb-3">今日排班</h3>
+                                <div id="today-shift-loading" data-i18n="SHIFT_LOADING" class="text-sm text-indigo-600 dark:text-indigo-400">載入中...</div>
+                                <div id="today-shift-empty" class="text-sm text-indigo-600 dark:text-indigo-400" style="display: none;">
+                                    <p data-i18n="SHIFT_TODAY_EMPTY">今日無排班</p>
+                                </div>
+                                <div id="today-shift-info" class="space-y-2" style="display: none;">
+                                    <div class="flex justify-between text-sm">
+                                        <span data-i18n="SHIFT_TYPE_LABEL" class="text-indigo-700 dark:text-indigo-400">班別:</span>
+                                        <span id="shift-type" class="font-semibold text-indigo-900 dark:text-indigo-200">--</span>
+                                    </div>
+                                    <div class="flex justify-between text-sm">
+                                        <span data-i18n="SHIFT_TIME_LABEL" class="text-indigo-700 dark:text-indigo-400">時間:</span>
+                                        <span id="shift-time" class="font-semibold text-indigo-900 dark:text-indigo-200">--</span>
+                                    </div>
+                                    <div class="flex justify-between text-sm">
+                                        <span data-i18n="SHIFT_LOCATION_LABEL" class="text-indigo-700 dark:text-indigo-400">地點:</span>
+                                        <span id="shift-location" class="font-semibold text-indigo-900 dark:text-indigo-200">--</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-purple-50 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-700 rounded-lg p-4">
+                                <h3 data-i18n="SHIFT_WEEK_TITLE" class="font-semibold text-purple-800 dark:text-purple-300 mb-3">本週排班</h3>
+                                <div id="week-shift-loading" data-i18n="SHIFT_LOADING" class="text-sm text-purple-600 dark:text-purple-400">載入中...</div>
+                                <div id="week-shift-empty" class="text-sm text-purple-600 dark:text-purple-400" style="display: none;">
+                                    <p data-i18n="SHIFT_WEEK_EMPTY">本週無排班</p>
+                                </div>
+                                <div id="week-shift-list" class="space-y-2"></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
                 <!-- 👇 加班頁面 (Overtime View) -->
                 <section id="overtime-view" class="space-y-6" style="display: none;">
                     
@@ -250,11 +294,11 @@
                     <div class="card p-6">
                         <h2 data-i18n="OVERTIME_APPLY_TITLE" 
                             class="text-xl font-bold text-gray-800 dark:text-white mb-2">
-                            申請加班
+                            加班申請
                         </h2>
                         <p data-i18n="OVERTIME_APPLY_DESCRIPTION" 
                            class="text-gray-500 dark:text-gray-400 mb-4">
-                            填寫以下資訊提交加班申請
+                            填寫以下資訊以提交加班申請
                         </p>
                         
                         <div class="space-y-4">
@@ -262,7 +306,7 @@
                             <div>
                                 <label data-i18n="OVERTIME_DATE_LABEL" 
                                        for="overtime-date" 
-                                       class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                       class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                     加班日期
                                 </label>
                                 <input type="date" 
@@ -270,67 +314,68 @@
                                        class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm dark:bg-gray-700 dark:text-white focus:ring-indigo-500 focus:border-indigo-500">
                             </div>
                             
-                            <!-- 開始時間 -->
-                            <div>
-                                <label data-i18n="OVERTIME_START_TIME_LABEL" 
-                                       for="overtime-start-time" 
-                                       class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                    開始時間
-                                </label>
-                                <input type="time" 
-                                       id="overtime-start-time" 
-                                       class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm dark:bg-gray-700 dark:text-white focus:ring-indigo-500 focus:border-indigo-500">
+                            <!-- 開始時間與結束時間 -->
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label data-i18n="OVERTIME_START_TIME_LABEL" 
+                                           for="overtime-start-time" 
+                                           class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        開始時間
+                                    </label>
+                                    <input type="time" 
+                                           id="overtime-start-time" 
+                                           class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm dark:bg-gray-700 dark:text-white focus:ring-indigo-500 focus:border-indigo-500">
+                                </div>
+                                <div>
+                                    <label data-i18n="OVERTIME_END_TIME_LABEL" 
+                                           for="overtime-end-time" 
+                                           class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        結束時間
+                                    </label>
+                                    <input type="time" 
+                                           id="overtime-end-time" 
+                                           class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm dark:bg-gray-700 dark:text-white focus:ring-indigo-500 focus:border-indigo-500">
+                                </div>
                             </div>
                             
-                            <!-- 結束時間 -->
-                            <div>
-                                <label data-i18n="OVERTIME_END_TIME_LABEL" 
-                                       for="overtime-end-time" 
-                                       class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                    結束時間
-                                </label>
-                                <input type="time" 
-                                       id="overtime-end-time" 
-                                       class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm dark:bg-gray-700 dark:text-white focus:ring-indigo-500 focus:border-indigo-500">
-                            </div>
-                            
-                            <!-- 加班時數（自動計算） -->
+                            <!-- 加班時數 -->
                             <div>
                                 <label data-i18n="OVERTIME_HOURS_LABEL" 
                                        for="overtime-hours" 
-                                       class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                       class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                     加班時數
                                 </label>
                                 <input type="number" 
                                        id="overtime-hours" 
                                        step="0.5" 
-                                       readonly 
-                                       class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-gray-100 dark:bg-gray-600 dark:text-white cursor-not-allowed">
+                                       min="0.5" 
+                                       placeholder="0.0" 
+                                       class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm dark:bg-gray-700 dark:text-white focus:ring-indigo-500 focus:border-indigo-500">
                             </div>
                             
-                            <!-- 申請原因 -->
+                            <!-- 加班原因 -->
                             <div>
                                 <label data-i18n="OVERTIME_REASON_LABEL" 
                                        for="overtime-reason" 
-                                       class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                    申請原因
+                                       class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    加班原因
                                 </label>
                                 <textarea id="overtime-reason" 
                                           rows="3" 
-                                          placeholder="請說明加班原因..."
-                                          class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm dark:bg-gray-700 dark:text-white focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+                                          class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm dark:bg-gray-700 dark:text-white focus:ring-indigo-500 focus:border-indigo-500" 
+                                          placeholder="請說明加班原因..."></textarea>
                             </div>
                             
                             <!-- 提交按鈕 -->
                             <button id="submit-overtime-btn" 
-                                    data-i18n="OVERTIME_SUBMIT_BTN" 
+                                    data-i18n="BTN_SUBMIT_OVERTIME"
                                     class="w-full py-3 px-4 rounded-lg font-bold btn-primary">
-                                提交申請
+                                提交加班申請
                             </button>
                         </div>
                     </div>
                     
-                    <!-- 我的加班記錄 -->
+                    <!-- 加班記錄列表 -->
                     <div class="card p-6">
                         <h2 data-i18n="OVERTIME_RECORDS_TITLE" 
                             class="text-xl font-bold text-gray-800 dark:text-white mb-2">
@@ -338,7 +383,7 @@
                         </h2>
                         <p data-i18n="OVERTIME_RECORDS_DESCRIPTION" 
                            class="text-gray-500 dark:text-gray-400 mb-4">
-                            查看您的加班申請歷史記錄
+                            查看已提交的加班申請狀態
                         </p>
                         
                         <div id="overtime-records-container">
@@ -364,128 +409,100 @@
                 <!-- 👇 請假頁面 (Leave View) -->
                 <section id="leave-view" class="space-y-6" style="display: none;">
                     
-                    <!-- 假期餘額 -->
-                    <div class="card p-6">
-                        <h2 data-i18n="LEAVE_BALANCE_TITLE" 
-                            class="text-xl font-bold text-gray-800 dark:text-white mb-2">
-                            假期餘額
-                        </h2>
-                        <p data-i18n="LEAVE_BALANCE_DESCRIPTION" 
-                           class="text-gray-500 dark:text-gray-400 mb-4">
-                            您的可用假期額度
-                        </p>
-                        
-                        <div id="leave-balance-container">
-                            <div id="leave-balance-loading" 
-                                 data-i18n="RECORDS_LOADING" 
-                                 class="text-center text-gray-500 dark:text-gray-400 py-4">
-                                正在載入...
-                            </div>
-                            <div id="leave-balance-list" class="space-y-2"></div>
-                        </div>
-                    </div>
-                    
                     <!-- 請假申請表單 -->
                     <div class="card p-6">
                         <h2 data-i18n="LEAVE_APPLY_TITLE" 
                             class="text-xl font-bold text-gray-800 dark:text-white mb-2">
-                            申請請假
+                            請假申請
                         </h2>
                         <p data-i18n="LEAVE_APPLY_DESCRIPTION" 
                            class="text-gray-500 dark:text-gray-400 mb-4">
-                            填寫以下資訊提交請假申請
+                            填寫以下資訊以提交請假申請
                         </p>
                         
-                        <form id="leave-form" class="space-y-4">
-                            <!-- 假別 -->
+                        <div class="space-y-4">
+                            <!-- 請假類型 -->
                             <div>
                                 <label data-i18n="LEAVE_TYPE_LABEL" 
                                        for="leave-type" 
-                                       class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                    假別
+                                       class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    請假類型
                                 </label>
                                 <select id="leave-type" 
-                                        required
                                         class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm dark:bg-gray-700 dark:text-white focus:ring-indigo-500 focus:border-indigo-500">
-                                    <option value="">-- 請選擇 --</option>
-                                    <option value="ANNUAL_LEAVE" data-i18n="ANNUAL_LEAVE">特休假</option>
-                                    <option value="SICK_LEAVE" data-i18n="SICK_LEAVE">病假</option>
-                                    <option value="PERSONAL_LEAVE" data-i18n="PERSONAL_LEAVE">事假</option>
-                                    <option value="MARRIAGE_LEAVE" data-i18n="MARRIAGE_LEAVE">婚假</option>
-                                    <option value="BEREAVEMENT_LEAVE" data-i18n="BEREAVEMENT_LEAVE">喪假</option>
-                                    <option value="MATERNITY_LEAVE" data-i18n="MATERNITY_LEAVE">產假</option>
-                                    <option value="PATERNITY_LEAVE" data-i18n="PATERNITY_LEAVE">陪產假</option>
-                                    <option value="FAMILY_CARE_LEAVE" data-i18n="FAMILY_CARE_LEAVE">家庭照顧假</option>
-                                    <option value="MENSTRUAL_LEAVE" data-i18n="MENSTRUAL_LEAVE">生理假</option>
+                                    <option value="">請選擇請假類型</option>
+                                    <option value="事假" data-i18n-option="LEAVE_TYPE_PERSONAL">事假</option>
+                                    <option value="病假" data-i18n-option="LEAVE_TYPE_SICK">病假</option>
+                                    <option value="特休" data-i18n-option="LEAVE_TYPE_ANNUAL">特休</option>
+                                    <option value="婚假" data-i18n-option="LEAVE_TYPE_MARRIAGE">婚假</option>
+                                    <option value="喪假" data-i18n-option="LEAVE_TYPE_BEREAVEMENT">喪假</option>
+                                    <option value="產假" data-i18n-option="LEAVE_TYPE_MATERNITY">產假</option>
+                                    <option value="陪產假" data-i18n-option="LEAVE_TYPE_PATERNITY">陪產假</option>
                                 </select>
                             </div>
                             
-                            <!-- 開始日期 -->
-                            <div>
-                                <label data-i18n="LEAVE_START_DATE_LABEL" 
-                                       for="leave-start-date" 
-                                       class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                    開始日期
-                                </label>
-                                <input type="date" 
-                                       id="leave-start-date" 
-                                       required
-                                       class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm dark:bg-gray-700 dark:text-white focus:ring-indigo-500 focus:border-indigo-500">
-                            </div>
-                            
-                            <!-- 結束日期 -->
-                            <div>
-                                <label data-i18n="LEAVE_END_DATE_LABEL" 
-                                       for="leave-end-date" 
-                                       class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                    結束日期
-                                </label>
-                                <input type="date" 
-                                       id="leave-end-date" 
-                                       required
-                                       class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm dark:bg-gray-700 dark:text-white focus:ring-indigo-500 focus:border-indigo-500">
+                            <!-- 開始日期與結束日期 -->
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label data-i18n="LEAVE_START_DATE_LABEL" 
+                                           for="leave-start-date" 
+                                           class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        開始日期
+                                    </label>
+                                    <input type="date" 
+                                           id="leave-start-date" 
+                                           class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm dark:bg-gray-700 dark:text-white focus:ring-indigo-500 focus:border-indigo-500">
+                                </div>
+                                <div>
+                                    <label data-i18n="LEAVE_END_DATE_LABEL" 
+                                           for="leave-end-date" 
+                                           class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        結束日期
+                                    </label>
+                                    <input type="date" 
+                                           id="leave-end-date" 
+                                           class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm dark:bg-gray-700 dark:text-white focus:ring-indigo-500 focus:border-indigo-500">
+                                </div>
                             </div>
                             
                             <!-- 請假天數 -->
                             <div>
                                 <label data-i18n="LEAVE_DAYS_LABEL" 
                                        for="leave-days" 
-                                       class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                       class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                     請假天數
                                 </label>
                                 <input type="number" 
                                        id="leave-days" 
                                        step="0.5" 
-                                       readonly 
-                                       value="0"
-                                       class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-gray-100 dark:bg-gray-600 dark:text-white cursor-not-allowed">
+                                       min="0.5" 
+                                       placeholder="0.0" 
+                                       class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm dark:bg-gray-700 dark:text-white focus:ring-indigo-500 focus:border-indigo-500">
                             </div>
                             
                             <!-- 請假原因 -->
-                            <div id="leave-reason-container">
+                            <div>
                                 <label data-i18n="LEAVE_REASON_LABEL" 
                                        for="leave-reason" 
-                                       class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                       class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                     請假原因
                                 </label>
                                 <textarea id="leave-reason" 
                                           rows="3" 
-                                          data-i18n-placeholder="LEAVE_REASON_PLACEHOLDER"
-                                          placeholder="請說明請假原因..."
-                                          class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm dark:bg-gray-700 dark:text-white focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+                                          class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm dark:bg-gray-700 dark:text-white focus:ring-indigo-500 focus:border-indigo-500" 
+                                          placeholder="請說明請假原因..."></textarea>
                             </div>
                             
                             <!-- 提交按鈕 -->
-                            <button type="submit"
-                                    id="submit-leave-btn" 
-                                    data-i18n="LEAVE_SUBMIT_BTN" 
-                                    class="w-full py-3 px-4 rounded-lg font-bold btn-primary transition-colors duration-200 hover:opacity-90">
-                                提交申請
+                            <button id="submit-leave-btn" 
+                                    data-i18n="BTN_SUBMIT_LEAVE"
+                                    class="w-full py-3 px-4 rounded-lg font-bold btn-primary">
+                                提交請假申請
                             </button>
-                        </form>
+                        </div>
                     </div>
                     
-                    <!-- 我的請假記錄 -->
+                    <!-- 請假記錄列表 -->
                     <div class="card p-6">
                         <h2 data-i18n="LEAVE_RECORDS_TITLE" 
                             class="text-xl font-bold text-gray-800 dark:text-white mb-2">
@@ -493,7 +510,7 @@
                         </h2>
                         <p data-i18n="LEAVE_RECORDS_DESCRIPTION" 
                            class="text-gray-500 dark:text-gray-400 mb-4">
-                            查看您的請假申請歷史記錄
+                            查看已提交的請假申請狀態
                         </p>
                         
                         <div id="leave-records-container">
@@ -652,7 +669,7 @@
             </div>
             <footer class="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
                 <p>
-                    <span data-i18n="APP_TITLE">打卡救星</span> v1.5 |
+                    <span data-i18n="APP_TITLE">打卡救星</span> v1.6 |
                     <span class="text-gray-400 dark:text-gray-500">
                         <span data-i18n="FOOTER_CREDITS_PREFIX">由</span>
                         <a href="https://github.com/0rigind1865-bit/Attendance-System" class="hover:underline hover:text-indigo-600 dark:hover:text-indigo-400">0J</a>

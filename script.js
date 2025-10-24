@@ -7,7 +7,8 @@ let translations = {};
 let monthDataCache = {}; // 新增：用於快取月份打卡資料
 let isApiCalled = false; // 新增：用於追蹤 API 呼叫狀態，避免重複呼叫
 let userId = localStorage.getItem("sessionUserId");
-
+let todayShiftCache = null; // 快取今日排班
+let weekShiftCache = null;  // 快取本週排班
 // 載入語系檔
 async function loadTranslations(lang) {
     try {
@@ -1077,14 +1078,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
     // UI切換邏輯
     const switchTab = (tabId) => {
-        const tabs = ['dashboard-view', 'monthly-view', 'location-view', 'admin-view', 'overtime-view', 'leave-view']; // 👈 加入 leave-view
-        const btns = ['tab-dashboard-btn', 'tab-monthly-btn', 'tab-location-btn', 'tab-admin-btn', 'tab-overtime-btn', 'tab-leave-btn']; // 👈 加入 tab-leave-btn
+        // 修改這一行，加入 'shift-view'
+        const tabs = ['dashboard-view', 'monthly-view', 'location-view', 'shift-view', 'admin-view', 'overtime-view', 'leave-view'];
+        
+        // 修改這一行，加入 'tab-shift-btn'
+        const btns = ['tab-dashboard-btn', 'tab-monthly-btn', 'tab-location-btn', 'tab-shift-btn', 'tab-admin-btn', 'tab-overtime-btn', 'tab-leave-btn'];
     
         // 1. 移除舊的 active 類別和 CSS 屬性
         tabs.forEach(id => {
             const tabElement = document.getElementById(id);
-            tabElement.style.display = 'none'; // 隱藏內容
-            tabElement.classList.remove('active'); // 移除 active 類別
+            tabElement.style.display = 'none';
+            tabElement.classList.remove('active');
         });
         
         // 2. 移除按鈕的選中狀態
@@ -1099,8 +1103,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         // 3. 顯示新頁籤並新增 active 類別
         const newTabElement = document.getElementById(tabId);
-        newTabElement.style.display = 'block'; // 顯示內容
-        newTabElement.classList.add('active'); // 新增 active 類別
+        newTabElement.style.display = 'block';
+        newTabElement.classList.add('active');
         
         // 4. 設定新頁籤按鈕的選中狀態
         const newBtnElement = document.getElementById(`tab-${tabId.replace('-view', '-btn')}`);
@@ -1116,13 +1120,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             renderCalendar(currentMonthDate);
         } else if (tabId === 'location-view') {
             initLocationMap();
+        } else if (tabId === 'shift-view') { // 新增：排班分頁初始化
+            initShiftTab();
         } else if (tabId === 'admin-view') {
             fetchAndRenderReviewRequests();
-            loadPendingOvertimeRequests(); // 👈 在管理員頁面也載入加班審核
-            loadPendingLeaveRequests(); // 👈 載入請假審核
-        } else if (tabId === 'overtime-view') { // 👈 新增這個條件
+            loadPendingOvertimeRequests();
+            loadPendingLeaveRequests();
+        } else if (tabId === 'overtime-view') {
             initOvertimeTab();
-        } else if (tabId === 'leave-view') { // 👈 新增請假頁籤初始化
+        } else if (tabId === 'leave-view') {
             initLeaveTab();
         }
     };
@@ -1247,19 +1253,100 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         }
     }
+
+        /**
+     * 輔助函數：計算時間差（分鐘）
+     * @param {string} time1 - 時間 1，格式 "HH:MM"
+     * @param {string} time2 - 時間 2，格式 "HH:MM"
+     * @returns {number} - 時間差（分鐘），正數表示 time1 晚於 time2
+     */
+    function getTimeDifference(time1, time2) {
+        const [h1, m1] = time1.split(':').map(Number);
+        const [h2, m2] = time2.split(':').map(Number);
+        
+        const minutes1 = h1 * 60 + m1;
+        const minutes2 = h2 * 60 + m2;
+        
+        return minutes1 - minutes2;
+    }
+
+    /**
+     * 清除排班快取
+     * 在打卡成功或排班有更新時呼叫
+     */
+    function clearShiftCache() {
+        todayShiftCache = null;
+        weekShiftCache = null;
+    }
     async function doPunch(type) {
         const punchButtonId = type === '上班' ? 'punch-in-btn' : 'punch-out-btn';
         
-        // ✨ 修正點 1: 獲取按鈕元素
+        // 獲取按鈕元素
         const button = document.getElementById(punchButtonId);
         const loadingText = t('LOADING') || '處理中...';
-
+    
         // 檢查按鈕是否存在，若不存在則直接返回
         if (!button) return;
-
+    
         // A. 進入處理中狀態
         generalButtonState(button, 'processing', loadingText);
         
+        // ==================== 新增：上班打卡前檢查排班 ====================
+        if (type === '上班') {
+            try {
+                const userId = localStorage.getItem('sessionUserId');
+                const today = new Date().toISOString().split('T')[0];
+                
+                // 呼叫排班 API
+                const shiftRes = await callApifetch(`getEmployeeShiftForDate&employeeId=${userId}&date=${today}`);
+                
+                if (shiftRes.ok && shiftRes.hasShift) {
+                    const shift = shiftRes.data;
+                    
+                    // 顯示排班資訊提示
+                    showNotification(
+                        t('SHIFT_INFO_NOTIFICATION', {
+                            shiftType: shift.shiftType,
+                            startTime: shift.startTime,
+                            endTime: shift.endTime
+                        }) || `今日排班：${shift.shiftType} (${shift.startTime}-${shift.endTime})`,
+                        'info'
+                    );
+                    
+                    // 可選：檢查打卡時間是否合理
+                    const now = new Date();
+                    const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+                    
+                    if (shift.startTime) {
+                        const timeDiff = getTimeDifference(currentTime, shift.startTime);
+                        
+                        // 如果提前超過 30 分鐘打卡，給予提醒
+                        if (timeDiff < -30) {
+                            showNotification(
+                                t('EARLY_PUNCH_WARNING') || `注意：您的排班時間是 ${shift.startTime}，目前提前超過 30 分鐘打卡。`,
+                                'warning'
+                            );
+                        }
+                        // 如果遲到超過 30 分鐘，給予提醒
+                        else if (timeDiff > 30) {
+                            showNotification(
+                                t('LATE_PUNCH_WARNING') || `注意：您的排班時間是 ${shift.startTime}，目前已遲到超過 30 分鐘。`,
+                                'warning'
+                            );
+                        }
+                    }
+                } else {
+                    // 今日沒有排班，可選擇是否提醒
+                    // showNotification(t('NO_SHIFT_TODAY') || '今日無排班記錄', 'info');
+                }
+            } catch (error) {
+                console.error('檢查排班失敗:', error);
+                // 排班檢查失敗不影響打卡流程，繼續執行
+            }
+        }
+        // ==================== 排班檢查結束 ====================
+        
+        // 檢查瀏覽器是否支援定位
         if (!navigator.geolocation) {
             showNotification(t("ERROR_GEOLOCATION", { msg: "您的瀏覽器不支援地理位置功能。" }), "error");
             
@@ -1279,6 +1366,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const res = await callApifetch(action);
                 const msg = t(res.code || "UNKNOWN_ERROR", res.params || {});
                 showNotification(msg, res.ok ? "success" : "error");
+                
+                // 打卡成功後，清除排班快取（以便下次載入最新資料）
+                if (res.ok && type === '上班') {
+                    clearShiftCache();
+                }
                 
                 // D. 退出點 2: API 成功，恢復按鈕狀態
                 generalButtonState(button, 'idle');
@@ -1409,7 +1501,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
     
+
     // 頁面切換事件
+    const tabShiftBtn = document.getElementById('tab-shift-btn');
+
+    // 在現有的分頁按鈕事件後面加入：
+    tabShiftBtn.addEventListener('click', () => {switchTab('shift-view');});
+
+
+    
     tabDashboardBtn.addEventListener('click', () => switchTab('dashboard-view'));
     
     tabLocationBtn.addEventListener('click', () => switchTab('location-view'));
@@ -1517,3 +1617,168 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 });
+
+/**
+ * 初始化排班分頁
+ */
+function initShiftTab() {
+    loadTodayShift();
+    loadWeekShift();
+}
+
+/**
+ * 載入今日排班
+ */
+async function loadTodayShift() {
+    const loadingEl = document.getElementById('today-shift-loading');
+    const emptyEl = document.getElementById('today-shift-empty');
+    const infoEl = document.getElementById('today-shift-info');
+    
+    // 如果有快取，直接使用
+    if (todayShiftCache !== null) {
+        displayTodayShift(todayShiftCache);
+        return;
+    }
+    
+    try {
+        loadingEl.style.display = 'block';
+        emptyEl.style.display = 'none';
+        infoEl.style.display = 'none';
+        
+        const userId = localStorage.getItem('sessionUserId');
+        const today = new Date().toISOString().split('T')[0];
+        
+        const res = await callApifetch(`getEmployeeShiftForDate&employeeId=${userId}&date=${today}`);
+        
+        loadingEl.style.display = 'none';
+        
+        // 快取結果
+        todayShiftCache = res;
+        displayTodayShift(res);
+        
+    } catch (error) {
+        console.error('載入今日排班失敗:', error);
+        loadingEl.style.display = 'none';
+        emptyEl.style.display = 'block';
+    }
+}
+
+/**
+ * 顯示今日排班
+ */
+function displayTodayShift(res) {
+    const emptyEl = document.getElementById('today-shift-empty');
+    const infoEl = document.getElementById('today-shift-info');
+    
+    if (res.ok && res.hasShift) {
+        document.getElementById('shift-type').textContent = res.data.shiftType;
+        document.getElementById('shift-time').textContent = 
+            `${res.data.startTime} - ${res.data.endTime}`;
+        document.getElementById('shift-location').textContent = res.data.location;
+        infoEl.style.display = 'block';
+    } else {
+        emptyEl.style.display = 'block';
+    }
+}
+
+/**
+ * 載入本週排班
+ */
+async function loadWeekShift() {
+    const loadingEl = document.getElementById('week-shift-loading');
+    const emptyEl = document.getElementById('week-shift-empty');
+    const listEl = document.getElementById('week-shift-list');
+    
+    // 如果有快取，直接使用
+    if (weekShiftCache !== null) {
+        displayWeekShift(weekShiftCache);
+        return;
+    }
+    
+    try {
+        loadingEl.style.display = 'block';
+        emptyEl.style.display = 'none';
+        listEl.innerHTML = '';
+        
+        const userId = localStorage.getItem('sessionUserId');
+        
+        // 計算本週日期範圍
+        const now = new Date();
+        const startOfWeek = new Date(now);
+        startOfWeek.setDate(now.getDate() - now.getDay());
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(startOfWeek.getDate() + 6);
+        
+        const filters = {
+            employeeId: userId,
+            startDate: startOfWeek.toISOString().split('T')[0],
+            endDate: endOfWeek.toISOString().split('T')[0]
+        };
+        
+        const res = await callApifetch(`getShifts&filters=${encodeURIComponent(JSON.stringify(filters))}`);
+        
+        loadingEl.style.display = 'none';
+        
+        // 快取結果
+        weekShiftCache = res;
+        displayWeekShift(res);
+        
+    } catch (error) {
+        console.error('載入本週排班失敗:', error);
+        loadingEl.style.display = 'none';
+        emptyEl.style.display = 'block';
+    }
+}
+
+/**
+ * 顯示本週排班
+ */
+function displayWeekShift(res) {
+    const emptyEl = document.getElementById('week-shift-empty');
+    const listEl = document.getElementById('week-shift-list');
+    
+    if (res.ok && res.data && res.data.length > 0) {
+        listEl.innerHTML = '';
+        res.data.forEach(shift => {
+            const item = document.createElement('div');
+            item.className = 'flex justify-between items-center text-sm bg-white dark:bg-gray-800 p-2 rounded-md';
+            item.innerHTML = `
+                <div>
+                    <span class="font-semibold text-purple-900 dark:text-purple-200">
+                        ${formatShiftDate(shift.date)}
+                    </span>
+                    <span class="text-purple-700 dark:text-purple-400 ml-2">
+                        ${shift.shiftType}
+                    </span>
+                </div>
+                <div class="text-purple-700 dark:text-purple-400">
+                    ${shift.startTime} - ${shift.endTime}
+                </div>
+            `;
+            listEl.appendChild(item);
+        });
+    } else {
+        emptyEl.style.display = 'block';
+    }
+}
+
+/**
+ * 格式化排班日期
+ */
+function formatShiftDate(dateString) {
+    const date = new Date(dateString);
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+    const weekday = weekdays[date.getDay()];
+    
+    return `${month}/${day} (${weekday})`;
+}
+
+/**
+ * 清除排班快取（當有更新時使用）
+ */
+function clearShiftCache() {
+    todayShiftCache = null;
+    weekShiftCache = null;
+}

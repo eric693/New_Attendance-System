@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>排班管理 - 出勤系統</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .shift-container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+
+        .shift-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .shift-tab {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-size: 16px;
+            color: #666;
+            transition: all 0.3s;
+        }
+
+        .shift-tab.active {
+            color: #4285f4;
+            border-bottom-color: #4285f4;
+            font-weight: 600;
+        }
+
+        .shift-tab:hover {
+            color: #4285f4;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .shift-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .shift-form {
+            display: grid;
+            gap: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .form-group textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #4285f4;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #357ae8;
+        }
+
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #d0d0d0;
+        }
+
+        .btn-danger {
+            background: #ea4335;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #d93025;
+        }
+
+        .shift-list {
+            margin-top: 20px;
+        }
+
+        .shift-item {
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border-left: 4px solid #4285f4;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+        }
+
+        .shift-item:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+
+        .shift-info {
+            flex: 1;
+        }
+
+        .shift-info h3 {
+            margin: 0 0 8px 0;
+            color: #333;
+            font-size: 16px;
+        }
+
+        .shift-info p {
+            margin: 4px 0;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .shift-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-icon {
+            padding: 8px 16px;
+            background: #f5f5f5;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+
+        .btn-icon:hover {
+            background: #e0e0e0;
+        }
+
+        .filter-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .filter-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .calendar-view {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            margin-top: 20px;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            padding: 8px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .calendar-day:hover {
+            background: #f5f5f5;
+        }
+
+        .calendar-day.has-shift {
+            background: #e3f2fd;
+            border-color: #4285f4;
+        }
+
+        .calendar-day-number {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .calendar-shift-count {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #4285f4;
+            margin: 8px 0;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .badge-morning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-afternoon {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .badge-night {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-full {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .shift-container {
+                padding: 12px;
+            }
+
+            .shift-tabs {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .form-row,
+            .filter-row {
+                grid-template-columns: 1fr;
+            }
+
+            .shift-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .shift-actions {
+                width: 100%;
+                margin-top: 12px;
+                justify-content: flex-end;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .calendar-view {
+                grid-template-columns: repeat(7, 1fr);
+                gap: 4px;
+            }
+
+            .calendar-day {
+                font-size: 12px;
+                padding: 4px;
+            }
+        }
+
+        .required::after {
+            content: ' *';
+            color: #ea4335;
+        }
+
+        .batch-upload-area {
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .batch-upload-area:hover {
+            border-color: #4285f4;
+            background: #f8f9fa;
+        }
+
+        .batch-upload-area.drag-over {
+            border-color: #4285f4;
+            background: #e3f2fd;
+        }
+    </style>
+</head>
+<body>
+    <div class="shift-container">
+        <div class="page-header">
+            <h1>排班管理</h1>
+            <button class="btn btn-secondary" onclick="goBack()">返回</button>
+        </div>
+
+        <div class="shift-tabs">
+            <button class="shift-tab active" data-tab="view">查看排班</button>
+            <button class="shift-tab" data-tab="add">新增排班</button>
+            <button class="shift-tab" data-tab="batch">批量排班</button>
+            <button class="shift-tab" data-tab="stats">統計分析</button>
+        </div>
+
+        <!-- 查看排班 -->
+        <div id="view-tab" class="tab-content active">
+            <div class="filter-section">
+                <h3>篩選條件</h3>
+                <div class="filter-row">
+                    <div class="form-group">
+                        <label>開始日期</label>
+                        <input type="date" id="filter-start-date">
+                    </div>
+                    <div class="form-group">
+                        <label>結束日期</label>
+                        <input type="date" id="filter-end-date">
+                    </div>
+                    <div class="form-group">
+                        <label>班別</label>
+                        <select id="filter-shift-type">
+                            <option value="">全部</option>
+                            <option value="早班">早班</option>
+                            <option value="中班">中班</option>
+                            <option value="晚班">晚班</option>
+                            <option value="全日班">全日班</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>地點</label>
+                        <select id="filter-location">
+                            <option value="">全部</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="applyFilters()">套用篩選</button>
+                    <button class="btn btn-secondary" onclick="clearFilters()">清除篩選</button>
+                    <button class="btn btn-secondary" onclick="exportShifts()">匯出排班表</button>
+                </div>
+            </div>
+
+            <div class="shift-list" id="shift-list">
+                <div class="loading">載入中...</div>
+            </div>
+        </div>
+
+        <!-- 新增排班 -->
+        <div id="add-tab" class="tab-content">
+            <div class="shift-card">
+                <h2>新增排班</h2>
+                <form class="shift-form" id="add-shift-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="required">員工</label>
+                            <select id="employee-select" required>
+                                <option value="">請選擇員工</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="required">日期</label>
+                            <input type="date" id="shift-date" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="required">班別</label>
+                            <select id="shift-type" required>
+                                <option value="">請選擇班別</option>
+                                <option value="早班">早班 (08:00-16:00)</option>
+                                <option value="中班">中班 (12:00-20:00)</option>
+                                <option value="晚班">晚班 (16:00-24:00)</option>
+                                <option value="全日班">全日班 (09:00-18:00)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>上班時間</label>
+                            <input type="time" id="start-time">
+                        </div>
+                        <div class="form-group">
+                            <label>下班時間</label>
+                            <input type="time" id="end-time">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="required">地點</label>
+                        <select id="shift-location" required>
+                            <option value="">請選擇地點</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>備註</label>
+                        <textarea id="shift-note" placeholder="輸入備註資訊..."></textarea>
+                    </div>
+
+                    <div class="btn-group">
+                        <button type="submit" class="btn btn-primary">新增排班</button>
+                        <button type="button" class="btn btn-secondary" onclick="resetForm()">重置</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 批量排班 -->
+        <div id="batch-tab" class="tab-content">
+            <div class="shift-card">
+                <h2>批量新增排班</h2>
+                <p style="color: #666; margin-bottom: 20px;">
+                    上傳 CSV 或 Excel 檔案批量新增排班。檔案格式: 員工ID, 員工姓名, 日期, 班別, 上班時間, 下班時間, 地點, 備註
+                </p>
+                
+                <div class="batch-upload-area" id="upload-area">
+                    <div class="empty-state-icon">📄</div>
+                    <p>拖放檔案到此處，或點擊選擇檔案</p>
+                    <input type="file" id="batch-file-input" accept=".csv,.xlsx,.xls" style="display: none;">
+                    <button class="btn btn-primary" onclick="document.getElementById('batch-file-input').click()">
+                        選擇檔案
+                    </button>
+                </div>
+
+                <div id="batch-preview" style="display: none; margin-top: 20px;">
+                    <h3>預覽資料</h3>
+                    <div id="preview-table"></div>
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="confirmBatchUpload()">確認上傳</button>
+                        <button class="btn btn-secondary" onclick="cancelBatchUpload()">取消</button>
+                    </div>
+                </div>
+
+                <div style="margin-top: 20px;">
+                    <button class="btn btn-secondary" onclick="downloadTemplate()">下載範本檔案</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 統計分析 -->
+        <div id="stats-tab" class="tab-content">
+            <div class="stats-grid" id="stats-grid">
+                <div class="loading">載入統計資料中...</div>
+            </div>
+
+            <div class="shift-card">
+                <h3>本週排班日曆</h3>
+                <div class="calendar-view" id="weekly-calendar"></div>
+            </div>
+
+            <div class="shift-card">
+                <h3>排班分布</h3>
+                <canvas id="shift-chart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- 編輯排班對話框 -->
+    <div id="edit-shift-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeEditModal()">&times;</span>
+            <h2>編輯排班</h2>
+            <form id="edit-shift-form">
+                <input type="hidden" id="edit-shift-id">
+                <!-- 表單內容與新增相同 -->
+            </form>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="shift.js"></script>
+</body>
+</html>
