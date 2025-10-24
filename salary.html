@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>薪資管理系統</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .tab:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .tab.active {
+            background: white;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #38a169;
+        }
+
+        .btn-danger {
+            background: #f56565;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #e53e3e;
+        }
+
+        .card {
+            background: #f7fafc;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+        }
+
+        .info-label {
+            color: #666;
+        }
+
+        .info-value {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .table th,
+        .table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .table th {
+            background: #667eea;
+            color: white;
+            font-weight: bold;
+        }
+
+        .table tr:hover {
+            background: #f7fafc;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .status-active {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .status-inactive {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .status-draft {
+            background: #feebc8;
+            color: #7c2d12;
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .message.success {
+            background: #c6f6d5;
+            color: #22543d;
+            border-left: 4px solid #48bb78;
+        }
+
+        .message.error {
+            background: #fed7d7;
+            color: #742a2a;
+            border-left: 4px solid #f56565;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .employee-type-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .type-card {
+            flex: 1;
+            padding: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: transform 0.3s;
+            text-align: center;
+        }
+
+        .type-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .type-card h3 {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+
+        .type-card p {
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💰 薪資管理系統</h1>
+            <p>支援月薪制與時薪制員工</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('employee-setup')">員工薪資設定</button>
+            <button class="tab" onclick="switchTab('monthly-salary')">月薪計算</button>
+            <button class="tab" onclick="switchTab('hourly-salary')">時薪明細</button>
+            <button class="tab" onclick="switchTab('salary-list')">薪資列表</button>
+            <button class="tab" onclick="switchTab('reports')">報表分析</button>
+        </div>
+
+        <div class="content">
+            <div id="message" class="message"></div>
+
+            <!-- 員工薪資設定 -->
+            <div id="employee-setup" class="tab-content active">
+                <h2 class="card-title">員工薪資設定</h2>
+                
+                <div class="employee-type-selector">
+                    <div class="type-card" onclick="selectEmployeeType('fulltime')">
+                        <h3>👔 全職員工</h3>
+                        <p>月薪制 | 固定薪資</p>
+                    </div>
+                    <div class="type-card" onclick="selectEmployeeType('parttime')">
+                        <h3>⏰ 兼職員工</h3>
+                        <p>時薪制 | 彈性工時</p>
+                    </div>
+                </div>
+
+                <form id="employee-salary-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>員工ID *</label>
+                            <input type="text" id="employeeId" required>
+                        </div>
+                        <div class="form-group">
+                            <label>員工姓名 *</label>
+                            <input type="text" id="employeeName" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>員工類型 *</label>
+                            <select id="employeeType" onchange="updateSalaryType()">
+                                <option value="全職">全職</option>
+                                <option value="兼職">兼職</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>薪資類型 *</label>
+                            <select id="salaryType">
+                                <option value="月薪">月薪</option>
+                                <option value="時薪">時薪</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label id="baseSalaryLabel">基本薪資 (月薪) *</label>
+                            <input type="number" id="baseSalary" required min="0">
+                        </div>
+                        <div class="form-group">
+                            <label>加班費率</label>
+                            <input type="number" id="overtimeRate" value="1.34" step="0.01">
+                        </div>
+                    </div>
+
+                    <div class="form-row" id="deduction-fields">
+                        <div class="form-group">
+                            <label>勞保</label>
+                            <input type="number" id="laborInsurance" value="0" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label>健保</label>
+                            <input type="number" id="healthInsurance" value="0" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label>所得稅</label>
+                            <input type="number" id="incomeTax" value="0" min="0">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>銀行帳號</label>
+                            <input type="text" id="bankAccount">
+                        </div>
+                        <div class="form-group">
+                            <label>入職日期</label>
+                            <input type="date" id="hireDate">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>備註</label>
+                        <textarea id="note" rows="3"></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">儲存設定</button>
+                </form>
+            </div>
+
+            <!-- 月薪計算 -->
+            <div id="monthly-salary" class="tab-content">
+                <h2 class="card-title">月薪計算</h2>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>選擇員工</label>
+                        <select id="monthly-employeeId">
+                            <option value="">-- 請選擇 --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>年月</label>
+                        <input type="month" id="monthly-yearMonth">
+                    </div>
+                    <div class="form-group" style="display: flex; align-items: flex-end;">
+                        <button class="btn btn-primary" onclick="calculateMonthly()">計算薪資</button>
+                    </div>
+                </div>
+
+                <div id="monthly-result" class="card" style="display: none;">
+                    <h3 class="card-title">薪資明細</h3>
+                    <div class="info-grid" id="monthly-info"></div>
+                    <button class="btn btn-success" onclick="saveMonthlySalary()">儲存薪資單</button>
+                </div>
+            </div>
+
+            <!-- 時薪明細 -->
+            <div id="hourly-salary" class="tab-content">
+                <h2 class="card-title">時薪明細</h2>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>選擇員工</label>
+                        <select id="hourly-employeeId">
+                            <option value="">-- 請選擇 --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>年月</label>
+                        <input type="month" id="hourly-yearMonth">
+                    </div>
+                    <div class="form-group" style="display: flex; align-items: flex-end;">
+                        <button class="btn btn-primary" onclick="loadHourlySalary()">查詢明細</button>
+                    </div>
+                </div>
+
+                <div id="hourly-result" style="display: none;">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>日期</th>
+                                <th>工作時數</th>
+                                <th>平日時數</th>
+                                <th>加班時數</th>
+                                <th>假日時數</th>
+                                <th>薪資小計</th>
+                            </tr>
+                        </thead>
+                        <tbody id="hourly-table-body"></tbody>
+                        <tfoot>
+                            <tr style="font-weight: bold; background: #f7fafc;">
+                                <td>總計</td>
+                                <td id="total-hours">-</td>
+                                <td colspan="3"></td>
+                                <td id="total-pay">-</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 薪資列表 -->
+            <div id="salary-list" class="tab-content">
+                <h2 class="card-title">薪資列表</h2>
+                <div id="salary-list-content" class="loading">載入中...</div>
+            </div>
+
+            <!-- 報表分析 -->
+            <div id="reports" class="tab-content">
+                <h2 class="card-title">報表分析</h2>
+                <p>報表功能開發中...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="salary.js"></script>
+</body>
+</html>
