@@ -52,7 +52,7 @@
   "API_TEST_TITLE": "APIテストエリア",
   "API_TEST_DESCRIPTION": "下のボタンをクリックして、新しいAPI機能をテストしてください。",
   "API_TEST_BTN": "APIをテスト",
-  "FOOTER_VERSION": "打刻ヒーロー v2.0",
+  "FOOTER_VERSION": "打刻ヒーロー v2.1",
   "FOOTER_CREDITS_PREFIX": "制作：",
   "FOOTER_CREDITS_SUFFIX": "",
   "FOOTER_SPONSOR": "このプロジェクトを支援する",
@@ -255,7 +255,14 @@
   "SHIFT_INFO_NOTIFICATION": "本日のシフト：{shiftType} ({startTime}-{endTime})",
   "EARLY_PUNCH_WARNING": "注意：シフト開始時刻は {startTime} です。30分以上早く打刻しています。",
   "LATE_PUNCH_WARNING": "注意：シフト開始時刻は {startTime} です。30分以上遅れています。",
-  "NO_SHIFT_TODAY": "本日のシフト記録はありません"
+  "NO_SHIFT_TODAY": "本日のシフト記録はありません",
+
+
+  "TAB_SALARY": "給与",
+  "SALARY_TITLE": "給与管理",
+  "SALARY_DESCRIPTION": "従業員の給与情報を表示・管理",
+  "BTN_SALARY_MANAGE": "給与管理システムへ 💰",
+  "SALARY_INFO": "正社員（月給）とアルバイト（時給）に対応、残業代と控除の自動計算、給与明細の生成と管理、時給明細の追跡"
+}
 
   
-}

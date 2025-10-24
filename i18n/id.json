@@ -52,7 +52,7 @@
   "API_TEST_TITLE": "Uji API",
   "API_TEST_DESCRIPTION": "Klik tombol di bawah untuk menguji fungsi API.",
   "API_TEST_BTN": "Uji API",
-  "FOOTER_VERSION": "Pahlawan Absensi v2.0",
+  "FOOTER_VERSION": "Pahlawan Absensi v2.1",
   "FOOTER_CREDITS_PREFIX": "Dibuat oleh",
   "FOOTER_CREDITS_SUFFIX": "",
   "FOOTER_SPONSOR": "Sponsori proyek ini",
@@ -254,5 +254,14 @@
   "SHIFT_INFO_NOTIFICATION": "Shift hari ini: {shiftType} ({startTime}-{endTime})",
   "EARLY_PUNCH_WARNING": "Perhatian: Shift Anda dimulai pada {startTime}, dan Anda masuk lebih dari 30 menit lebih awal.",
   "LATE_PUNCH_WARNING": "Perhatian: Shift Anda dimulai pada {startTime}, dan Anda terlambat lebih dari 30 menit.",
-  "NO_SHIFT_TODAY": "Tidak ada catatan shift hari ini"
+  "NO_SHIFT_TODAY": "Tidak ada catatan shift hari ini",
+
+
+
+  "TAB_SALARY": "Gaji",
+  "SALARY_TITLE": "Manajemen Gaji",
+  "SALARY_DESCRIPTION": "Lihat dan kelola informasi gaji karyawan",
+  "BTN_SALARY_MANAGE": "Masuk ke Sistem Manajemen Gaji 💰",
+  "SALARY_INFO": "Dukungan untuk karyawan penuh waktu (bulanan) dan paruh waktu (per jam), perhitungan otomatis lembur dan potongan, pembuatan dan pengelolaan slip gaji, pelacakan detail upah per jam"
+
 }

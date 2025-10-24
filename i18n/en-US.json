@@ -52,7 +52,7 @@
   "API_TEST_TITLE": "API Test",
   "API_TEST_DESCRIPTION": "Click to test new API functions.",
   "API_TEST_BTN": "Test API",
-  "FOOTER_VERSION": "Check-in Hero v2.0",
+  "FOOTER_VERSION": "Check-in Hero v2.1",
   "FOOTER_CREDITS_PREFIX": "Made by",
   "FOOTER_CREDITS_SUFFIX": "",
   "FOOTER_SPONSOR": "Sponsor this project",
@@ -250,5 +250,12 @@
   "SHIFT_INFO_NOTIFICATION": "Today's shift: {shiftType} ({startTime}-{endTime})",
   "EARLY_PUNCH_WARNING": "Notice: Your shift starts at {startTime}, and you are clocking in more than 30 minutes early.",
   "LATE_PUNCH_WARNING": "Notice: Your shift starts at {startTime}, and you are over 30 minutes late.",
-  "NO_SHIFT_TODAY": "No shift record for today"
+  "NO_SHIFT_TODAY": "No shift record for today",
+
+  "TAB_SALARY": "Salary",
+  "SALARY_TITLE": "Salary Management",
+  "SALARY_DESCRIPTION": "View and manage employee salary information",
+  "BTN_SALARY_MANAGE": "Enter Salary Management System 💰",
+  "SALARY_INFO": "Support for full-time (monthly) and part-time (hourly) employees, automatic overtime and deduction calculations, payroll generation and management, hourly wage detail tracking"
+
 }

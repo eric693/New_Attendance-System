@@ -52,7 +52,7 @@
   "API_TEST_TITLE": "Kiểm thử API",
   "API_TEST_DESCRIPTION": "Nhấp vào đây để kiểm thử chức năng API.",
   "API_TEST_BTN": "Kiểm thử API",
-  "FOOTER_VERSION": "Anh Hùng Chấm Công v2.0",
+  "FOOTER_VERSION": "Anh Hùng Chấm Công v2.1",
   "FOOTER_CREDITS_PREFIX": "Được làm bởi",
   "FOOTER_CREDITS_SUFFIX": "",
   "FOOTER_SPONSOR": "Tài trợ cho dự án này",
@@ -255,5 +255,13 @@
   "SHIFT_INFO_NOTIFICATION": "Ca làm hôm nay: {shiftType} ({startTime}-{endTime})",
   "EARLY_PUNCH_WARNING": "Lưu ý: Ca làm của bạn bắt đầu lúc {startTime}, bạn đã chấm công sớm hơn 30 phút.",
   "LATE_PUNCH_WARNING": "Lưu ý: Ca làm của bạn bắt đầu lúc {startTime}, bạn đã trễ hơn 30 phút.",
-  "NO_SHIFT_TODAY": "Không có ca làm hôm nay"
+  "NO_SHIFT_TODAY": "Không có ca làm hôm nay",
+
+
+  "TAB_SALARY": "Lương",
+  "SALARY_TITLE": "Quản lý Lương",
+  "SALARY_DESCRIPTION": "Xem và quản lý thông tin lương nhân viên",
+  "BTN_SALARY_MANAGE": "Vào Hệ thống Quản lý Lương 💰",
+  "SALARY_INFO": "Hỗ trợ nhân viên toàn thời gian (tháng) và bán thời gian (giờ), tự động tính lương làm thêm và khấu trừ, tạo và quản lý phiếu lương, theo dõi chi tiết lương theo giờ"
+
 }

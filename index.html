@@ -139,6 +139,9 @@
                     <!-- 👇 請假按鈕 -->
                     <button id="tab-leave-btn" data-i18n="TAB_LEAVE" class="py-2 px-4 rounded-full font-bold text-sm text-gray-600 bg-gray-200 dark:text-gray-300 dark:bg-gray-700">請假</button>
                     <button id="tab-admin-btn" data-i18n="TAB_ADMIN" class="py-2 px-4 rounded-full font-bold text-sm text-gray-600 bg-gray-200 dark:text-gray-300 dark:bg-gray-700" style="display: none;">管理員</button>
+                    <!-- 👇 薪資按鈕 (新增) -->
+                    <button id="tab-salary-btn" data-i18n="TAB_SALARY" class="py-2 px-4 rounded-full font-bold text-sm text-gray-600 bg-gray-200 dark:text-gray-300 dark:bg-gray-700">薪資</button>
+                    <button id="tab-admin-btn" data-i18n="TAB_ADMIN" class="py-2 px-4 rounded-full font-bold text-sm text-gray-600 bg-gray-200 dark:text-gray-300 dark:bg-gray-700" style="display: none;">管理員</button>
                 </div>
                 
                 <!-- Dashboard View -->
@@ -532,7 +535,93 @@
                     </div>
                     
                 </section>
-                
+                <!-- 薪資頁面 (Salary View) - 新增 -->
+                <section id="salary-view" class="space-y-6" style="display: none;">
+                    <div class="card p-6">
+                        <h2 data-i18n="SALARY_TITLE" 
+                            class="text-xl font-bold text-gray-800 dark:text-white mb-4">
+                            薪資管理
+                        </h2>
+                        
+                        <p data-i18n="SALARY_DESCRIPTION" 
+                           class="text-gray-500 dark:text-gray-400 mb-4">
+                            查看和管理員工薪資資訊
+                        </p>
+                        
+                        <div class="space-y-4">
+                            <!-- 進入薪資系統按鈕 -->
+                            <button onclick="window.location.href='salary.html'" 
+                                    data-i18n="BTN_SALARY_MANAGE"
+                                    class="w-full py-3 px-4 rounded-lg font-bold btn-primary hover:opacity-90 transition-opacity">
+                                進入薪資管理系統 💰
+                            </button>
+                            
+                            <!-- 功能說明 -->
+                            <div class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 p-5 rounded-lg border border-blue-200 dark:border-blue-700">
+                                <div class="flex items-start mb-3">
+                                    <span class="text-2xl mr-3">💰</span>
+                                    <div>
+                                        <h3 class="font-bold text-blue-900 dark:text-blue-100 mb-2">
+                                            功能說明
+                                        </h3>
+                                        <div class="text-sm text-blue-800 dark:text-blue-200 space-y-1">
+                                            <div class="flex items-start">
+                                                <span class="mr-2">✓</span>
+                                                <span>支援全職員工（月薪制）與兼職員工（時薪制）</span>
+                                            </div>
+                                            <div class="flex items-start">
+                                                <span class="mr-2">✓</span>
+                                                <span>自動計算加班費、扣款項目</span>
+                                            </div>
+                                            <div class="flex items-start">
+                                                <span class="mr-2">✓</span>
+                                                <span>薪資單生成和管理</span>
+                                            </div>
+                                            <div class="flex items-start">
+                                                <span class="mr-2">✓</span>
+                                                <span>時薪明細追蹤</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 快速統計卡片 (未來可擴充) -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="bg-white dark:bg-gray-700 p-4 rounded-lg shadow-sm">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <p class="text-sm text-gray-500 dark:text-gray-400">本月薪資</p>
+                                            <p class="text-2xl font-bold text-gray-800 dark:text-white">--</p>
+                                        </div>
+                                        <div class="text-3xl">💵</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="bg-white dark:bg-gray-700 p-4 rounded-lg shadow-sm">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <p class="text-sm text-gray-500 dark:text-gray-400">工作時數</p>
+                                            <p class="text-2xl font-bold text-gray-800 dark:text-white">--</p>
+                                        </div>
+                                        <div class="text-3xl">⏰</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 提示訊息 -->
+                            <div class="bg-yellow-50 dark:bg-yellow-900/30 p-4 rounded-lg border border-yellow-200 dark:border-yellow-700">
+                                <div class="flex items-start">
+                                    <span class="text-xl mr-2">💡</span>
+                                    <div class="text-sm text-yellow-800 dark:text-yellow-200">
+                                        <p class="font-semibold mb-1">溫馨提示</p>
+                                        <p>薪資系統會自動整合您的打卡、加班和請假記錄進行計算。請確保按時打卡以確保薪資計算準確。</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
                 <!-- Admin View -->
                 <section id="admin-view" class="space-y-6" style="display: none;">
                     <div class="card p-6">
@@ -669,7 +758,7 @@
             </div>
             <footer class="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
                 <p>
-                    <span data-i18n="APP_TITLE">打卡救星</span> v2.0 |
+                    <span data-i18n="APP_TITLE">打卡救星</span> v2.1 |
                     <span class="text-gray-400 dark:text-gray-500">
                         <span data-i18n="FOOTER_CREDITS_PREFIX">由</span>
                         <a href="https://github.com/0rigind1865-bit/Attendance-System" class="hover:underline hover:text-indigo-600 dark:hover:text-indigo-400">0J</a>

@@ -701,7 +701,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const tabLocationBtn = document.getElementById('tab-location-btn');
     const tabAdminBtn = document.getElementById('tab-admin-btn');
     const tabOvertimeBtn = document.getElementById('tab-overtime-btn');
-    const tabLeaveBtn = document.getElementById('tab-leave-btn'); // 👈 新增請假按鈕
+    const tabLeaveBtn = document.getElementById('tab-leave-btn');
+    const tabSalaryBtn = document.getElementById('tab-salary-btn'); // 👈 新增薪資按鈕
     const abnormalList = document.getElementById('abnormal-list');
     const adjustmentFormContainer = document.getElementById('adjustment-form-container');
     const calendarGrid = document.getElementById('calendar-grid');
@@ -1079,16 +1080,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     // UI切換邏輯
     const switchTab = (tabId) => {
         // 修改這一行，加入 'shift-view'
-        const tabs = ['dashboard-view', 'monthly-view', 'location-view', 'shift-view', 'admin-view', 'overtime-view', 'leave-view'];
-        
+        const tabs = ['dashboard-view', 'monthly-view', 'location-view', 'shift-view', 'admin-view', 'overtime-view', 'leave-view', 'salary-view'];
         // 修改這一行，加入 'tab-shift-btn'
-        const btns = ['tab-dashboard-btn', 'tab-monthly-btn', 'tab-location-btn', 'tab-shift-btn', 'tab-admin-btn', 'tab-overtime-btn', 'tab-leave-btn'];
-    
+        const btns = ['tab-dashboard-btn', 'tab-monthly-btn', 'tab-location-btn', 'tab-shift-btn', 'tab-admin-btn', 'tab-overtime-btn', 'tab-leave-btn', 'tab-salary-btn'];
         // 1. 移除舊的 active 類別和 CSS 屬性
         tabs.forEach(id => {
             const tabElement = document.getElementById(id);
-            tabElement.style.display = 'none';
-            tabElement.classList.remove('active');
+            if (tabElement) {
+                tabElement.style.display = 'none';
+                tabElement.classList.remove('active');
+            }
         });
         
         // 2. 移除按鈕的選中狀態
@@ -1103,8 +1104,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         // 3. 顯示新頁籤並新增 active 類別
         const newTabElement = document.getElementById(tabId);
-        newTabElement.style.display = 'block';
-        newTabElement.classList.add('active');
+        if (newTabElement) {
+            newTabElement.style.display = 'block';
+            newTabElement.classList.add('active');
+        }
         
         // 4. 設定新頁籤按鈕的選中狀態
         const newBtnElement = document.getElementById(`tab-${tabId.replace('-view', '-btn')}`);
@@ -1120,16 +1123,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             renderCalendar(currentMonthDate);
         } else if (tabId === 'location-view') {
             initLocationMap();
-        } else if (tabId === 'shift-view') { // 新增：排班分頁初始化
+        } else if (tabId === 'shift-view') {
             initShiftTab();
         } else if (tabId === 'admin-view') {
             fetchAndRenderReviewRequests();
-            loadPendingOvertimeRequests();
-            loadPendingLeaveRequests();
         } else if (tabId === 'overtime-view') {
+            // 加班頁面初始化
             initOvertimeTab();
         } else if (tabId === 'leave-view') {
+            // 請假頁面初始化
             initLeaveTab();
+        } else if (tabId === 'salary-view') {
+            // 薪資頁面初始化 (未來可加入)
+            console.log('切換到薪資頁面');
         }
     };
     
@@ -1525,11 +1531,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         initLeaveTab();
     });
 
+    // 薪資按鈕 (新增)
+    tabSalaryBtn.addEventListener('click', () => {
+        switchTab('salary-view');
+        console.log('💰 切換到薪資頁面');
+        // 未來可以在這裡加入薪資頁面初始化函數
+        // initSalaryTab();
+    });
     tabAdminBtn.addEventListener('click', async () => {
-    
         // 獲取按鈕元素和處理中文字
-        const button = tabAdminBtn; // tabAdminBtn 變數本身就是按鈕元素
-        const loadingText = t('CHECKING') || '檢查中...'; // 可以使用更貼切的翻譯
+        const button = tabAdminBtn;
+        const loadingText = t('CHECKING') || '檢查中...';
 
         // A. 進入處理中狀態
         generalButtonState(button, 'processing', loadingText);
@@ -1544,16 +1556,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 switchTab('admin-view');
             } else {
                 // 如果權限不足或 Session 無效，給予錯誤提示
-                showNotification(t("ERR_NO_PERMISSION"), "error");
+                alert(t('ADMIN_ACCESS_DENIED') || '無權限進入管理後台');
             }
-            
-        } catch (err) {
-            // 處理網路錯誤或 API 呼叫失敗
-            console.error(err);
-            showNotification(t("NETWORK_ERROR") || '網絡錯誤', "error");
-            
+        } catch (error) {
+            console.error('檢查 Session 失敗:', error);
+            alert(t('ERROR_CHECK_SESSION') || '檢查權限時發生錯誤');
         } finally {
-            // B. 無論 API 成功、失敗或網路錯誤，都要恢復按鈕狀態
+            // B. 恢復按鈕狀態
             generalButtonState(button, 'idle');
         }
     });
