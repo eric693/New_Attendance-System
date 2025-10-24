@@ -10,3 +10,5 @@ const API_CONFIG = {
   // timeout: 5000,
   // version: 'v1.6'
 };
+// 👇 新增：為了兼容性，同時定義全域變數 apiUrl
+const apiUrl = API_CONFIG.apiUrl;
