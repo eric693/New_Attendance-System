@@ -52,7 +52,7 @@
   "API_TEST_TITLE": "API 테스트",
   "API_TEST_DESCRIPTION": "아래 버튼을 클릭하여 새로운 API 기능을 테스트하세요.",
   "API_TEST_BTN": "API 테스트",
-  "FOOTER_VERSION": "출근 히어로 v1.9",
+  "FOOTER_VERSION": "출근 히어로 v2.0",
   "FOOTER_CREDITS_PREFIX": "제작:",
   "FOOTER_CREDITS_SUFFIX": "",
   "FOOTER_SPONSOR": "이 프로젝트 후원하기",
@@ -233,5 +233,26 @@
   "ADMIN_EXPORT_TITLE": "보고서 내보내기",
   "ADMIN_EXPORT_DESCRIPTION": "모든 직원의 근태 보고서 내보내기",
   "ADMIN_EXPORT_MONTH_LABEL": "월 선택",
-  "ADMIN_EXPORT_ALL_BTN": "전체 직원 보고서 내보내기"
+  "ADMIN_EXPORT_ALL_BTN": "전체 직원 보고서 내보내기",
+
+
+  "TAB_SHIFT": "근무표",
+  "SHIFT_TITLE": "근무표 관리",
+  "SHIFT_DESCRIPTION": "직원 근무 일정을 확인하고 관리합니다",
+  "BTN_SHIFT_MANAGEMENT": "근무표 관리로 이동",
+
+  "SHIFT_TODAY_TITLE": "오늘의 근무",
+  "SHIFT_TODAY_EMPTY": "오늘 근무가 없습니다",
+  "SHIFT_WEEK_TITLE": "이번 주 근무",
+  "SHIFT_WEEK_EMPTY": "이번 주 근무가 없습니다",
+  "SHIFT_LOADING": "불러오는 중...",
+
+  "SHIFT_TYPE_LABEL": "근무 종류",
+  "SHIFT_TIME_LABEL": "시간",
+  "SHIFT_LOCATION_LABEL": "장소",
+
+  "SHIFT_INFO_NOTIFICATION": "오늘의 근무: {shiftType} ({startTime}-{endTime})",
+  "EARLY_PUNCH_WARNING": "주의: 근무 시작 시간은 {startTime}이며, 30분 이상 일찍 출근하였습니다.",
+  "LATE_PUNCH_WARNING": "주의: 근무 시작 시간은 {startTime}이며, 30분 이상 지각하였습니다.",
+  "NO_SHIFT_TODAY": "오늘 근무 기록이 없습니다"
 }

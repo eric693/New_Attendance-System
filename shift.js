@@ -261,11 +261,15 @@ function createShiftItem(shift) {
     
     const shiftTypeBadge = getShiftTypeBadge(shift.shiftType);
     
+    // 格式化時間
+    const startTime = formatTimeOnly(shift.startTime);
+    const endTime = formatTimeOnly(shift.endTime);
+    
     div.innerHTML = `
         <div class="shift-info">
             <h3>${shift.employeeName} ${shiftTypeBadge}</h3>
             <p>日期: ${formatDate(shift.date)}</p>
-            <p>時間: ${shift.startTime} - ${shift.endTime}</p>
+            <p>時間: ${startTime} - ${endTime}</p>
             <p>地點: ${shift.location}</p>
             ${shift.note ? `<p>備註: ${shift.note}</p>` : ''}
         </div>
@@ -377,8 +381,11 @@ async function editShift(shiftId) {
     document.getElementById('employee-select').value = shift.employeeId;
     document.getElementById('shift-date').value = shift.date;
     document.getElementById('shift-type').value = shift.shiftType;
-    document.getElementById('start-time').value = shift.startTime;
-    document.getElementById('end-time').value = shift.endTime;
+    
+    // 格式化時間
+    document.getElementById('start-time').value = formatTimeOnly(shift.startTime);
+    document.getElementById('end-time').value = formatTimeOnly(shift.endTime);
+    
     document.getElementById('shift-location').value = shift.location;
     
     const shiftNoteEl = document.getElementById('shift-note');
@@ -607,25 +614,40 @@ function handleBatchFile(file) {
 }
 
 function parseBatchData(content, filename) {
+    // 移除 BOM (如果有的話)
+    content = content.replace(/^\ufeff/, '');
+    
     const lines = content.split('\n');
     const data = [];
     
+    // 從第二行開始(跳過標題)
     for (let i = 1; i < lines.length; i++) {
-        if (!lines[i].trim()) continue;
+        const line = lines[i].trim();
+        if (!line) continue;
         
-        const values = lines[i].split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+        // ⭐ 正確處理 CSV 引號
+        const values = parseCSVLine(line);
         
+        // 檢查是否有足夠的欄位(至少 7 個)
         if (values.length >= 7) {
-            data.push({
-                employeeId: values[0],
-                employeeName: values[1],
-                date: values[2],
-                shiftType: values[3],
-                startTime: values[4],
-                endTime: values[5],
-                location: values[6],
-                note: values[7] || ''
-            });
+            // 跳過排班ID欄位(第一個),從員工ID開始
+            const shift = {
+                employeeId: values[1],      // 第 2 欄: 員工ID
+                employeeName: values[2],    // 第 3 欄: 員工姓名
+                date: values[3],            // 第 4 欄: 日期
+                shiftType: values[4],       // 第 5 欄: 班別
+                startTime: values[5],       // 第 6 欄: 上班時間
+                endTime: values[6],         // 第 7 欄: 下班時間
+                location: values[7] || '',  // 第 8 欄: 地點
+                note: values[8] || ''       // 第 9 欄: 備註
+            };
+            
+            // 驗證必填欄位
+            if (shift.employeeId && shift.date && shift.shiftType) {
+                data.push(shift);
+            } else {
+                console.warn('第 ' + (i+1) + ' 行資料不完整,已略過');
+            }
         }
     }
     
@@ -636,6 +658,42 @@ function parseBatchData(content, filename) {
     
     batchData = data;
     displayBatchPreview(data);
+}
+
+/**
+ * ⭐ 正確解析 CSV 行(處理引號)
+ */
+function parseCSVLine(line) {
+    const values = [];
+    let currentValue = '';
+    let insideQuotes = false;
+    
+    for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        const nextChar = line[i + 1];
+        
+        if (char === '"') {
+            if (insideQuotes && nextChar === '"') {
+                // 兩個連續的引號 = 一個引號字元
+                currentValue += '"';
+                i++; // 跳過下一個引號
+            } else {
+                // 切換引號狀態
+                insideQuotes = !insideQuotes;
+            }
+        } else if (char === ',' && !insideQuotes) {
+            // 在引號外的逗號 = 欄位分隔符
+            values.push(currentValue.trim());
+            currentValue = '';
+        } else {
+            currentValue += char;
+        }
+    }
+    
+    // 加入最後一個欄位
+    values.push(currentValue.trim());
+    
+    return values;
 }
 
 function displayBatchPreview(data) {
@@ -678,31 +736,55 @@ async function confirmBatchUpload() {
     try {
         const token = localStorage.getItem('sessionToken');
         
-        const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                action: 'batchAddShifts',
-                token: token,
-                data: batchData
-            })
+        console.log('📤 準備上傳批量資料:', batchData.length, '筆');
+        
+        // ⭐ 改用 GET 請求避免 CORS 問題
+        // 將資料轉成 JSON 字串並編碼
+        const shiftsJson = encodeURIComponent(JSON.stringify(batchData));
+        
+        const url = `${apiUrl}?action=batchAddShifts&token=${token}&shiftsArray=${shiftsJson}`;
+        
+        // 使用 JSONP 方式呼叫
+        const callbackName = 'batchUploadCallback_' + Date.now();
+        
+        return new Promise((resolve, reject) => {
+            // 建立回調函數
+            window[callbackName] = function(data) {
+                console.log('📥 批量上傳回應:', data);
+                
+                // 清理
+                delete window[callbackName];
+                document.body.removeChild(script);
+                
+                if (data.ok) {
+                    showMessage(data.msg || data.message || '批量上傳成功', 'success');
+                    cancelBatchUpload();
+                    switchTab('view');
+                    loadShifts();
+                    resolve(data);
+                } else {
+                    showMessage(data.msg || data.message || '批量上傳失敗', 'error');
+                    reject(new Error(data.msg));
+                }
+            };
+            
+            // 建立 script 標籤
+            const script = document.createElement('script');
+            script.src = url + `&callback=${callbackName}`;
+            script.onerror = function() {
+                console.error('❌ 批量上傳失敗: 無法載入腳本');
+                delete window[callbackName];
+                document.body.removeChild(script);
+                showMessage('批量上傳失敗: 網路錯誤', 'error');
+                reject(new Error('Network error'));
+            };
+            
+            document.body.appendChild(script);
         });
         
-        const data = await response.json();
-        
-        if (data.ok) {
-            showMessage(data.message || '批量上傳成功', 'success');
-            cancelBatchUpload();
-            switchTab('view');
-            loadShifts();
-        } else {
-            showMessage(data.message || '批量上傳失敗', 'error');
-        }
     } catch (error) {
-        console.error('批量上傳失敗:', error);
-        showMessage('批量上傳失敗', 'error');
+        console.error('❌ 批量上傳失敗:', error);
+        showMessage('批量上傳失敗: ' + error.message, 'error');
     }
 }
 
@@ -933,14 +1015,17 @@ function displayMonthCalendar(shifts) {
             <div class="calendar-day ${otherMonthClass} ${todayClass} ${hasShiftsClass}">
                 <div class="day-number">${dayNumber}</div>
                 <div class="day-shifts">
-                    ${dayShifts.slice(0, 3).map(shift => `
+                    ${dayShifts.slice(0, 3).map(shift => {
+                        const startTime = formatTimeOnly(shift.startTime);
+                        const endTime = formatTimeOnly(shift.endTime);
+                        return `
                         <div class="shift-item-mini ${getShiftClass(shift.shiftType)}" 
                              onclick="showShiftDetail('${shift.shiftId}')"
-                             title="${shift.employeeName} - ${shift.shiftType} (${shift.startTime}-${shift.endTime})">
+                             title="${shift.employeeName} - ${shift.shiftType} (${startTime}-${endTime})">
                             <div class="shift-item-name">${shift.employeeName}</div>
-                            <div class="shift-item-time">${shift.startTime}-${shift.endTime}</div>
+                            <div class="shift-item-time">${startTime}-${endTime}</div>
                         </div>
-                    `).join('')}
+                    `}).join('')}
                 </div>
                 ${dayShifts.length > 3 ? `<div class="shift-count">+${dayShifts.length - 3}</div>` : ''}
             </div>
@@ -964,11 +1049,14 @@ function getShiftClass(shiftType) {
 function showShiftDetail(shiftId) {
     const shift = allMonthShifts.find(s => s.shiftId === shiftId);
     if (shift) {
+        const startTime = formatTimeOnly(shift.startTime);
+        const endTime = formatTimeOnly(shift.endTime);
+        
         const detail = `排班詳情:\n\n` +
               `員工: ${shift.employeeName}\n` +
               `日期: ${shift.date}\n` +
               `班別: ${shift.shiftType}\n` +
-              `時間: ${shift.startTime} - ${shift.endTime}\n` +
+              `時間: ${startTime} - ${endTime}\n` +
               `地點: ${shift.location}\n` +
               `備註: ${shift.note || '無'}`;
         
@@ -1077,6 +1165,46 @@ function formatDateYMD(date) {
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
+}
+
+/**
+ * 格式化時間為 HH:MM 格式
+ * 支援多種輸入格式:
+ * - "08:00" → "08:00"
+ * - "1899-12-30T01:00:00.000Z" → "09:00" (UTC+8)
+ * - Date 物件 → "HH:MM"
+ */
+function formatTimeOnly(timeValue) {
+    if (!timeValue) return '--:--';
+    
+    // 如果已經是 HH:MM 格式,直接返回
+    if (typeof timeValue === 'string' && /^\d{2}:\d{2}$/.test(timeValue)) {
+        return timeValue;
+    }
+    
+    // 如果是 ISO 格式字串
+    if (typeof timeValue === 'string' && timeValue.includes('T')) {
+        try {
+            const date = new Date(timeValue);
+            // 轉換為台灣時間 (UTC+8)
+            const hours = String(date.getUTCHours() + 8).padStart(2, '0');
+            const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+            return `${hours}:${minutes}`;
+        } catch (e) {
+            console.error('時間格式錯誤:', timeValue);
+            return '--:--';
+        }
+    }
+    
+    // 如果是 Date 物件
+    if (timeValue instanceof Date) {
+        const hours = String(timeValue.getHours()).padStart(2, '0');
+        const minutes = String(timeValue.getMinutes()).padStart(2, '0');
+        return `${hours}:${minutes}`;
+    }
+    
+    // 其他情況直接返回
+    return String(timeValue);
 }
 
 // ========== 工具函數 ==========

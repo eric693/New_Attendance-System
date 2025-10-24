@@ -52,7 +52,7 @@
   "API_TEST_TITLE": "Kiểm thử API",
   "API_TEST_DESCRIPTION": "Nhấp vào đây để kiểm thử chức năng API.",
   "API_TEST_BTN": "Kiểm thử API",
-  "FOOTER_VERSION": "Anh Hùng Chấm Công v1.9",
+  "FOOTER_VERSION": "Anh Hùng Chấm Công v2.0",
   "FOOTER_CREDITS_PREFIX": "Được làm bởi",
   "FOOTER_CREDITS_SUFFIX": "",
   "FOOTER_SPONSOR": "Tài trợ cho dự án này",
@@ -233,5 +233,27 @@
   "ADMIN_EXPORT_TITLE": "Xuất báo cáo",
   "ADMIN_EXPORT_DESCRIPTION": "Xuất báo cáo chấm công của tất cả nhân viên",
   "ADMIN_EXPORT_MONTH_LABEL": "Chọn tháng",
-  "ADMIN_EXPORT_ALL_BTN": "Xuất báo cáo tất cả nhân viên"
+  "ADMIN_EXPORT_ALL_BTN": "Xuất báo cáo tất cả nhân viên",
+
+  
+
+  "TAB_SHIFT": "Ca làm việc",
+  "SHIFT_TITLE": "Quản lý ca làm việc",
+  "SHIFT_DESCRIPTION": "Xem và quản lý thông tin ca làm việc của nhân viên",
+  "BTN_SHIFT_MANAGEMENT": "Vào trang quản lý ca làm việc",
+
+  "SHIFT_TODAY_TITLE": "Ca làm hôm nay",
+  "SHIFT_TODAY_EMPTY": "Hôm nay không có ca làm",
+  "SHIFT_WEEK_TITLE": "Ca làm trong tuần này",
+  "SHIFT_WEEK_EMPTY": "Tuần này không có ca làm",
+  "SHIFT_LOADING": "Đang tải...",
+
+  "SHIFT_TYPE_LABEL": "Loại ca",
+  "SHIFT_TIME_LABEL": "Thời gian",
+  "SHIFT_LOCATION_LABEL": "Địa điểm",
+
+  "SHIFT_INFO_NOTIFICATION": "Ca làm hôm nay: {shiftType} ({startTime}-{endTime})",
+  "EARLY_PUNCH_WARNING": "Lưu ý: Ca làm của bạn bắt đầu lúc {startTime}, bạn đã chấm công sớm hơn 30 phút.",
+  "LATE_PUNCH_WARNING": "Lưu ý: Ca làm của bạn bắt đầu lúc {startTime}, bạn đã trễ hơn 30 phút.",
+  "NO_SHIFT_TODAY": "Không có ca làm hôm nay"
 }

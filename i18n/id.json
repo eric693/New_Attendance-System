@@ -52,7 +52,7 @@
   "API_TEST_TITLE": "Uji API",
   "API_TEST_DESCRIPTION": "Klik tombol di bawah untuk menguji fungsi API.",
   "API_TEST_BTN": "Uji API",
-  "FOOTER_VERSION": "Pahlawan Absensi v1.9",
+  "FOOTER_VERSION": "Pahlawan Absensi v2.0",
   "FOOTER_CREDITS_PREFIX": "Dibuat oleh",
   "FOOTER_CREDITS_SUFFIX": "",
   "FOOTER_SPONSOR": "Sponsori proyek ini",
@@ -233,5 +233,26 @@
   "ADMIN_EXPORT_TITLE": "Ekspor Laporan",
   "ADMIN_EXPORT_DESCRIPTION": "Ekspor laporan kehadiran semua karyawan",
   "ADMIN_EXPORT_MONTH_LABEL": "Pilih Bulan",
-  "ADMIN_EXPORT_ALL_BTN": "Ekspor Laporan Semua Karyawan"
+  "ADMIN_EXPORT_ALL_BTN": "Ekspor Laporan Semua Karyawan",
+
+
+  "TAB_SHIFT": "Shift",
+  "SHIFT_TITLE": "Manajemen Shift",
+  "SHIFT_DESCRIPTION": "Lihat dan kelola informasi shift karyawan",
+  "BTN_SHIFT_MANAGEMENT": "Masuk ke Manajemen Shift",
+
+  "SHIFT_TODAY_TITLE": "Shift Hari Ini",
+  "SHIFT_TODAY_EMPTY": "Tidak ada shift hari ini",
+  "SHIFT_WEEK_TITLE": "Shift Minggu Ini",
+  "SHIFT_WEEK_EMPTY": "Tidak ada shift minggu ini",
+  "SHIFT_LOADING": "Memuat...",
+
+  "SHIFT_TYPE_LABEL": "Jenis Shift",
+  "SHIFT_TIME_LABEL": "Waktu",
+  "SHIFT_LOCATION_LABEL": "Lokasi",
+
+  "SHIFT_INFO_NOTIFICATION": "Shift hari ini: {shiftType} ({startTime}-{endTime})",
+  "EARLY_PUNCH_WARNING": "Perhatian: Shift Anda dimulai pada {startTime}, dan Anda masuk lebih dari 30 menit lebih awal.",
+  "LATE_PUNCH_WARNING": "Perhatian: Shift Anda dimulai pada {startTime}, dan Anda terlambat lebih dari 30 menit.",
+  "NO_SHIFT_TODAY": "Tidak ada catatan shift hari ini"
 }

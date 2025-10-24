@@ -52,7 +52,7 @@
   "API_TEST_TITLE": "API Test",
   "API_TEST_DESCRIPTION": "Click to test new API functions.",
   "API_TEST_BTN": "Test API",
-  "FOOTER_VERSION": "Check-in Hero v1.9",
+  "FOOTER_VERSION": "Check-in Hero v2.0",
   "FOOTER_CREDITS_PREFIX": "Made by",
   "FOOTER_CREDITS_SUFFIX": "",
   "FOOTER_SPONSOR": "Sponsor this project",
@@ -229,5 +229,26 @@
   "EXPORT_LOADING": "Preparing report...",
   "EXPORT_SUCCESS": "Report exported successfully!",
   "EXPORT_FAILED": "Export failed, please try again",
-  "EXPORT_NO_DATA": "No attendance records for this month"
+  "EXPORT_NO_DATA": "No attendance records for this month",
+
+
+  "TAB_SHIFT": "Shift",
+  "SHIFT_TITLE": "Shift Management",
+  "SHIFT_DESCRIPTION": "View and manage employee shift information",
+  "BTN_SHIFT_MANAGEMENT": "Go to Shift Management",
+
+  "SHIFT_TODAY_TITLE": "Today's Shift",
+  "SHIFT_TODAY_EMPTY": "No shifts today",
+  "SHIFT_WEEK_TITLE": "This Week's Shifts",
+  "SHIFT_WEEK_EMPTY": "No shifts this week",
+  "SHIFT_LOADING": "Loading...",
+
+  "SHIFT_TYPE_LABEL": "Shift Type",
+  "SHIFT_TIME_LABEL": "Time",
+  "SHIFT_LOCATION_LABEL": "Location",
+
+  "SHIFT_INFO_NOTIFICATION": "Today's shift: {shiftType} ({startTime}-{endTime})",
+  "EARLY_PUNCH_WARNING": "Notice: Your shift starts at {startTime}, and you are clocking in more than 30 minutes early.",
+  "LATE_PUNCH_WARNING": "Notice: Your shift starts at {startTime}, and you are over 30 minutes late.",
+  "NO_SHIFT_TODAY": "No shift record for today"
 }
