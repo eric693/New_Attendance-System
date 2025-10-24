@@ -111,7 +111,7 @@ async function loadEmployees() {
         
         const data = await response.json();
         
-        if (data.success) {
+        if (data.ok) {
             allEmployees = data.users || [];
             populateEmployeeSelect();
         }
@@ -144,7 +144,7 @@ async function loadLocations() {
         
         const data = await response.json();
         
-        if (data.success) {
+        if (data.ok) {
             allLocations = data.locations || [];
             populateLocationSelects();
         }
@@ -206,7 +206,7 @@ async function loadShifts(filters = {}) {
         
         const data = await response.json();
         
-        if (data.success) {
+        if (data.ok) {
             currentShifts = data.data || [];
             displayShifts(currentShifts);
         } else {
@@ -324,7 +324,7 @@ async function addShift() {
         
         const data = await response.json();
         
-        if (data.success) {
+        if (data.ok) {
             showMessage('排班新增成功', 'success');
             resetForm();
             switchTab('view');
@@ -391,7 +391,7 @@ async function updateShift(shiftId) {
         
         const data = await response.json();
         
-        if (data.success) {
+        if (data.ok) {
             showMessage('排班更新成功', 'success');
             resetForm();
             switchTab('view');
@@ -425,7 +425,7 @@ async function deleteShift(shiftId) {
         
         const data = await response.json();
         
-        if (data.success) {
+        if (data.ok) {
             showMessage('排班刪除成功', 'success');
             loadShifts();
         } else {
@@ -477,7 +477,7 @@ async function exportShifts() {
         const response = await fetch(`${apiUrl}?${queryParams}`);
         const data = await response.json();
         
-        if (data.success) {
+        if (data.ok) {
             // 轉換為CSV
             const csv = convertToCSV(data.data);
             downloadCSV(csv, data.filename);
@@ -669,7 +669,7 @@ async function confirmBatchUpload() {
         
         const data = await response.json();
         
-        if (data.success) {
+        if (data.ok) {
             showMessage(data.message, 'success');
             cancelBatchUpload();
             switchTab('view');
@@ -706,7 +706,7 @@ async function loadStats() {
         const response = await fetch(`${apiUrl}?action=getWeeklyShiftStats`);
         const data = await response.json();
         
-        if (data.success) {
+        if (data.ok) {
             displayStats(data.data);
         }
     } catch (error) {
