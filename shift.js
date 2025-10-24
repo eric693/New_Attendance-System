@@ -77,18 +77,28 @@ function setupEventListeners() {
     });
 }
 
-// 自動填入班別時間
+// 自動填入班別時間（但不鎖定，使用者可自行修改）
 function autoFillShiftTime(shiftType) {
     const times = {
         '早班': ['08:00', '16:00'],
         '中班': ['12:00', '20:00'],
-        '晚班': ['16:00', '24:00'],
+        '晚班': ['16:00', '00:00'], // 修正：24:00 改為 00:00
         '全日班': ['09:00', '18:00']
     };
     
+    // 只有在時間欄位是空的時候才自動填入
+    // 如果使用者已經輸入時間，就不要覆蓋
+    const startTimeInput = document.getElementById('start-time');
+    const endTimeInput = document.getElementById('end-time');
+    
     if (times[shiftType]) {
-        document.getElementById('start-time').value = times[shiftType][0];
-        document.getElementById('end-time').value = times[shiftType][1];
+        // 如果時間欄位是空的，才填入建議時間
+        if (!startTimeInput.value) {
+            startTimeInput.value = times[shiftType][0];
+        }
+        if (!endTimeInput.value) {
+            endTimeInput.value = times[shiftType][1];
+        }
     }
 }
 
