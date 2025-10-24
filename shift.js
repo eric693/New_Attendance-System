@@ -101,9 +101,15 @@ function autoFillShiftTime(shiftType) {
     const startTimeInput = document.getElementById('start-time');
     const endTimeInput = document.getElementById('end-time');
     
-    if (times[shiftType]) {
-        if (!startTimeInput.value) startTimeInput.value = times[shiftType][0];
-        if (!endTimeInput.value) endTimeInput.value = times[shiftType][1];
+    if (shiftType === '自訂') {
+        // 選擇「自訂」時,清空時間並讓使用者自行輸入
+        startTimeInput.value = '';
+        endTimeInput.value = '';
+        startTimeInput.focus(); // 自動聚焦到上班時間
+    } else if (times[shiftType]) {
+        // 選擇預設班別時,自動填入時間(但仍可修改)
+        startTimeInput.value = times[shiftType][0];
+        endTimeInput.value = times[shiftType][1];
     }
 }
 
@@ -277,7 +283,8 @@ function getShiftTypeBadge(shiftType) {
         '早班': 'badge-morning',
         '中班': 'badge-afternoon',
         '晚班': 'badge-night',
-        '全日班': 'badge-full'
+        '全日班': 'badge-full',
+        '自訂': 'badge-custom'
     }[shiftType] || 'badge-morning';
     
     return `<span class="badge ${badgeClass}">${shiftType}</span>`;
@@ -303,6 +310,24 @@ async function addShift() {
         return;
     }
     
+    const shiftType = document.getElementById('shift-type').value;
+    const startTime = document.getElementById('start-time').value;
+    const endTime = document.getElementById('end-time').value;
+    
+    // 驗證時間欄位
+    if (!startTime || !endTime) {
+        showMessage('請填寫上班時間和下班時間', 'error');
+        return;
+    }
+    
+    // 驗證時間邏輯(結束時間應該晚於開始時間,除非是跨日班)
+    if (startTime >= endTime && endTime !== '00:00') {
+        const confirmCrossDay = confirm('下班時間早於上班時間,是否為跨日班別?');
+        if (!confirmCrossDay) {
+            return;
+        }
+    }
+    
     const token = localStorage.getItem('sessionToken');
     const shiftNoteEl = document.getElementById('shift-note');
     
@@ -312,9 +337,9 @@ async function addShift() {
         employeeId: selectedOption.value,
         employeeName: selectedOption.dataset.name || selectedOption.textContent.split('(')[0].trim(),
         date: document.getElementById('shift-date').value,
-        shiftType: document.getElementById('shift-type').value,
-        startTime: document.getElementById('start-time').value,
-        endTime: document.getElementById('end-time').value,
+        shiftType: shiftType,
+        startTime: startTime,
+        endTime: endTime,
         location: document.getElementById('shift-location').value,
         note: shiftNoteEl ? shiftNoteEl.value : ''
     };
@@ -794,7 +819,8 @@ function displayMonthlyStats(shifts) {
         morning: 0,
         afternoon: 0,
         night: 0,
-        full: 0
+        full: 0,
+        custom: 0
     };
     
     shifts.forEach(shift => {
@@ -803,6 +829,7 @@ function displayMonthlyStats(shifts) {
             case '中班': stats.afternoon++; break;
             case '晚班': stats.night++; break;
             case '全日班': stats.full++; break;
+            case '自訂': stats.custom++; break;
         }
     });
     
@@ -823,6 +850,12 @@ function displayMonthlyStats(shifts) {
             <div class="stat-label">晚班</div>
             <div class="stat-value" style="color: #9c27b0;">${stats.night}</div>
         </div>
+        ${stats.custom > 0 ? `
+        <div class="stat-card">
+            <div class="stat-label">自訂班別</div>
+            <div class="stat-value" style="color: #fbc02d;">${stats.custom}</div>
+        </div>
+        ` : ''}
     `;
     
     statsGrid.innerHTML = html;
@@ -922,7 +955,8 @@ function getShiftClass(shiftType) {
         '早班': 'shift-morning',
         '中班': 'shift-afternoon',
         '晚班': 'shift-night',
-        '全日班': 'shift-full'
+        '全日班': 'shift-full',
+        '自訂': 'shift-custom'
     };
     return classMap[shiftType] || 'shift-morning';
 }
@@ -957,7 +991,13 @@ function displayShiftDistribution(shifts) {
     }
     
     const employeeStats = {};
-    const shiftTypeStats = { '早班': 0, '中班': 0, '晚班': 0, '全日班': 0 };
+    const shiftTypeStats = { 
+        '早班': 0, 
+        '中班': 0, 
+        '晚班': 0, 
+        '全日班': 0,
+        '自訂': 0
+    };
     
     shifts.forEach(shift => {
         if (!employeeStats[shift.employeeName]) {
@@ -1005,7 +1045,8 @@ function displayShiftDistribution(shifts) {
         '早班': '#ff9800',
         '中班': '#2196f3',
         '晚班': '#9c27b0',
-        '全日班': '#4caf50'
+        '全日班': '#4caf50',
+        '自訂': '#fbc02d'
     };
     
     Object.entries(shiftTypeStats).forEach(([type, count]) => {

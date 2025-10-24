@@ -274,6 +274,17 @@
             color: #1b5e20;
         }
 
+        .badge-custom {
+            background: #fff9c4;
+            color: #f57f17;
+        }
+
+        .shift-custom {
+            background: #fff9c4;
+            border-left-color: #fbc02d;
+            color: #f57f17;
+        }
+
         .loading {
             text-align: center;
             padding: 40px;
@@ -786,6 +797,7 @@
                             <option value="中班">中班</option>
                             <option value="晚班">晚班</option>
                             <option value="全日班">全日班</option>
+                            <option value="自訂">自訂</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -834,15 +846,16 @@
                                 <option value="中班">中班 (12:00-20:00)</option>
                                 <option value="晚班">晚班 (16:00-24:00)</option>
                                 <option value="全日班">全日班 (09:00-18:00)</option>
+                                <option value="自訂">自訂時間</option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>上班時間</label>
-                            <input type="time" id="start-time">
+                            <label class="required">上班時間</label>
+                            <input type="time" id="start-time" required>
                         </div>
                         <div class="form-group">
-                            <label>下班時間</label>
-                            <input type="time" id="end-time">
+                            <label class="required">下班時間</label>
+                            <input type="time" id="end-time" required>
                         </div>
                     </div>
 
