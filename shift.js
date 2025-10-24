@@ -1,17 +1,20 @@
 /**
- * 排班管理前端邏輯 - 完整修正版
- * 修正項目:
- * 1. 統一使用 data.ok 而不是 data.success
- * 2. 所有 API 呼叫都加入 token
- * 3. 修正 filters 參數傳遞方式
+ * 排班管理前端邏輯 - 完整版(含月曆功能)
+ * 功能: 查看/新增/編輯/刪除排班、批量上傳、月曆顯示、統計分析
  */
 
+// ========== 全域變數 ==========
 let currentShifts = [];
 let allEmployees = [];
 let allLocations = [];
 let batchData = [];
 
-// 初始化
+// 月曆專用全域變數
+let currentYear = new Date().getFullYear();
+let currentMonth = new Date().getMonth(); // 0-11
+let allMonthShifts = [];
+
+// ========== 初始化 ==========
 document.addEventListener('DOMContentLoaded', function() {
     initializeTabs();
     loadEmployees();
@@ -22,7 +25,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 設定預設日期為今天
     const today = new Date().toISOString().split('T')[0];
-    document.getElementById('shift-date').value = today;
+    const shiftDateEl = document.getElementById('shift-date');
+    if (shiftDateEl) shiftDateEl.value = today;
     
     // 設定篩選日期為本週
     const startOfWeek = new Date();
@@ -30,11 +34,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const endOfWeek = new Date(startOfWeek);
     endOfWeek.setDate(endOfWeek.getDate() + 6);
     
-    document.getElementById('filter-start-date').value = startOfWeek.toISOString().split('T')[0];
-    document.getElementById('filter-end-date').value = endOfWeek.toISOString().split('T')[0];
+    const filterStartEl = document.getElementById('filter-start-date');
+    const filterEndEl = document.getElementById('filter-end-date');
+    if (filterStartEl) filterStartEl.value = startOfWeek.toISOString().split('T')[0];
+    if (filterEndEl) filterEndEl.value = endOfWeek.toISOString().split('T')[0];
 });
 
-// 初始化分頁
+// ========== 分頁管理 ==========
+
 function initializeTabs() {
     const tabs = document.querySelectorAll('.shift-tab');
     tabs.forEach(tab => {
@@ -45,15 +52,12 @@ function initializeTabs() {
     });
 }
 
-// 切換分頁
 function switchTab(tabName) {
-    // 更新分頁按鈕狀態
     document.querySelectorAll('.shift-tab').forEach(tab => {
         tab.classList.remove('active');
     });
     document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
     
-    // 更新內容顯示
     document.querySelectorAll('.tab-content').forEach(content => {
         content.classList.remove('active');
     });
@@ -67,21 +71,25 @@ function switchTab(tabName) {
     }
 }
 
-// 設定事件監聽器
+// ========== 事件監聽器 ==========
+
 function setupEventListeners() {
-    // 新增排班表單
-    document.getElementById('add-shift-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        addShift();
-    });
+    const addForm = document.getElementById('add-shift-form');
+    if (addForm) {
+        addForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            addShift();
+        });
+    }
     
-    // 班別改變時自動填入時間
-    document.getElementById('shift-type').addEventListener('change', function() {
-        autoFillShiftTime(this.value);
-    });
+    const shiftTypeEl = document.getElementById('shift-type');
+    if (shiftTypeEl) {
+        shiftTypeEl.addEventListener('change', function() {
+            autoFillShiftTime(this.value);
+        });
+    }
 }
 
-// 自動填入班別時間（但不鎖定，使用者可自行修改）
 function autoFillShiftTime(shiftType) {
     const times = {
         '早班': ['08:00', '16:00'],
@@ -94,24 +102,19 @@ function autoFillShiftTime(shiftType) {
     const endTimeInput = document.getElementById('end-time');
     
     if (times[shiftType]) {
-        if (!startTimeInput.value) {
-            startTimeInput.value = times[shiftType][0];
-        }
-        if (!endTimeInput.value) {
-            endTimeInput.value = times[shiftType][1];
-        }
+        if (!startTimeInput.value) startTimeInput.value = times[shiftType][0];
+        if (!endTimeInput.value) endTimeInput.value = times[shiftType][1];
     }
 }
 
-// ⭐ 載入員工列表 - 修正版
+// ========== API 呼叫函數 ==========
+
 async function loadEmployees() {
     try {
         const token = localStorage.getItem('sessionToken');
-        const response = await fetch(`${apiUrl}?action=getAllUsers&token=${token}`, {
-            method: 'GET'
-        });
-        
+        const response = await fetch(`${apiUrl}?action=getAllUsers&token=${token}`);
         const data = await response.json();
+        
         console.log('✅ 員工列表回應:', data);
         
         if (data.ok) {
@@ -124,9 +127,10 @@ async function loadEmployees() {
     }
 }
 
-// 填充員工選單
 function populateEmployeeSelect() {
     const select = document.getElementById('employee-select');
+    if (!select) return;
+    
     select.innerHTML = '<option value="">請選擇員工</option>';
     
     allEmployees.forEach(emp => {
@@ -138,15 +142,12 @@ function populateEmployeeSelect() {
     });
 }
 
-// ⭐ 載入地點列表 - 修正版
 async function loadLocations() {
     try {
         const token = localStorage.getItem('sessionToken');
-        const response = await fetch(`${apiUrl}?action=getLocations&token=${token}`, {
-            method: 'GET'
-        });
-        
+        const response = await fetch(`${apiUrl}?action=getLocations&token=${token}`);
         const data = await response.json();
+        
         console.log('✅ 地點列表回應:', data);
         
         if (data.ok) {
@@ -158,7 +159,6 @@ async function loadLocations() {
     }
 }
 
-// 填充地點選單
 function populateLocationSelects() {
     const selects = ['shift-location', 'filter-location'];
     
@@ -167,12 +167,9 @@ function populateLocationSelects() {
         if (!select) return;
         
         const currentValue = select.value;
-        
-        if (id === 'filter-location') {
-            select.innerHTML = '<option value="">全部</option>';
-        } else {
-            select.innerHTML = '<option value="">請選擇地點</option>';
-        }
+        select.innerHTML = id === 'filter-location' ? 
+            '<option value="">全部</option>' : 
+            '<option value="">請選擇地點</option>';
         
         allLocations.forEach(loc => {
             const option = document.createElement('option');
@@ -181,25 +178,23 @@ function populateLocationSelects() {
             select.appendChild(option);
         });
         
-        if (currentValue) {
-            select.value = currentValue;
-        }
+        if (currentValue) select.value = currentValue;
     });
 }
 
-// ⭐ 載入排班列表 - 完整修正版
 async function loadShifts(filters = {}) {
     const listContainer = document.getElementById('shift-list');
-    listContainer.innerHTML = '<div class="loading">載入中...</div>';
+    if (!listContainer) return;
+    
+    listContainer.innerHTML = '<div class="loading">載入中</div>';
     
     try {
         const token = localStorage.getItem('sessionToken');
         
-        // 如果沒有指定篩選條件，使用預設的日期範圍
+        // 使用預設日期範圍
         if (!filters.startDate && !filters.endDate) {
             const startDateEl = document.getElementById('filter-start-date');
             const endDateEl = document.getElementById('filter-end-date');
-            
             if (startDateEl && startDateEl.value) filters.startDate = startDateEl.value;
             if (endDateEl && endDateEl.value) filters.endDate = endDateEl.value;
         }
@@ -209,17 +204,13 @@ async function loadShifts(filters = {}) {
             token: token
         });
         
-        // 加入個別篩選參數
         if (filters.employeeId) queryParams.append('employeeId', filters.employeeId);
         if (filters.startDate) queryParams.append('startDate', filters.startDate);
         if (filters.endDate) queryParams.append('endDate', filters.endDate);
         if (filters.shiftType) queryParams.append('shiftType', filters.shiftType);
         if (filters.location) queryParams.append('location', filters.location);
         
-        const url = `${apiUrl}?${queryParams}`;
-        console.log('📡 載入排班:', url);
-        
-        const response = await fetch(url, { method: 'GET' });
+        const response = await fetch(`${apiUrl}?${queryParams}`);
         const data = await response.json();
         
         console.log('✅ 排班回應:', data);
@@ -227,10 +218,8 @@ async function loadShifts(filters = {}) {
         if (data.ok) {
             currentShifts = data.data || [];
             displayShifts(currentShifts);
-            console.log(`✅ 顯示 ${currentShifts.length} 筆排班`);
         } else {
-            console.log('❌ 載入失敗:', data.msg);
-            listContainer.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📋</div><p>載入失敗: ${data.msg || '未知錯誤'}</p></div>`;
+            listContainer.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📋</div><p>載入失敗: ${data.msg}</p></div>`;
         }
     } catch (error) {
         console.error('❌ 載入排班失敗:', error);
@@ -238,9 +227,9 @@ async function loadShifts(filters = {}) {
     }
 }
 
-// 顯示排班列表
 function displayShifts(shifts) {
     const listContainer = document.getElementById('shift-list');
+    if (!listContainer) return;
     
     if (shifts.length === 0) {
         listContainer.innerHTML = `
@@ -260,7 +249,6 @@ function displayShifts(shifts) {
     });
 }
 
-// 創建排班項目元素
 function createShiftItem(shift) {
     const div = document.createElement('div');
     div.className = 'shift-item';
@@ -284,7 +272,6 @@ function createShiftItem(shift) {
     return div;
 }
 
-// 取得班別徽章
 function getShiftTypeBadge(shiftType) {
     const badgeClass = {
         '早班': 'badge-morning',
@@ -296,7 +283,6 @@ function getShiftTypeBadge(shiftType) {
     return `<span class="badge ${badgeClass}">${shiftType}</span>`;
 }
 
-// 格式化日期
 function formatDate(dateString) {
     const date = new Date(dateString);
     const year = date.getFullYear();
@@ -308,7 +294,6 @@ function formatDate(dateString) {
     return `${year}/${month}/${day} (${weekday})`;
 }
 
-// ⭐ 新增排班 - 修正版
 async function addShift() {
     const employeeSelect = document.getElementById('employee-select');
     const selectedOption = employeeSelect.selectedOptions[0];
@@ -319,6 +304,7 @@ async function addShift() {
     }
     
     const token = localStorage.getItem('sessionToken');
+    const shiftNoteEl = document.getElementById('shift-note');
     
     const shiftData = {
         action: 'addShift',
@@ -330,16 +316,14 @@ async function addShift() {
         startTime: document.getElementById('start-time').value,
         endTime: document.getElementById('end-time').value,
         location: document.getElementById('shift-location').value,
-        note: document.getElementById('shift-note')?.value || ''
+        note: shiftNoteEl ? shiftNoteEl.value : ''
     };
     
     console.log('📝 新增排班:', shiftData);
     
     try {
         const queryParams = new URLSearchParams(shiftData);
-        const url = `${apiUrl}?${queryParams}`;
-        
-        const response = await fetch(url, { method: 'GET' });
+        const response = await fetch(`${apiUrl}?${queryParams}`);
         const data = await response.json();
         
         console.log('✅ 新增回應:', data);
@@ -358,15 +342,12 @@ async function addShift() {
     }
 }
 
-// 編輯排班
 async function editShift(shiftId) {
     const shift = currentShifts.find(s => s.shiftId === shiftId);
     if (!shift) return;
     
-    // 切換到新增分頁
     switchTab('add');
     
-    // 填充表單
     document.querySelector('#add-tab h2').textContent = '編輯排班';
     document.getElementById('employee-select').value = shift.employeeId;
     document.getElementById('shift-date').value = shift.date;
@@ -374,11 +355,10 @@ async function editShift(shiftId) {
     document.getElementById('start-time').value = shift.startTime;
     document.getElementById('end-time').value = shift.endTime;
     document.getElementById('shift-location').value = shift.location;
-    if (document.getElementById('shift-note')) {
-        document.getElementById('shift-note').value = shift.note || '';
-    }
     
-    // 更改提交按鈕
+    const shiftNoteEl = document.getElementById('shift-note');
+    if (shiftNoteEl) shiftNoteEl.value = shift.note || '';
+    
     const submitBtn = document.querySelector('#add-shift-form button[type="submit"]');
     submitBtn.textContent = '更新排班';
     submitBtn.onclick = function(e) {
@@ -387,7 +367,6 @@ async function editShift(shiftId) {
     };
 }
 
-// 更新排班
 async function updateShift(shiftId) {
     const employeeSelect = document.getElementById('employee-select');
     const selectedOption = employeeSelect.selectedOptions[0];
@@ -398,6 +377,7 @@ async function updateShift(shiftId) {
     }
     
     const token = localStorage.getItem('sessionToken');
+    const shiftNoteEl = document.getElementById('shift-note');
     
     const shiftData = {
         action: 'updateShift',
@@ -410,19 +390,13 @@ async function updateShift(shiftId) {
         startTime: document.getElementById('start-time').value,
         endTime: document.getElementById('end-time').value,
         location: document.getElementById('shift-location').value,
-        note: document.getElementById('shift-note')?.value || ''
+        note: shiftNoteEl ? shiftNoteEl.value : ''
     };
-    
-    console.log('📝 更新排班:', shiftData);
     
     try {
         const queryParams = new URLSearchParams(shiftData);
-        const url = `${apiUrl}?${queryParams}`;
-        
-        const response = await fetch(url, { method: 'GET' });
+        const response = await fetch(`${apiUrl}?${queryParams}`);
         const data = await response.json();
-        
-        console.log('✅ 更新回應:', data);
         
         if (data.ok) {
             showMessage('排班更新成功!', 'success');
@@ -438,7 +412,6 @@ async function updateShift(shiftId) {
     }
 }
 
-// 刪除排班
 async function deleteShift(shiftId) {
     if (!confirm('確定要刪除這個排班嗎?')) return;
     
@@ -446,12 +419,8 @@ async function deleteShift(shiftId) {
         const token = localStorage.getItem('sessionToken');
         const url = `${apiUrl}?action=deleteShift&token=${token}&shiftId=${shiftId}`;
         
-        console.log('🗑️ 刪除排班:', url);
-        
         const response = await fetch(url);
         const data = await response.json();
-        
-        console.log('✅ 刪除回應:', data);
         
         if (data.ok) {
             showMessage('排班已刪除', 'success');
@@ -465,7 +434,6 @@ async function deleteShift(shiftId) {
     }
 }
 
-// 篩選排班
 function filterShifts() {
     const filters = {};
     
@@ -485,7 +453,6 @@ function filterShifts() {
     loadShifts(filters);
 }
 
-// 清除篩選
 function clearFilters() {
     const employeeEl = document.getElementById('filter-employee');
     const shiftTypeEl = document.getElementById('filter-shift-type');
@@ -507,7 +474,6 @@ function clearFilters() {
     loadShifts();
 }
 
-// 匯出排班
 function exportShifts() {
     if (currentShifts.length === 0) {
         showMessage('目前沒有可匯出的資料', 'error');
@@ -520,7 +486,6 @@ function exportShifts() {
     showMessage('匯出成功', 'success');
 }
 
-// 轉換為CSV
 function convertToCSV(data) {
     const headers = ['排班ID', '員工ID', '員工姓名', '日期', '班別', '上班時間', '下班時間', '地點', '備註'];
     const rows = data.map(shift => [
@@ -542,7 +507,6 @@ function convertToCSV(data) {
     return '\ufeff' + csvContent;
 }
 
-// 下載CSV
 function downloadCSV(csv, filename) {
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
@@ -551,27 +515,31 @@ function downloadCSV(csv, filename) {
     link.click();
 }
 
-// 重置表單
 function resetForm() {
-    document.getElementById('add-shift-form').reset();
-    document.querySelector('#add-tab h2').textContent = '新增排班';
-    const submitBtn = document.querySelector('#add-shift-form button[type="submit"]');
-    submitBtn.textContent = '新增排班';
-    submitBtn.onclick = null;
+    const form = document.getElementById('add-shift-form');
+    if (form) form.reset();
     
-    // 重設日期為今天
+    document.querySelector('#add-tab h2').textContent = '新增排班';
+    
+    const submitBtn = document.querySelector('#add-shift-form button[type="submit"]');
+    if (submitBtn) {
+        submitBtn.textContent = '新增排班';
+        submitBtn.onclick = null;
+    }
+    
     const today = new Date().toISOString().split('T')[0];
-    document.getElementById('shift-date').value = today;
+    const shiftDateEl = document.getElementById('shift-date');
+    if (shiftDateEl) shiftDateEl.value = today;
 }
 
-// 批量上傳設定
+// ========== 批量上傳 ==========
+
 function setupBatchUpload() {
     const uploadArea = document.getElementById('upload-area');
     const fileInput = document.getElementById('batch-file-input');
     
     if (!uploadArea || !fileInput) return;
     
-    // 拖放事件
     uploadArea.addEventListener('dragover', function(e) {
         e.preventDefault();
         this.classList.add('drag-over');
@@ -591,7 +559,6 @@ function setupBatchUpload() {
         }
     });
     
-    // 檔案選擇
     fileInput.addEventListener('change', function() {
         if (this.files.length > 0) {
             handleBatchFile(this.files[0]);
@@ -599,7 +566,6 @@ function setupBatchUpload() {
     });
 }
 
-// 處理批量檔案
 function handleBatchFile(file) {
     const reader = new FileReader();
     
@@ -615,12 +581,10 @@ function handleBatchFile(file) {
     }
 }
 
-// 解析批量資料
 function parseBatchData(content, filename) {
     const lines = content.split('\n');
     const data = [];
     
-    // 跳過標題行
     for (let i = 1; i < lines.length; i++) {
         if (!lines[i].trim()) continue;
         
@@ -649,7 +613,6 @@ function parseBatchData(content, filename) {
     displayBatchPreview(data);
 }
 
-// 顯示批量預覽
 function displayBatchPreview(data) {
     const previewDiv = document.getElementById('batch-preview');
     const tableDiv = document.getElementById('preview-table');
@@ -684,7 +647,6 @@ function displayBatchPreview(data) {
     document.getElementById('upload-area').style.display = 'none';
 }
 
-// 確認批量上傳
 async function confirmBatchUpload() {
     if (batchData.length === 0) return;
     
@@ -719,7 +681,6 @@ async function confirmBatchUpload() {
     }
 }
 
-// 取消批量上傳
 function cancelBatchUpload() {
     batchData = [];
     const previewDiv = document.getElementById('batch-preview');
@@ -731,7 +692,6 @@ function cancelBatchUpload() {
     if (fileInput) fileInput.value = '';
 }
 
-// 下載範本
 function downloadTemplate() {
     const template = '員工ID,員工姓名,日期,班別,上班時間,下班時間,地點,備註\n' +
                     'EMP001,張三,2025-10-25,早班,08:00,16:00,總公司,\n' +
@@ -740,51 +700,346 @@ function downloadTemplate() {
     downloadCSV(template, '排班範本.csv');
 }
 
-// ⭐ 載入統計資料 - 修正版
+// ========== 月曆功能 ==========
+
 async function loadStats() {
     try {
-        const token = localStorage.getItem('sessionToken');
-        const response = await fetch(`${apiUrl}?action=getWeeklyShiftStats&token=${token}`);
-        const data = await response.json();
+        currentYear = new Date().getFullYear();
+        currentMonth = new Date().getMonth();
         
-        console.log('✅ 統計資料回應:', data);
-        
-        if (data.ok) {
-            displayStats(data.data);
-        }
+        updateMonthDisplay();
+        await loadMonthlyStats();
+        await loadMonthlyShifts();
+        await loadShiftDistribution();
     } catch (error) {
         console.error('載入統計失敗:', error);
     }
 }
 
-// 顯示統計資料
-function displayStats(stats) {
+function updateMonthDisplay() {
+    const monthNames = ['1月', '2月', '3月', '4月', '5月', '6月', 
+                        '7月', '8月', '9月', '10月', '11月', '12月'];
+    const displayText = `${currentYear}年${monthNames[currentMonth]}`;
+    const monthEl = document.getElementById('current-month');
+    if (monthEl) monthEl.textContent = displayText;
+}
+
+function previousMonth() {
+    currentMonth--;
+    if (currentMonth < 0) {
+        currentMonth = 11;
+        currentYear--;
+    }
+    updateMonthDisplay();
+    loadMonthlyStats();
+    loadMonthlyShifts();
+    loadShiftDistribution();
+}
+
+function nextMonth() {
+    currentMonth++;
+    if (currentMonth > 11) {
+        currentMonth = 0;
+        currentYear++;
+    }
+    updateMonthDisplay();
+    loadMonthlyStats();
+    loadMonthlyShifts();
+    loadShiftDistribution();
+}
+
+function goToToday() {
+    const today = new Date();
+    currentYear = today.getFullYear();
+    currentMonth = today.getMonth();
+    updateMonthDisplay();
+    loadMonthlyStats();
+    loadMonthlyShifts();
+    loadShiftDistribution();
+}
+
+async function loadMonthlyStats() {
+    try {
+        const token = localStorage.getItem('sessionToken');
+        const startDate = new Date(currentYear, currentMonth, 1);
+        const endDate = new Date(currentYear, currentMonth + 1, 0);
+        
+        const queryParams = new URLSearchParams({
+            action: 'getShifts',
+            token: token,
+            startDate: formatDateYMD(startDate),
+            endDate: formatDateYMD(endDate)
+        });
+        
+        const response = await fetch(`${apiUrl}?${queryParams}`);
+        const data = await response.json();
+        
+        console.log('📊 月度統計:', data);
+        
+        if (data.ok && data.data) {
+            allMonthShifts = data.data;
+            displayMonthlyStats(data.data);
+        }
+    } catch (error) {
+        console.error('載入月度統計失敗:', error);
+    }
+}
+
+function displayMonthlyStats(shifts) {
     const statsGrid = document.getElementById('stats-grid');
     if (!statsGrid) return;
     
+    const stats = {
+        total: shifts.length,
+        morning: 0,
+        afternoon: 0,
+        night: 0,
+        full: 0
+    };
+    
+    shifts.forEach(shift => {
+        switch(shift.shiftType) {
+            case '早班': stats.morning++; break;
+            case '中班': stats.afternoon++; break;
+            case '晚班': stats.night++; break;
+            case '全日班': stats.full++; break;
+        }
+    });
+    
     const html = `
         <div class="stat-card">
-            <div class="stat-label">本週總排班</div>
-            <div class="stat-value">${stats.totalShifts}</div>
+            <div class="stat-label">本月總排班</div>
+            <div class="stat-value">${stats.total}</div>
         </div>
         <div class="stat-card">
             <div class="stat-label">早班</div>
-            <div class="stat-value">${stats.byShiftType['早班'] || 0}</div>
+            <div class="stat-value" style="color: #ff9800;">${stats.morning}</div>
         </div>
         <div class="stat-card">
             <div class="stat-label">中班</div>
-            <div class="stat-value">${stats.byShiftType['中班'] || 0}</div>
+            <div class="stat-value" style="color: #2196f3;">${stats.afternoon}</div>
         </div>
         <div class="stat-card">
             <div class="stat-label">晚班</div>
-            <div class="stat-value">${stats.byShiftType['晚班'] || 0}</div>
+            <div class="stat-value" style="color: #9c27b0;">${stats.night}</div>
         </div>
     `;
     
     statsGrid.innerHTML = html;
 }
 
-// 顯示訊息
+async function loadMonthlyShifts() {
+    const calendarGrid = document.getElementById('calendar-grid');
+    if (!calendarGrid) return;
+    
+    calendarGrid.innerHTML = '<div class="loading">載入月曆中</div>';
+    
+    try {
+        displayMonthCalendar(allMonthShifts);
+    } catch (error) {
+        console.error('載入月曆失敗:', error);
+        calendarGrid.innerHTML = '<div class="loading">載入失敗</div>';
+    }
+}
+
+function displayMonthCalendar(shifts) {
+    const calendarGrid = document.getElementById('calendar-grid');
+    if (!calendarGrid) return;
+    
+    const firstDay = new Date(currentYear, currentMonth, 1);
+    const lastDay = new Date(currentYear, currentMonth + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = firstDay.getDay();
+    const prevMonthLastDay = new Date(currentYear, currentMonth, 0).getDate();
+    
+    const today = new Date();
+    const todayStr = formatDateYMD(today);
+    
+    let html = '';
+    let dayCounter = 1;
+    let nextMonthDay = 1;
+    
+    const totalCells = Math.ceil((daysInMonth + startingDayOfWeek) / 7) * 7;
+    
+    for (let i = 0; i < totalCells; i++) {
+        let dateStr = '';
+        let dayNumber = '';
+        let otherMonthClass = '';
+        let isToday = false;
+        
+        if (i < startingDayOfWeek) {
+            dayNumber = prevMonthLastDay - startingDayOfWeek + i + 1;
+            otherMonthClass = 'other-month';
+            const prevMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+            const prevYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+            dateStr = `${prevYear}-${String(prevMonth + 1).padStart(2, '0')}-${String(dayNumber).padStart(2, '0')}`;
+        } else if (dayCounter <= daysInMonth) {
+            dayNumber = dayCounter;
+            dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(dayNumber).padStart(2, '0')}`;
+            isToday = dateStr === todayStr;
+            dayCounter++;
+        } else {
+            dayNumber = nextMonthDay;
+            otherMonthClass = 'other-month';
+            const nextMonth = currentMonth === 11 ? 0 : currentMonth + 1;
+            const nextYear = currentMonth === 11 ? currentYear + 1 : currentYear;
+            dateStr = `${nextYear}-${String(nextMonth + 1).padStart(2, '0')}-${String(dayNumber).padStart(2, '0')}`;
+            nextMonthDay++;
+        }
+        
+        const dayShifts = shifts.filter(shift => {
+            const shiftDate = new Date(shift.date);
+            return formatDateYMD(shiftDate) === dateStr;
+        });
+        
+        const hasShifts = dayShifts.length > 0;
+        const todayClass = isToday ? 'today' : '';
+        const hasShiftsClass = hasShifts ? 'has-shifts' : '';
+        
+        html += `
+            <div class="calendar-day ${otherMonthClass} ${todayClass} ${hasShiftsClass}">
+                <div class="day-number">${dayNumber}</div>
+                <div class="day-shifts">
+                    ${dayShifts.slice(0, 3).map(shift => `
+                        <div class="shift-item-mini ${getShiftClass(shift.shiftType)}" 
+                             onclick="showShiftDetail('${shift.shiftId}')"
+                             title="${shift.employeeName} - ${shift.shiftType} (${shift.startTime}-${shift.endTime})">
+                            <div class="shift-item-name">${shift.employeeName}</div>
+                            <div class="shift-item-time">${shift.startTime}-${shift.endTime}</div>
+                        </div>
+                    `).join('')}
+                </div>
+                ${dayShifts.length > 3 ? `<div class="shift-count">+${dayShifts.length - 3}</div>` : ''}
+            </div>
+        `;
+    }
+    
+    calendarGrid.innerHTML = html;
+}
+
+function getShiftClass(shiftType) {
+    const classMap = {
+        '早班': 'shift-morning',
+        '中班': 'shift-afternoon',
+        '晚班': 'shift-night',
+        '全日班': 'shift-full'
+    };
+    return classMap[shiftType] || 'shift-morning';
+}
+
+function showShiftDetail(shiftId) {
+    const shift = allMonthShifts.find(s => s.shiftId === shiftId);
+    if (shift) {
+        const detail = `排班詳情:\n\n` +
+              `員工: ${shift.employeeName}\n` +
+              `日期: ${shift.date}\n` +
+              `班別: ${shift.shiftType}\n` +
+              `時間: ${shift.startTime} - ${shift.endTime}\n` +
+              `地點: ${shift.location}\n` +
+              `備註: ${shift.note || '無'}`;
+        
+        alert(detail);
+    }
+}
+
+async function loadShiftDistribution() {
+    const distributionContainer = document.getElementById('shift-distribution');
+    if (!distributionContainer) return;
+    
+    displayShiftDistribution(allMonthShifts);
+}
+
+function displayShiftDistribution(shifts) {
+    const distributionContainer = document.getElementById('shift-distribution');
+    if (!distributionContainer || shifts.length === 0) {
+        if (distributionContainer) distributionContainer.innerHTML = '';
+        return;
+    }
+    
+    const employeeStats = {};
+    const shiftTypeStats = { '早班': 0, '中班': 0, '晚班': 0, '全日班': 0 };
+    
+    shifts.forEach(shift => {
+        if (!employeeStats[shift.employeeName]) {
+            employeeStats[shift.employeeName] = 0;
+        }
+        employeeStats[shift.employeeName]++;
+        
+        if (shiftTypeStats[shift.shiftType] !== undefined) {
+            shiftTypeStats[shift.shiftType]++;
+        }
+    });
+    
+    const maxCount = Math.max(...Object.values(employeeStats), 1);
+    
+    let html = '<div class="distribution-section">';
+    html += '<h3 class="distribution-title">📊 本月員工排班分布</h3>';
+    html += '<div class="distribution-bars">';
+    
+    const sortedEmployees = Object.entries(employeeStats)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 15);
+    
+    sortedEmployees.forEach(([name, count]) => {
+        const percentage = (count / maxCount * 100).toFixed(0);
+        html += `
+            <div class="distribution-bar-item">
+                <div class="distribution-bar-label">${name}</div>
+                <div class="distribution-bar-container">
+                    <div class="distribution-bar" style="width: ${percentage}%">
+                        <div class="distribution-bar-value">${count} 班</div>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    html += '</div></div>';
+    
+    html += '<div class="distribution-section">';
+    html += '<h3 class="distribution-title">🎨 本月班別分布</h3>';
+    html += '<div class="shift-type-distribution">';
+    
+    const totalShifts = Object.values(shiftTypeStats).reduce((a, b) => a + b, 0);
+    const shiftTypeColors = {
+        '早班': '#ff9800',
+        '中班': '#2196f3',
+        '晚班': '#9c27b0',
+        '全日班': '#4caf50'
+    };
+    
+    Object.entries(shiftTypeStats).forEach(([type, count]) => {
+        const percentage = totalShifts > 0 ? (count / totalShifts * 100).toFixed(1) : 0;
+        const color = shiftTypeColors[type];
+        
+        html += `
+            <div class="shift-type-stat">
+                <div class="shift-type-stat-header">
+                    <span class="shift-type-label ${getShiftClass(type)}">${type}</span>
+                    <span class="shift-type-count">${count}</span>
+                </div>
+                <div class="shift-type-bar-container">
+                    <div class="shift-type-bar" style="width: ${percentage}%; background: ${color};"></div>
+                </div>
+                <div class="shift-type-percentage">${percentage}%</div>
+            </div>
+        `;
+    });
+    
+    html += '</div></div>';
+    
+    distributionContainer.innerHTML = html;
+}
+
+function formatDateYMD(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+// ========== 工具函數 ==========
+
 function showMessage(message, type = 'info') {
     const messageDiv = document.createElement('div');
     messageDiv.className = `message message-${type}`;
@@ -814,7 +1069,8 @@ function showMessage(message, type = 'info') {
     }, 3000);
 }
 
-// 返回上一頁
 function goBack() {
     window.history.back();
 }
+
+console.log('✅ 排班管理系統(含月曆功能)已載入');
