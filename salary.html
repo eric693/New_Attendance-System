@@ -79,7 +79,6 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            -moz-background-clip: text;
             margin-bottom: 12px;
         }
 
@@ -554,7 +553,7 @@
             </div>
             <div class="header-content">
                 <h1 class="header-title">薪資管理系統</h1>
-                <p class="header-subtitle">智能自動化計算 | 完整薪資管理</p>
+                <p class="header-subtitle">完整薪資管理</p>
             </div>
             <button class="back-btn" onclick="window.location.href='index.html'">返回</button>
         </div>
@@ -594,7 +593,7 @@
 
                 <div class="salary-detail-card">
                     <div class="salary-detail-title">
-                        💰 應發項目
+                        應發項目
                     </div>
                     <div class="salary-detail-grid">
                         <div class="salary-detail-item">
@@ -622,7 +621,7 @@
 
                 <div class="salary-detail-card" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-color: #fbbf24;">
                     <div class="salary-detail-title" style="color: #78350f;">
-                        📉 扣款項目
+                        扣款項目
                     </div>
                     <div class="salary-detail-grid">
                         <div class="salary-detail-item" style="border-color: #fbbf24;">
@@ -648,7 +647,7 @@
                     </div>
                 </div>
 
-                <h3 style="font-size: 1.3em; margin: 30px 0 20px; color: var(--text-primary);">📜 我的薪資歷史</h3>
+                <h3 style="font-size: 1.3em; margin: 30px 0 20px; color: var(--text-primary);">我的薪資歷史</h3>
                 <table class="salary-table">
                     <thead>
                         <tr>
@@ -776,7 +775,7 @@
                 </div>
 
                 <div class="calc-summary">
-                    <div class="calc-summary-title">💰 薪資試算預覽</div>
+                    <div class="calc-summary-title">薪資試算預覽</div>
                     <div class="calc-item">
                         <span>投保薪資級距:</span>
                         <span class="calc-value" id="insuredSalary">NT$ 0</span>
@@ -796,7 +795,7 @@
                 </div>
 
                 <div class="bank-section">
-                    <div class="bank-section-title">🏦 銀行帳號資訊</div>
+                    <div class="bank-section-title">銀行帳號資訊</div>
                     <div class="form-grid">
                         <div class="form-group">
                             <label>銀行代碼</label>
@@ -1161,7 +1160,6 @@
             try {
                 const token = localStorage.getItem('sessionToken');
                 
-                // 查詢單月明細
                 const params = new URLSearchParams({
                     action: 'getMySalary',
                     token: token,
@@ -1174,7 +1172,6 @@
 
                 if (result.ok && result.data) {
                     displayMySalary(result.data, yearMonth);
-                    // 同時載入歷史記錄
                     loadSalaryHistory();
                 } else {
                     showMessage('employee', result.msg || '查無薪資記錄', 'error');
