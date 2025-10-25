@@ -261,7 +261,7 @@
   "TAB_SALARY": "給与",
   "SALARY_TITLE": "給与管理",
   "SALARY_DESCRIPTION": "従業員の給与情報を表示・管理",
-  "BTN_SALARY_MANAGE": "給与管理システムへ 💰",
+  "BTN_SALARY_MANAGE": "給与管理システムへ",
   "SALARY_INFO": "正社員（月給）とアルバイト（時給）に対応、残業代と控除の自動計算、給与明細の生成と管理、時給明細の追跡"
 }
 

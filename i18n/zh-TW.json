@@ -277,6 +277,6 @@
     "TAB_SALARY": "薪資",
     "SALARY_TITLE": "薪資管理",
     "SALARY_DESCRIPTION": "查看和管理員工薪資資訊",
-    "BTN_SALARY_MANAGE": "進入薪資管理系統 💰",
+    "BTN_SALARY_MANAGE": "進入薪資管理系統",
     "SALARY_INFO": "<strong>功能說明：</strong><br>• 支援全職員工（月薪制）與兼職員工（時薪制）<br>• 自動計算加班費、扣款項目<br>• 薪資單生成和管理<br>• 時薪明細追蹤"
 }

@@ -260,7 +260,7 @@
   "TAB_SALARY": "급여",
   "SALARY_TITLE": "급여 관리",
   "SALARY_DESCRIPTION": "직원 급여 정보 조회 및 관리",
-  "BTN_SALARY_MANAGE": "급여 관리 시스템 입장 💰",
+  "BTN_SALARY_MANAGE": "급여 관리 시스템 입장",
   "SALARY_INFO": "정규직(월급) 및 시간제(시급) 직원 지원, 야근 수당 및 공제 자동 계산, 급여 명세서 생성 및 관리, 시급 상세 내역 추적"
 
 }
