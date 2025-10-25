@@ -218,15 +218,16 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 16px;
+            margin-bottom: 16px;
         }
 
         .detail-item {
-            background: var(--background);
-            padding: 16px;
-            border-radius: 12px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            padding: 12px 16px;
+            background: var(--background);
+            border-radius: 8px;
         }
 
         .detail-label {
@@ -236,8 +237,7 @@
 
         .detail-value {
             font-weight: 600;
-            font-size: 1.1em;
-            color: var(--text-primary);
+            font-size: 1.05em;
         }
 
         .detail-value.positive {
@@ -248,121 +248,49 @@
             color: var(--danger);
         }
 
-        /* Total Box */
         .total-box {
-            background: var(--background);
-            padding: 24px;
-            border-radius: 12px;
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            font-size: 1.2em;
+            padding: 16px;
+            background: var(--background);
+            border-radius: 8px;
             font-weight: 600;
-            border: 2px solid var(--primary);
         }
 
-        /* Empty State */
-        .empty-state {
+        /* Loading & Empty */
+        .loading, .empty-state {
             text-align: center;
-            padding: 80px 20px;
-            color: var(--text-secondary);
+            padding: 60px 20px;
         }
 
         .empty-icon {
-            font-size: 64px;
-            margin-bottom: 20px;
-            opacity: 0.3;
+            font-size: 4em;
+            margin-bottom: 16px;
         }
 
         .empty-text {
-            font-size: 1.1em;
-        }
-
-        /* Loading */
-        .loading {
-            text-align: center;
-            padding: 60px 20px;
+            font-size: 1.2em;
             color: var(--text-secondary);
-        }
-
-        .loading::after {
-            content: '';
-            display: block;
-            width: 40px;
-            height: 40px;
-            margin: 20px auto;
-            border: 4px solid var(--border);
-            border-top-color: var(--primary);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+            font-weight: 500;
         }
 
         /* Message */
         .message {
-            padding: 16px 20px;
-            border-radius: 8px;
-            margin-bottom: 24px;
+            padding: 16px 24px;
+            border-radius: 12px;
+            margin-bottom: 20px;
             display: none;
+            font-weight: 600;
+        }
+
+        .message.success {
+            background: #d1fae5;
+            color: #065f46;
         }
 
         .message.error {
             background: #fee2e2;
             color: #991b1b;
-            border-left: 4px solid var(--danger);
-        }
-
-        .message.info {
-            background: #dbeafe;
-            color: #1e40af;
-            border-left: 4px solid var(--primary);
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .header-content {
-                flex-direction: column;
-                gap: 20px;
-                text-align: center;
-            }
-
-            .month-selector-content {
-                flex-direction: column;
-            }
-
-            .summary-amount {
-                font-size: 2em;
-            }
-
-            .detail-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .total-box {
-                flex-direction: column;
-                gap: 12px;
-                text-align: center;
-            }
-        }
-
-        /* Print Styles */
-        @media print {
-            body {
-                background: white;
-            }
-
-            .back-btn,
-            .month-selector {
-                display: none;
-            }
-
-            .salary-card {
-                box-shadow: none;
-                border: 1px solid #ddd;
-            }
         }
     </style>
 </head>
@@ -372,95 +300,128 @@
         <div class="header">
             <div class="header-content">
                 <div class="header-title">
-                    <h1>我的薪資明細</h1>
-                    <p id="employee-name">載入中...</p>
+                    <h1>💰 我的薪資明細</h1>
+                    <p id="welcome-text">載入中...</p>
                 </div>
-                <button class="back-btn" onclick="window.history.back()">返回</button>
+                <button class="back-btn" onclick="window.history.back()">← 返回</button>
             </div>
         </div>
 
         <!-- Month Selector -->
         <div class="month-selector">
             <div class="month-selector-content">
-                <label>查詢月份:</label>
-                <input type="month" id="query-month" value="">
-                <button class="btn-query" onclick="loadMySalary()">查詢</button>
-                <button class="btn-query" onclick="window.print()" style="background: var(--secondary);">列印</button>
+                <label for="queryMonth">選擇月份：</label>
+                <input type="month" id="queryMonth" />
+                <button class="btn-query" onclick="loadSalary()">🔍 查詢薪資</button>
             </div>
         </div>
 
+        <!-- Message -->
         <div id="message" class="message"></div>
 
         <!-- Salary Content -->
-        <div id="salary-content" class="loading">載入中</div>
-
+        <div id="salary-content">
+            <div class="loading">
+                <div style="font-size: 3em; margin-bottom: 16px;">⏳</div>
+                <div style="color: var(--text-secondary);">載入中...</div>
+            </div>
+        </div>
     </div>
 
-    <script src="config.js"></script>
     <script>
-        // 取得當前年月
-        function getCurrentYearMonth() {
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            return `${year}-${month}`;
-        }
+        // 🎯 整合現有 Session 系統 - 使用 google.script.run
 
-        // 初始化
-        document.addEventListener('DOMContentLoaded', () => {
-            // 設定預設月份為上個月 (因為薪資通常是月底發放)
-            const now = new Date();
-            now.setMonth(now.getMonth() - 1);
-            const lastMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-            document.getElementById('query-month').value = lastMonth;
+        // 頁面載入時設定當月並檢查登入
+        window.addEventListener('DOMContentLoaded', function() {
+            const today = new Date();
+            const currentMonth = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0');
+            document.getElementById('queryMonth').value = currentMonth;
 
-            // 載入員工名稱
-            const employeeName = localStorage.getItem('sessionUserName') || '員工';
-            document.getElementById('employee-name').textContent = `${employeeName} 的薪資記錄`;
-
-            // 自動載入上個月薪資
-            loadMySalary();
+            // 檢查登入狀態
+            checkLoginAndLoadName();
+            
+            // 自動載入當月薪資
+            loadSalary();
         });
 
-        // 載入我的薪資
-        async function loadMySalary() {
-            const content = document.getElementById('salary-content');
-            const message = document.getElementById('message');
-            const queryMonth = document.getElementById('query-month').value;
-
-            if (!queryMonth) {
-                showMessage('請選擇查詢月份', 'error');
+        // 檢查登入並顯示姓名
+        function checkLoginAndLoadName() {
+            const sessionToken = sessionStorage.getItem('sessionToken');
+            
+            if (!sessionToken) {
+                showMessage('請先登入系統', 'error');
+                document.getElementById('welcome-text').textContent = '尚未登入';
                 return;
             }
 
-            content.innerHTML = '<div class="loading">載入中</div>';
-            message.style.display = 'none';
+            // 🔥 使用 checkSession_ 取得使用者資料
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    if (result.ok && result.user) {
+                        document.getElementById('welcome-text').textContent = 
+                            `${result.user.name} 的薪資查詢`;
+                    } else {
+                        showMessage('登入已過期，請重新登入', 'error');
+                        setTimeout(() => {
+                            window.location.href = '/';
+                        }, 2000);
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    console.error('檢查登入失敗:', error);
+                    document.getElementById('welcome-text').textContent = '登入狀態異常';
+                })
+                .checkSession_(sessionToken);
+        }
+
+        // 載入薪資
+        async function loadSalary() {
+            const queryMonth = document.getElementById('queryMonth').value;
+            const content = document.getElementById('salary-content');
+
+            if (!queryMonth) {
+                showMessage('請選擇月份', 'error');
+                return;
+            }
+
+            // 顯示載入中
+            content.innerHTML = `
+                <div class="loading">
+                    <div style="font-size: 3em; margin-bottom: 16px;">⏳</div>
+                    <div style="color: var(--text-secondary);">載入中...</div>
+                </div>
+            `;
 
             try {
-                const token = localStorage.getItem('sessionToken');
-                const userId = localStorage.getItem('sessionUserId');
+                const sessionToken = sessionStorage.getItem('sessionToken');
 
-                if (!token || !userId) {
+                if (!sessionToken) {
                     showMessage('請先登入', 'error');
                     setTimeout(() => {
-                        window.location.href = 'index.html';
+                        window.location.href = '/';
                     }, 2000);
                     return;
                 }
 
-                // 呼叫後端 API
-                const response = await fetch(`${API_CONFIG.apiUrl}?action=getMySalary&token=${token}&yearMonth=${queryMonth}`);
-                const result = await response.json();
-
-                if (result.success && result.data) {
-                    renderSalary(result.data);
-                } else {
-                    renderEmptyState(queryMonth);
-                }
+                // 🔥 使用 google.script.run 呼叫後端 API
+                google.script.run
+                    .withSuccessHandler(function(result) {
+                        if (result.success && result.data) {
+                            renderSalary(result.data);
+                        } else {
+                            renderEmptyState(queryMonth);
+                        }
+                    })
+                    .withFailureHandler(function(error) {
+                        console.error('載入薪資失敗:', error);
+                        showMessage('載入失敗，請稍後再試', 'error');
+                        content.innerHTML = '';
+                    })
+                    .getMySalary(sessionToken, queryMonth);
 
             } catch (error) {
                 console.error('載入薪資失敗:', error);
-                showMessage('載入失敗,請稍後再試', 'error');
+                showMessage('載入失敗，請稍後再試', 'error');
                 content.innerHTML = '';
             }
         }
@@ -517,10 +478,18 @@
                                 <span class="detail-value positive">+${formatNumber(data.transportAllowance)}</span>
                             </div>
                             ` : ''}
-                            ${data.overtimePay ? `
+                            ${data.weekdayOvertimePay || data.restdayOvertimePay || data.holidayOvertimePay ? `
                             <div class="detail-item">
-                                <span class="detail-label">加班費</span>
-                                <span class="detail-value positive">+${formatNumber(data.overtimePay)}</span>
+                                <span class="detail-label">平日加班費</span>
+                                <span class="detail-value positive">+${formatNumber(data.weekdayOvertimePay)}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">休息日加班費</span>
+                                <span class="detail-value positive">+${formatNumber(data.restdayOvertimePay)}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">假日加班費</span>
+                                <span class="detail-value positive">+${formatNumber(data.holidayOvertimePay)}</span>
                             </div>
                             ` : ''}
                         </div>
