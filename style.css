@@ -1,219 +1,804 @@
-/* style.css */
+/* ============================================ */
+/*  Modern Tech-Inspired Attendance System      */
+/*  重新設計 - 科技感版本                          */
+/* ============================================ */
+
+:root {
+    /* 科技感配色方案 */
+    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    --accent-glow: rgba(102, 126, 234, 0.4);
+    
+    /* 亮色模式變數 */
+    --bg-primary: #f8fafc;
+    --bg-secondary: #ffffff;
+    --bg-tertiary: #f1f5f9;
+    --text-primary: #1e293b;
+    --text-secondary: #475569;
+    --text-muted: #94a3b8;
+    --border-color: #e2e8f0;
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+    --shadow-glow: 0 0 20px var(--accent-glow);
+}
 
 /* ======================================= */
-/* 亮色模式 / 預設樣式 (Light Mode / Default) */
+/* 全域設定 Global Settings                 */
 /* ======================================= */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
 body {
-    /* Tailwind: bg-gray-50 (Light Mode Base Background) */
-    background-color: #f8fafc;
-    font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-    /* 全域文字顏色 (Tailwind: text-gray-900) */
-    color: #1f2937;
+    background: var(--bg-primary);
+    font-family: 'Inter', 'Noto Sans TC', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: var(--text-primary);
+    line-height: 1.6;
+    position: relative;
+    overflow-x: hidden;
 }
 
-/* --- Card --- */
-.card {
-    /* Tailwind: bg-white */
-    background-color: white;
-    border-radius: 0.75rem;
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-    transition: all 0.3s ease-in-out;
+/* 背景動畫網格效果 */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        linear-gradient(rgba(102, 126, 234, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(102, 126, 234, 0.03) 1px, transparent 1px);
+    background-size: 50px 50px;
+    pointer-events: none;
+    z-index: 0;
 }
 
-/* --- Main Image (Logo) --- */
+/* 主容器 */
+.container {
+    position: relative;
+    z-index: 1;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+/* ======================================= */
+/* Logo 區域 Logo Area                     */
+/* ======================================= */
+
+.logo-container {
+    text-align: center;
+    margin-bottom: 3rem;
+    position: relative;
+}
+
 .main-image {
     width: auto;
-    max-width: 400px;           /* 改大 */
+    max-width: 350px;
     height: auto;
-    margin: 0 auto 1.5rem;
+    margin: 0 auto;
     display: block;
     object-fit: contain;
-    background-color: white;    /* 強制白底 */
-    padding: 1.5rem;            /* 加大內距 */
-    border-radius: 1rem;        /* 圓角 */
+    background: white;
+    padding: 2rem;
+    border-radius: 20px;
+    box-shadow: var(--shadow-lg), var(--shadow-glow);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid var(--border-color);
 }
 
-/* 暗黑模式下的 Logo 調整 */
-html.dark .main-image {
-    background-color: white;    /* 暗黑模式也保持白底 */
-    filter: none;               /* 移除濾鏡 */
+.main-image:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 20px 30px -10px rgba(102, 126, 234, 0.3);
 }
 
-/* --- Primary Button --- */
+/* ======================================= */
+/* 卡片系統 Card System                     */
+/* ======================================= */
+
+.card {
+    background: var(--bg-secondary);
+    border-radius: 16px;
+    box-shadow: var(--shadow-md);
+    padding: 2rem;
+    margin-bottom: 2rem;
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--primary-gradient);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.card:hover::before {
+    opacity: 1;
+}
+
+.card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+}
+
+/* 卡片標題 */
+.card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--bg-tertiary);
+}
+
+.card-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -0.02em;
+}
+
+/* ======================================= */
+/* 按鈕系統 Button System                   */
+/* ======================================= */
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    letter-spacing: 0.02em;
+    box-shadow: var(--shadow-sm);
+}
+
+.btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.btn:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+/* Primary Button - 漸層科技感 */
 .btn-primary {
-    /* Tailwind: bg-indigo-600 */
-    background-color: #4f46e5;
+    background: var(--primary-gradient);
     color: white;
-    transition: background-color 0.2s;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
+
 .btn-primary:hover {
-    /* Tailwind: bg-indigo-700 */
-    background-color: #4338ca;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
 }
 
-/* --- Secondary Button --- */
+.btn-primary:active {
+    transform: translateY(0);
+}
+
+/* Secondary Button */
 .btn-secondary {
-    /* Tailwind: bg-gray-200 */
-    background-color: #e5e7eb;
-    /* Tailwind: text-gray-800 */
-    color: #374151;
-    transition: background-color 0.2s;
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
 }
+
 .btn-secondary:hover {
-    /* Tailwind: bg-gray-300 */
-    background-color: #d1d5db;
+    background: #e2e8f0;
+    border-color: #cbd5e1;
+    transform: translateY(-1px);
 }
 
-/* --- Warning Button --- */
-.btn-warning {
-    /* Tailwind: bg-orange-500 */
-    background-color: #f97316;
+/* Success Button */
+.btn-success {
+    background: var(--success-gradient);
     color: white;
-    transition: background-color 0.2s;
+    box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
 }
+
+.btn-success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(79, 172, 254, 0.4);
+}
+
+/* Warning Button */
+.btn-warning {
+    background: var(--secondary-gradient);
+    color: white;
+    box-shadow: 0 4px 15px rgba(240, 147, 251, 0.3);
+}
+
 .btn-warning:hover {
-    /* Tailwind: bg-orange-600 */
-    background-color: #ea580c;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(240, 147, 251, 0.4);
+}
+
+/* Outline Button */
+.btn-outline {
+    background: transparent;
+    color: #667eea;
+    border: 2px solid #667eea;
+    box-shadow: none;
+}
+
+.btn-outline:hover {
+    background: #667eea;
+    color: white;
+    transform: translateY(-1px);
+}
+
+/* 按鈕組 */
+.btn-group {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
 }
 
 /* ======================================= */
-/* 暗黑模式 / Dark Mode (使用 html.dark)      */
+/* 資訊卡片 Info Cards                      */
 /* ======================================= */
 
-/* --- 全域背景 --- */
-html.dark body {
-    /* Tailwind: dark:bg-gray-900 */
-    background-color: #111827;
-    /* 全域文字顏色 (Tailwind: dark:text-gray-100) */
-    color: #f3f4f6;
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
 }
 
-/* --- Card --- */
-html.dark .card {
-    /* Tailwind: dark:bg-gray-800 */
-    background-color: #1f2937;
-    /* 調整陰影以適應深色背景 */
-    box-shadow: 0 10px 15px -3px rgb(255 255 255 / 0.05), 0 4px 6px -4px rgb(255 255 255 / 0.05);
+.info-card {
+    background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+    padding: 1.5rem;
+    border-radius: 16px;
+    border: 1px solid rgba(102, 126, 234, 0.2);
+    transition: all 0.3s ease;
+    position: relative;
 }
 
-/* --- Primary Button --- */
-html.dark .btn-primary {
-    /* Tailwind: dark:bg-indigo-700 */
-    background-color: #4338ca;
-}
-html.dark .btn-primary:hover {
-    /* Tailwind: dark:bg-indigo-600 */
-    background-color: #4f46e5;
-}
-
-/* --- Secondary Button --- */
-html.dark .btn-secondary {
-    /* Tailwind: dark:bg-gray-700 */
-    background-color: #374151;
-    /* Tailwind: dark:text-gray-200 */
-    color: #e5e7eb;
-}
-html.dark .btn-secondary:hover {
-    /* Tailwind: dark:bg-gray-600 */
-    background-color: #4b5563;
+.info-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 60px;
+    height: 60px;
+    background: radial-gradient(circle, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
+    border-radius: 0 16px 0 0;
 }
 
-/* --- Warning Button (可選,通常保持亮色,或略微變暗) --- */
-/* 如果要調整,請在這裡添加 html.dark .btn-warning 樣式 */
+.info-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(102, 126, 234, 0.15);
+    border-color: rgba(102, 126, 234, 0.4);
+}
 
+.info-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+}
+
+.info-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.2;
+}
+
+/* 薪資資訊卡片 - 移除 emoji，改用簡潔設計 */
+.salary-card {
+    background: linear-gradient(135deg, #4facfe15 0%, #00f2fe15 100%);
+    border-color: rgba(79, 172, 254, 0.3);
+}
+
+.salary-card .info-value {
+    background: var(--success-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
+}
+
+.salary-label::before {
+    content: '';
+    display: inline-block;
+    width: 4px;
+    height: 4px;
+    background: #4facfe;
+    border-radius: 50%;
+    margin-right: 8px;
+    vertical-align: middle;
+}
 
 /* ======================================= */
-/* 其他樣式 (Other Styles) */
+/* 日曆系統 Calendar System                 */
 /* ======================================= */
 
-/* --- Fade In Animation (無須修改) --- */
-.fade-in {
-    animation: fadeIn 0.5s ease-in-out;
-}
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
+.calendar-container {
+    background: var(--bg-secondary);
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border-color);
 }
 
-/* --- Notification (無須修改) --- */
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.calendar-month {
+    font-size: 1.5rem;
+    font-weight: 700;
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+}
+
+.calendar-weekday {
+    text-align: center;
+    font-weight: 600;
+    color: var(--text-secondary);
+    padding: 0.5rem;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* 日曆單元格 */
+.day-cell {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    border: 2px solid transparent;
+}
+
+.day-cell::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 100%);
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.day-cell:hover::before {
+    opacity: 1;
+}
+
+.day-cell:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* 日期狀態 */
+.day-cell.future-day { 
+    background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%); 
+    color: #64748b; 
+}
+
+.day-cell.normal-day { 
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%); 
+    color: #1e293b;
+    border-color: #e2e8f0;
+}
+
+.day-cell.abnormal-day { 
+    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); 
+    color: #dc2626;
+    border-color: #fca5a5;
+}
+
+.day-cell.pending-adjustment { 
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); 
+    color: #d97706;
+    border-color: #fbbf24;
+}
+
+.day-cell.pending-virtual { 
+    background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%); 
+    color: #9333ea;
+    border-color: #d8b4fe;
+}
+
+.day-cell.approved-virtual { 
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); 
+    color: #2563eb;
+    border-color: #93c5fd;
+}
+
+.day-cell.day-off { 
+    background: linear-gradient(135deg, #ccfbf1 0%, #99f6e4 100%); 
+    color: #0d9488;
+    border-color: #5eead4;
+}
+
+.day-cell.today { 
+    background: var(--success-gradient);
+    color: white;
+    box-shadow: 0 0 20px rgba(79, 172, 254, 0.5);
+    border-color: #4facfe;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { box-shadow: 0 0 20px rgba(79, 172, 254, 0.5); }
+    50% { box-shadow: 0 0 30px rgba(79, 172, 254, 0.7); }
+}
+
+/* ======================================= */
+/* 表單元素 Form Elements                   */
+/* ======================================= */
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-label {
+    display: block;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid var(--border-color);
+    border-radius: 10px;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* ======================================= */
+/* 通知系統 Notification System             */
+/* ======================================= */
+
 .notification {
     position: fixed;
-    top: 1rem;
-    right: 1rem;
-    z-index: 50;
-    border-radius: 0.5rem;
+    top: 2rem;
+    right: 2rem;
+    z-index: 1000;
+    min-width: 320px;
+    border-radius: 12px;
     padding: 1rem 1.5rem;
-    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-    transform: translateX(200%);
-    transition: transform 0.5s ease-in-out;
-    /* 💡 增加亮色模式預設背景,暗黑模式需另外定義通知背景 */
-    background-color: white;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    transform: translateX(400px);
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
 }
+
 .notification.show {
     transform: translateX(0);
 }
 
-/* 💡 暗黑模式下的通知背景 (建議用 JS 處理,或在這裡補上) */
-html.dark .notification {
-    background-color: #374151; /* dark:bg-gray-700 */
-    color: #f3f4f6; /* dark:text-gray-100 */
+.notification.success {
+    background: linear-gradient(135deg, rgba(79, 172, 254, 0.95) 0%, rgba(0, 242, 254, 0.95) 100%);
+    color: white;
 }
 
-
-/* --- Day Cell Styles (日曆單元格 - 關鍵需要調整對比度) --- */
-.day-cell {
-    padding: 0.5rem;
-    text-align: center;
-    border-radius: 0.5rem;
-    cursor: pointer;
-    user-select: none;
-    transition: all 0.2s;
+.notification.error {
+    background: linear-gradient(135deg, rgba(240, 147, 251, 0.95) 0%, rgba(245, 87, 108, 0.95) 100%);
+    color: white;
 }
 
-/* 亮色模式 (已定義) */
-.day-cell.future-day { background-color: #d1d5db; color: #4b5563; }
-.day-cell.normal-day { background-color: #f3f4f6; color: #1f2937; }
-.day-cell.abnormal-day { background-color: #fecaca; color: #ef4444; }
-.day-cell.pending-adjustment { background-color: #fde68a; color: #d97706; }
-.day-cell.pending-virtual { background-color: #e9d5ff; color: #9333ea; }
-.day-cell.approved-virtual { background-color: #bfdbfe; color: #2563eb; }
-.day-cell.day-off { background-color: #ccfbf1; color: #0d9488; }
-.day-cell.today { background-color: #86efac; color: #166534; font-weight: bold; }
-.day-cell:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 2px 4px -1px rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+.notification.warning {
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.95) 0%, rgba(245, 158, 11, 0.95) 100%);
+    color: white;
 }
 
+/* ======================================= */
+/* 動畫效果 Animations                      */
+/* ======================================= */
 
-/* 💡 暗黑模式下的日曆單元格 */
-html.dark .day-cell.future-day { background-color: #374151; color: #9ca3af; } /* dark:bg-gray-700, dark:text-gray-400 */
-html.dark .day-cell.normal-day { background-color: #1f2937; color: #d1d5db; } /* dark:bg-gray-800, dark:text-gray-300 */
-html.dark .day-cell.abnormal-day { background-color: #991b1b; color: #fecaca; } /* dark:bg-red-800, dark:text-red-300 */
-html.dark .day-cell.pending-adjustment { background-color: #92400e; color: #fde68a; } /* dark:bg-amber-800, dark:text-amber-300 */
-html.dark .day-cell.pending-virtual { background-color: #581c87; color: #e9d5ff; } /* dark:bg-purple-800, dark:text-purple-300 */
-html.dark .day-cell.approved-virtual { background-color: #1e40af; color: #bfdbfe; } /* dark:bg-blue-800, dark:text-blue-300 */
-html.dark .day-cell.day-off { background-color: #065f46; color: #ccfbf1; } /* dark:bg-teal-800, dark:text-teal-300 */
-html.dark .day-cell.today {
-    background-color: #15803d; /* dark:bg-green-700 */
-    color: #bbf7d0; /* dark:text-green-200 */
-}
-html.dark .day-cell:hover {
-    /* 確保 hover 效果在暗色模式下仍可見 */
-    transform: translateY(-2px);
-    box-shadow: 0 2px 4px -1px rgb(255 255 255 / 0.1), 0 1px 2px -1px rgb(255 255 255 / 0.05);
+.fade-in {
+    animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* 確保地圖容器的背景在反轉時不會出現亮色閃爍 */
+@keyframes fadeIn {
+    from { 
+        opacity: 0; 
+        transform: translateY(-20px); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0); 
+    }
+}
+
+.slide-up {
+    animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideUp {
+    from { 
+        opacity: 0; 
+        transform: translateY(30px); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0); 
+    }
+}
+
+/* Loading 動畫 */
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(102, 126, 234, 0.2);
+    border-top-color: #667eea;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ======================================= */
+/* 地圖容器 Map Container                   */
+/* ======================================= */
+
 #map {
-    background: #1e1e1e; /* 設置一個深色背景 */
+    background: #1e293b;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--border-color);
 }
 
-/* 當 HTML 處於暗黑模式時,對 Leaflet 的圖層應用濾鏡 */
+/* ======================================= */
+/* 響應式設計 Responsive Design             */
+/* ======================================= */
+
+@media (max-width: 768px) {
+    .container {
+        padding: 1rem;
+    }
+    
+    .card {
+        padding: 1.5rem;
+    }
+    
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .btn-group {
+        flex-direction: column;
+    }
+    
+    .btn {
+        width: 100%;
+    }
+    
+    .calendar-grid {
+        gap: 4px;
+    }
+    
+    .notification {
+        right: 1rem;
+        left: 1rem;
+        min-width: auto;
+    }
+}
+
+/* ======================================= */
+/* 暗黑模式 Dark Mode                       */
+/* ======================================= */
+
+html.dark {
+    --bg-primary: #0f172a;
+    --bg-secondary: #1e293b;
+    --bg-tertiary: #334155;
+    --text-primary: #f1f5f9;
+    --text-secondary: #cbd5e1;
+    --text-muted: #64748b;
+    --border-color: #334155;
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.4);
+    --accent-glow: rgba(102, 126, 234, 0.3);
+}
+
+html.dark body::before {
+    background-image: 
+        linear-gradient(rgba(102, 126, 234, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(102, 126, 234, 0.05) 1px, transparent 1px);
+}
+
+html.dark .main-image {
+    background: white;
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+}
+
+html.dark .btn-secondary {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border-color: #475569;
+}
+
+html.dark .btn-secondary:hover {
+    background: #475569;
+}
+
+/* 暗黑模式日曆 */
+html.dark .day-cell.future-day { 
+    background: linear-gradient(135deg, #334155 0%, #475569 100%); 
+    color: #94a3b8; 
+}
+
+html.dark .day-cell.normal-day { 
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%); 
+    color: #e2e8f0;
+}
+
+html.dark .day-cell.abnormal-day { 
+    background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%); 
+    color: #fecaca;
+}
+
+html.dark .day-cell.pending-adjustment { 
+    background: linear-gradient(135deg, #78350f 0%, #92400e 100%); 
+    color: #fde68a;
+}
+
+html.dark .day-cell.pending-virtual { 
+    background: linear-gradient(135deg, #581c87 0%, #6b21a8 100%); 
+    color: #e9d5ff;
+}
+
+html.dark .day-cell.approved-virtual { 
+    background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%); 
+    color: #bfdbfe;
+}
+
+html.dark .day-cell.day-off { 
+    background: linear-gradient(135deg, #134e4a 0%, #115e59 100%); 
+    color: #99f6e4;
+}
+
+html.dark .day-cell.today {
+    background: var(--success-gradient);
+    color: white;
+}
+
+html.dark .day-cell:hover {
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+/* 暗黑模式 Leaflet 地圖 */
 html.dark .leaflet-layer,
 html.dark .leaflet-control-zoom-in,
 html.dark .leaflet-control-zoom-out,
 html.dark .leaflet-control-attribution {
-    /* invert(100%): 顏色完全反轉,亮變暗,暗變亮 */
-    /* hue-rotate(180deg): 可選,調整色調,讓藍色街道不至於變成難看的紅色 */
     filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+}
+
+html.dark #map {
+    background: #0f172a;
+}
+
+/* ======================================= */
+/* 工具類別 Utility Classes                 */
+/* ======================================= */
+
+.text-gradient {
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.glass-effect {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.no-select {
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* ======================================= */
+/* 特殊效果 Special Effects                 */
+/* ======================================= */
+
+/* 發光邊框效果 */
+.glow-border {
+    position: relative;
+}
+
+.glow-border::after {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    background: var(--primary-gradient);
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.glow-border:hover::after {
+    opacity: 0.5;
+    filter: blur(10px);
+}
+
+/* 浮動效果 */
+.floating {
+    animation: floating 3s ease-in-out infinite;
+}
+
+@keyframes floating {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
 }
