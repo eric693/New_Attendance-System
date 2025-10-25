@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>薪資管理系統</title>
+    <title>台灣勞基法薪資管理系統</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
@@ -15,7 +15,6 @@
         :root {
             --primary: #4f46e5;
             --primary-dark: #4338ca;
-            --primary-light: #818cf8;
             --secondary: #10b981;
             --danger: #ef4444;
             --warning: #f59e0b;
@@ -24,7 +23,6 @@
             --text-primary: #1e293b;
             --text-secondary: #64748b;
             --border: #e2e8f0;
-            --shadow: rgba(0, 0, 0, 0.1);
         }
 
         body {
@@ -47,66 +45,53 @@
             padding: 40px;
             border-radius: 20px;
             margin-bottom: 30px;
-            box-shadow: 0 10px 40px var(--shadow);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            color: white;
         }
 
         .header-content {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            color: white;
         }
 
-        .header-title {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .header-icon {
-            width: 50px;
-            height: 50px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-        }
-
-        .header h1 {
+        .header-title h1 {
             font-size: 2em;
             font-weight: 700;
-            margin: 0;
+            margin-bottom: 10px;
         }
 
-        .header p {
-            font-size: 0.95em;
-            opacity: 0.9;
-            margin: 5px 0 0 0;
-        }
-
-        .header-stats {
+        .header-title .subtitle {
             display: flex;
-            gap: 30px;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.95em;
+            opacity: 0.95;
         }
 
-        .stat-item {
-            text-align: center;
-        }
-
-        .stat-value {
-            font-size: 1.8em;
-            font-weight: 700;
-            display: block;
-        }
-
-        .stat-label {
+        .badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 12px;
+            border-radius: 12px;
             font-size: 0.85em;
-            opacity: 0.9;
         }
 
-        /* Navigation Tabs */
+        .back-btn {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Tabs */
         .tabs {
             display: flex;
             gap: 8px;
@@ -114,7 +99,7 @@
             background: var(--surface);
             padding: 8px;
             border-radius: 12px;
-            box-shadow: 0 2px 8px var(--shadow);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
             overflow-x: auto;
         }
 
@@ -133,13 +118,11 @@
 
         .tab:hover {
             background: var(--background);
-            color: var(--text-primary);
         }
 
         .tab.active {
             background: var(--primary);
             color: white;
-            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
         }
 
         /* Content */
@@ -147,30 +130,24 @@
             background: var(--surface);
             border-radius: 16px;
             padding: 40px;
-            box-shadow: 0 2px 16px var(--shadow);
+            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.05);
         }
 
         .tab-content {
             display: none;
-            animation: fadeIn 0.3s ease-in;
         }
 
         .tab-content.active {
             display: block;
+            animation: fadeIn 0.3s ease;
         }
 
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Section Header */
+        /* Section */
         .section-header {
             margin-bottom: 30px;
             padding-bottom: 20px;
@@ -180,16 +157,14 @@
         .section-title {
             font-size: 1.8em;
             font-weight: 600;
-            color: var(--text-primary);
             margin-bottom: 8px;
         }
 
         .section-description {
             color: var(--text-secondary);
-            font-size: 0.95em;
         }
 
-        /* Employee Type Selector */
+        /* Employee Type Cards */
         .employee-type-selector {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -203,24 +178,7 @@
             border-radius: 16px;
             cursor: pointer;
             transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .type-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .type-card:hover::before {
-            opacity: 1;
+            color: white;
         }
 
         .type-card:hover {
@@ -237,19 +195,15 @@
             align-items: center;
             justify-content: center;
             margin-bottom: 20px;
-            font-size: 28px;
         }
 
         .type-card h3 {
-            color: white;
             font-size: 1.5em;
-            font-weight: 600;
             margin-bottom: 10px;
         }
 
         .type-card p {
-            color: rgba(255, 255, 255, 0.9);
-            font-size: 0.95em;
+            opacity: 0.9;
         }
 
         /* Form */
@@ -267,9 +221,13 @@
 
         .form-group label {
             font-weight: 500;
-            color: var(--text-primary);
             margin-bottom: 8px;
             font-size: 0.95em;
+        }
+
+        .form-group label.required::after {
+            content: ' *';
+            color: var(--danger);
         }
 
         .form-group input,
@@ -281,7 +239,6 @@
             font-size: 15px;
             font-family: inherit;
             transition: all 0.3s ease;
-            background: var(--surface);
         }
 
         .form-group input:focus,
@@ -292,9 +249,47 @@
             box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
         }
 
-        .form-group textarea {
-            resize: vertical;
-            min-height: 80px;
+        /* Bank Section */
+        .bank-section {
+            background: var(--background);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .bank-section-title {
+            font-size: 1.1em;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+
+        .bank-info {
+            display: flex;
+            align-items: start;
+            gap: 10px;
+            padding: 12px;
+            background: #e0e7ff;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .bank-info-text {
+            font-size: 0.9em;
+            color: var(--text-secondary);
+        }
+
+        /* Auto Calculated Fields */
+        .auto-calc-field {
+            background: #f0fdf4;
+            border-color: var(--secondary);
+        }
+
+        .auto-calc-label::after {
+            content: ' (自動計算)';
+            font-size: 0.85em;
+            color: var(--secondary);
+            font-weight: normal;
         }
 
         /* Buttons */
@@ -307,10 +302,6 @@
             cursor: pointer;
             transition: all 0.3s ease;
             font-family: inherit;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
         }
 
         .btn-primary {
@@ -331,141 +322,6 @@
 
         .btn-success:hover {
             background: #059669;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 16px rgba(16, 185, 129, 0.3);
-        }
-
-        .btn-danger {
-            background: var(--danger);
-            color: white;
-        }
-
-        .btn-danger:hover {
-            background: #dc2626;
-        }
-
-        /* Card */
-        .card {
-            background: var(--background);
-            border-radius: 12px;
-            padding: 30px;
-            margin-bottom: 20px;
-            border: 1px solid var(--border);
-        }
-
-        .card-title {
-            font-size: 1.3em;
-            font-weight: 600;
-            color: var(--primary);
-            margin-bottom: 20px;
-        }
-
-        /* Info Grid */
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 16px;
-        }
-
-        .info-item {
-            background: white;
-            padding: 16px;
-            border-radius: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border: 1px solid var(--border);
-        }
-
-        .info-label {
-            color: var(--text-secondary);
-            font-size: 0.9em;
-            font-weight: 500;
-        }
-
-        .info-value {
-            font-weight: 600;
-            color: var(--text-primary);
-            font-size: 1.1em;
-        }
-
-        /* Table */
-        .table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-            margin-top: 20px;
-        }
-
-        .table thead tr {
-            background: var(--primary);
-        }
-
-        .table th {
-            padding: 16px;
-            text-align: left;
-            color: white;
-            font-weight: 600;
-            font-size: 0.9em;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .table th:first-child {
-            border-radius: 8px 0 0 0;
-        }
-
-        .table th:last-child {
-            border-radius: 0 8px 0 0;
-        }
-
-        .table td {
-            padding: 16px;
-            border-bottom: 1px solid var(--border);
-            color: var(--text-primary);
-        }
-
-        .table tbody tr {
-            background: white;
-            transition: background 0.2s ease;
-        }
-
-        .table tbody tr:hover {
-            background: var(--background);
-        }
-
-        .table tfoot tr {
-            background: var(--background);
-            font-weight: 600;
-        }
-
-        .table tfoot td {
-            padding: 16px;
-            border: none;
-        }
-
-        /* Status Badge */
-        .status-badge {
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 0.85em;
-            font-weight: 600;
-            display: inline-block;
-        }
-
-        .status-active {
-            background: #d1fae5;
-            color: #065f46;
-        }
-
-        .status-inactive {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
-        .status-draft {
-            background: #fef3c7;
-            color: #92400e;
         }
 
         /* Message */
@@ -474,7 +330,6 @@
             border-radius: 8px;
             margin-bottom: 24px;
             display: none;
-            font-weight: 500;
         }
 
         .message.success {
@@ -489,6 +344,13 @@
             border-left: 4px solid var(--danger);
         }
 
+        /* Helper Text */
+        .helper-text {
+            font-size: 0.85em;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
         /* Loading */
         .loading {
             text-align: center;
@@ -496,71 +358,20 @@
             color: var(--text-secondary);
         }
 
-        .loading::after {
-            content: '';
-            display: block;
-            width: 40px;
-            height: 40px;
-            margin: 20px auto;
-            border: 4px solid var(--border);
-            border-top-color: var(--primary);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
         /* Responsive */
         @media (max-width: 768px) {
-            body {
-                padding: 10px;
-            }
-
-            .header {
-                padding: 30px 20px;
-            }
-
             .header-content {
                 flex-direction: column;
                 gap: 20px;
                 text-align: center;
             }
 
-            .header h1 {
-                font-size: 1.5em;
-            }
-
             .content {
                 padding: 24px;
             }
 
-            .tabs {
-                flex-direction: column;
-            }
-
-            .tab {
-                width: 100%;
-            }
-
             .form-row {
                 grid-template-columns: 1fr;
-            }
-        }
-
-        /* Dark mode support */
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --background: #0f172a;
-                --surface: #1e293b;
-                --text-primary: #f1f5f9;
-                --text-secondary: #94a3b8;
-                --border: #334155;
-            }
-
-            .type-card {
-                background: linear-gradient(135deg, #4338ca 0%, #6366f1 100%);
             }
         }
     </style>
@@ -571,37 +382,23 @@
         <div class="header">
             <div class="header-content">
                 <div class="header-title">
-                    <div class="header-icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect x="2" y="5" width="20" height="14" rx="2"/>
-                            <line x1="2" y1="10" x2="22" y2="10"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <h1>薪資管理系統</h1>
-                        <p>支援月薪制與時薪制員工管理</p>
+                    <h1>台灣勞基法薪資管理系統</h1>
+                    <div class="subtitle">
+                        <span>完全符合中華民國勞動基準法規定</span>
+                        <span class="badge">2024年基本工資: 月薪27,470元 | 時薪183元</span>
                     </div>
                 </div>
-                <div class="header-stats">
-                    <div class="stat-item">
-                        <span class="stat-value">--</span>
-                        <span class="stat-label">員工總數</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-value">--</span>
-                        <span class="stat-label">本月薪資</span>
-                    </div>
-                </div>
+                <button class="back-btn" onclick="window.location.href='index.html'">返回主頁</button>
             </div>
         </div>
 
-        <!-- Navigation -->
+        <!-- Tabs -->
         <div class="tabs">
             <button class="tab active" onclick="switchTab('employee-setup')">員工薪資設定</button>
             <button class="tab" onclick="switchTab('monthly-salary')">月薪計算</button>
-            <button class="tab" onclick="switchTab('hourly-salary')">時薪明細</button>
-            <button class="tab" onclick="switchTab('salary-list')">薪資列表</button>
-            <button class="tab" onclick="switchTab('reports')">報表分析</button>
+            <button class="tab" onclick="switchTab('insurance-calc')">勞健保試算</button>
+            <button class="tab" onclick="switchTab('overtime-calc')">加班費計算</button>
+            <button class="tab" onclick="switchTab('reports')">薪資報表</button>
         </div>
 
         <!-- Content -->
@@ -612,9 +409,9 @@
             <div id="employee-setup" class="tab-content active">
                 <div class="section-header">
                     <h2 class="section-title">員工薪資設定</h2>
-                    <p class="section-description">設定員工基本薪資資訊、扣款項目與銀行帳號</p>
+                    <p class="section-description">設定員工基本資料、薪資、銀行帳號及勞健保資訊</p>
                 </div>
-                
+
                 <div class="employee-type-selector">
                     <div class="type-card" onclick="selectEmployeeType('fulltime')">
                         <div class="type-card-icon">
@@ -624,7 +421,7 @@
                             </svg>
                         </div>
                         <h3>全職員工</h3>
-                        <p>月薪制 | 固定薪資</p>
+                        <p>月薪制 | 固定薪資 | 勞健保</p>
                     </div>
                     <div class="type-card" onclick="selectEmployeeType('parttime')">
                         <div class="type-card-icon">
@@ -638,69 +435,156 @@
                     </div>
                 </div>
 
-                <form id="employee-salary-form">
+                <form id="employee-salary-form" onsubmit="saveEmployeeSalary(event)">
+                    <!-- 基本資料 -->
                     <div class="form-row">
                         <div class="form-group">
-                            <label>員工ID *</label>
+                            <label class="required">員工ID</label>
                             <input type="text" id="employeeId" required placeholder="請輸入員工ID">
                         </div>
                         <div class="form-group">
-                            <label>員工姓名 *</label>
+                            <label class="required">員工姓名</label>
                             <input type="text" id="employeeName" required placeholder="請輸入員工姓名">
+                        </div>
+                        <div class="form-group">
+                            <label>身分證字號</label>
+                            <input type="text" id="idNumber" placeholder="A123456789" maxlength="10">
+                            <span class="helper-text">用於勞健保投保</span>
                         </div>
                     </div>
 
                     <div class="form-row">
                         <div class="form-group">
-                            <label>員工類型 *</label>
+                            <label class="required">員工類型</label>
                             <select id="employeeType" onchange="updateSalaryType()">
                                 <option value="全職">全職</option>
                                 <option value="兼職">兼職</option>
+                                <option value="派遣">派遣</option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>薪資類型 *</label>
+                            <label class="required">薪資類型</label>
                             <select id="salaryType">
                                 <option value="月薪">月薪</option>
                                 <option value="時薪">時薪</option>
+                                <option value="日薪">日薪</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="required">入職日期</label>
+                            <input type="date" id="hireDate" required>
+                            <span class="helper-text">用於計算特休天數</span>
+                        </div>
+                    </div>
+
+                    <!-- 薪資設定 -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="required" id="baseSalaryLabel">基本薪資 (月薪)</label>
+                            <input type="number" id="baseSalary" required min="27470" placeholder="不得低於27,470元">
+                            <span class="helper-text">2024年基本工資: 27,470元</span>
+                        </div>
+                        <div class="form-group">
+                            <label class="auto-calc-label">平日時薪</label>
+                            <input type="number" id="hourlyWage" class="auto-calc-field" readonly>
+                            <span class="helper-text">月薪 ÷ 240小時</span>
+                        </div>
+                        <div class="form-group">
+                            <label>薪資發放日</label>
+                            <select id="paymentDay">
+                                <option value="5">每月5日</option>
+                                <option value="10">每月10日</option>
+                                <option value="15">每月15日</option>
+                                <option value="20">每月20日</option>
+                                <option value="25">每月25日</option>
                             </select>
                         </div>
                     </div>
 
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label id="baseSalaryLabel">基本薪資 (月薪) *</label>
-                            <input type="number" id="baseSalary" required min="0" placeholder="請輸入金額">
+                    <!-- 銀行帳號 -->
+                    <div class="bank-section">
+                        <div class="bank-section-title">銀行帳號資訊</div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>銀行代碼</label>
+                                <select id="bankCode">
+                                    <option value="">-- 請選擇銀行 --</option>
+                                    <option value="004">004 - 臺灣銀行</option>
+                                    <option value="005">005 - 臺灣土地銀行</option>
+                                    <option value="006">006 - 合作金庫</option>
+                                    <option value="007">007 - 第一銀行</option>
+                                    <option value="008">008 - 華南銀行</option>
+                                    <option value="009">009 - 彰化銀行</option>
+                                    <option value="011">011 - 上海商銀</option>
+                                    <option value="012">012 - 台北富邦</option>
+                                    <option value="013">013 - 國泰世華</option>
+                                    <option value="017">017 - 兆豐銀行</option>
+                                    <option value="803">803 - 聯邦銀行</option>
+                                    <option value="805">805 - 遠東銀行</option>
+                                    <option value="806">806 - 元大銀行</option>
+                                    <option value="807">807 - 永豐銀行</option>
+                                    <option value="808">808 - 玉山銀行</option>
+                                    <option value="809">809 - 凱基銀行</option>
+                                    <option value="812">812 - 台新銀行</option>
+                                    <option value="822">822 - 中國信託</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>分行代碼</label>
+                                <input type="text" id="branchCode" placeholder="0822" maxlength="4">
+                                <span class="helper-text">4碼分行代碼</span>
+                            </div>
+                            <div class="form-group">
+                                <label>銀行帳號</label>
+                                <input type="text" id="bankAccount" placeholder="請輸入完整帳號">
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label>加班費率</label>
-                            <input type="number" id="overtimeRate" value="1.34" step="0.01" placeholder="1.34">
+                        <div class="bank-info">
+                            <span class="bank-info-text">
+                                💡 請確認銀行代碼、分行代碼及帳號正確無誤。例如: 玉山銀行(808) 南港分行(0822) 帳號(1234567890)
+                            </span>
                         </div>
                     </div>
 
-                    <div class="form-row" id="deduction-fields">
+                    <!-- 勞健保設定 -->
+                    <div class="form-row">
                         <div class="form-group">
-                            <label>勞保</label>
-                            <input type="number" id="laborInsurance" value="0" min="0" placeholder="0">
+                            <label class="auto-calc-label">勞保投保薪資</label>
+                            <input type="number" id="laborInsuredSalary" class="auto-calc-field" readonly>
+                            <span class="helper-text">依投保級距表自動計算</span>
                         </div>
                         <div class="form-group">
-                            <label>健保</label>
-                            <input type="number" id="healthInsurance" value="0" min="0" placeholder="0">
+                            <label class="auto-calc-label">勞保費(個人20%)</label>
+                            <input type="number" id="laborFee" class="auto-calc-field" readonly>
                         </div>
                         <div class="form-group">
-                            <label>所得稅</label>
-                            <input type="number" id="incomeTax" value="0" min="0" placeholder="0">
+                            <label class="auto-calc-label">健保費(個人30%)</label>
+                            <input type="number" id="healthFee" class="auto-calc-field" readonly>
                         </div>
                     </div>
 
                     <div class="form-row">
                         <div class="form-group">
-                            <label>銀行帳號</label>
-                            <input type="text" id="bankAccount" placeholder="請輸入銀行帳號">
+                            <label class="auto-calc-label">就業保險費(個人20%)</label>
+                            <input type="number" id="employmentFee" class="auto-calc-field" readonly>
                         </div>
                         <div class="form-group">
-                            <label>入職日期</label>
-                            <input type="date" id="hireDate">
+                            <label>勞退自提率</label>
+                            <select id="pensionSelfRate">
+                                <option value="0">0% (不自提)</option>
+                                <option value="1">1%</option>
+                                <option value="2">2%</option>
+                                <option value="3">3%</option>
+                                <option value="4">4%</option>
+                                <option value="5">5%</option>
+                                <option value="6">6%</option>
+                            </select>
+                            <span class="helper-text">雇主最低提撥6%</span>
+                        </div>
+                        <div class="form-group">
+                            <label class="auto-calc-label">特休天數</label>
+                            <input type="number" id="annualLeaveDays" class="auto-calc-field" readonly>
+                            <span class="helper-text">依年資自動計算</span>
                         </div>
                     </div>
 
@@ -713,105 +597,187 @@
                 </form>
             </div>
 
-            <!-- 月薪計算 -->
+            <!-- 其他標籤內容 -->
             <div id="monthly-salary" class="tab-content">
                 <div class="section-header">
                     <h2 class="section-title">月薪計算</h2>
                     <p class="section-description">自動計算員工月薪資，包含加班費、扣款項目</p>
                 </div>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>選擇員工</label>
-                        <select id="monthly-employeeId">
-                            <option value="">-- 請選擇員工 --</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>年月</label>
-                        <input type="month" id="monthly-yearMonth">
-                    </div>
-                    <div class="form-group" style="display: flex; align-items: flex-end;">
-                        <button class="btn btn-primary" onclick="calculateMonthly()">計算薪資</button>
-                    </div>
-                </div>
-
-                <div id="monthly-result" class="card" style="display: none;">
-                    <h3 class="card-title">薪資明細</h3>
-                    <div class="info-grid" id="monthly-info"></div>
-                    <button class="btn btn-success" onclick="saveMonthlySalary()" style="margin-top: 20px;">儲存薪資單</button>
-                </div>
+                <p style="color: var(--text-secondary);">功能開發中...</p>
             </div>
 
-            <!-- 時薪明細 -->
-            <div id="hourly-salary" class="tab-content">
+            <div id="insurance-calc" class="tab-content">
                 <div class="section-header">
-                    <h2 class="section-title">時薪明細</h2>
-                    <p class="section-description">查詢兼職員工的時薪計算明細</p>
+                    <h2 class="section-title">勞健保試算</h2>
+                    <p class="section-description">快速試算勞健保費用</p>
                 </div>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>選擇員工</label>
-                        <select id="hourly-employeeId">
-                            <option value="">-- 請選擇員工 --</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>年月</label>
-                        <input type="month" id="hourly-yearMonth">
-                    </div>
-                    <div class="form-group" style="display: flex; align-items: flex-end;">
-                        <button class="btn btn-primary" onclick="loadHourlySalary()">查詢明細</button>
-                    </div>
-                </div>
-
-                <div id="hourly-result" style="display: none;">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>日期</th>
-                                <th>工作時數</th>
-                                <th>平日時數</th>
-                                <th>加班時數</th>
-                                <th>假日時數</th>
-                                <th>薪資小計</th>
-                            </tr>
-                        </thead>
-                        <tbody id="hourly-table-body"></tbody>
-                        <tfoot>
-                            <tr>
-                                <td>總計</td>
-                                <td id="total-hours">-</td>
-                                <td colspan="3"></td>
-                                <td id="total-pay">-</td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
+                <p style="color: var(--text-secondary);">功能開發中...</p>
             </div>
 
-            <!-- 薪資列表 -->
-            <div id="salary-list" class="tab-content">
+            <div id="overtime-calc" class="tab-content">
                 <div class="section-header">
-                    <h2 class="section-title">薪資列表</h2>
-                    <p class="section-description">查看所有員工的薪資記錄</p>
+                    <h2 class="section-title">加班費計算</h2>
+                    <p class="section-description">依勞基法第24條計算加班費</p>
                 </div>
-                <div id="salary-list-content" class="loading">載入中</div>
+                <p style="color: var(--text-secondary);">功能開發中...</p>
             </div>
 
-            <!-- 報表分析 -->
             <div id="reports" class="tab-content">
                 <div class="section-header">
-                    <h2 class="section-title">報表分析</h2>
+                    <h2 class="section-title">薪資報表</h2>
                     <p class="section-description">薪資統計與分析圖表</p>
                 </div>
-                <p style="color: var(--text-secondary);">報表功能開發中</p>
+                <p style="color: var(--text-secondary);">功能開發中...</p>
             </div>
         </div>
     </div>
 
     <script src="config.js"></script>
-    <script src="salary.js"></script>
+    <script>
+        // Tab 切換
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            event.target.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        // 員工類型選擇
+        function selectEmployeeType(type) {
+            const employeeTypeSelect = document.getElementById('employeeType');
+            const salaryTypeSelect = document.getElementById('salaryType');
+            
+            if (type === 'fulltime') {
+                employeeTypeSelect.value = '全職';
+                salaryTypeSelect.value = '月薪';
+            } else {
+                employeeTypeSelect.value = '兼職';
+                salaryTypeSelect.value = '時薪';
+            }
+            
+            updateSalaryType();
+        }
+
+        // 更新薪資類型
+        function updateSalaryType() {
+            const employeeType = document.getElementById('employeeType').value;
+            const salaryTypeSelect = document.getElementById('salaryType');
+            const baseSalaryLabel = document.getElementById('baseSalaryLabel');
+            
+            if (employeeType === '全職') {
+                salaryTypeSelect.value = '月薪';
+                baseSalaryLabel.textContent = '基本薪資 (月薪)';
+            } else {
+                salaryTypeSelect.value = '時薪';
+                baseSalaryLabel.textContent = '基本薪資 (時薪)';
+            }
+        }
+
+        // 計算平日時薪
+        document.getElementById('baseSalary').addEventListener('input', function() {
+            const baseSalary = parseFloat(this.value) || 0;
+            const hourlyWage = Math.round(baseSalary / 240);
+            document.getElementById('hourlyWage').value = hourlyWage;
+            
+            // 簡易勞健保計算 (實際應該查表)
+            const laborInsuredSalary = baseSalary > 45800 ? 45800 : (baseSalary < 27470 ? 27470 : Math.ceil(baseSalary / 300) * 300);
+            document.getElementById('laborInsuredSalary').value = laborInsuredSalary;
+            
+            const laborFee = Math.round(laborInsuredSalary * 0.11 * 0.20);
+            const healthFee = Math.round(laborInsuredSalary * 0.0517 * 0.30);
+            const employmentFee = Math.round(laborInsuredSalary * 0.01 * 0.20);
+            
+            document.getElementById('laborFee').value = laborFee;
+            document.getElementById('healthFee').value = healthFee;
+            document.getElementById('employmentFee').value = employmentFee;
+        });
+
+        // 計算特休天數
+        document.getElementById('hireDate').addEventListener('change', function() {
+            const hireDate = new Date(this.value);
+            const now = new Date();
+            const months = (now.getFullYear() - hireDate.getFullYear()) * 12 + (now.getMonth() - hireDate.getMonth());
+            
+            let annualDays = 0;
+            if (months >= 120) {
+                const years = Math.floor(months / 12);
+                annualDays = 15 + (years - 10 + 1);
+            } else if (months >= 60) {
+                annualDays = 15;
+            } else if (months >= 36) {
+                annualDays = 14;
+            } else if (months >= 24) {
+                annualDays = 10;
+            } else if (months >= 12) {
+                annualDays = 7;
+            } else if (months >= 6) {
+                annualDays = 3;
+            }
+            
+            document.getElementById('annualLeaveDays').value = annualDays;
+        });
+
+        // 儲存員工薪資
+        async function saveEmployeeSalary(event) {
+            event.preventDefault();
+            
+            const salaryData = {
+                employeeId: document.getElementById('employeeId').value,
+                employeeName: document.getElementById('employeeName').value,
+                idNumber: document.getElementById('idNumber').value,
+                employeeType: document.getElementById('employeeType').value,
+                salaryType: document.getElementById('salaryType').value,
+                baseSalary: document.getElementById('baseSalary').value,
+                bankCode: document.getElementById('bankCode').value,
+                branchCode: document.getElementById('branchCode').value,
+                bankAccount: document.getElementById('bankAccount').value,
+                hireDate: document.getElementById('hireDate').value,
+                paymentDay: document.getElementById('paymentDay').value,
+                pensionSelfRate: document.getElementById('pensionSelfRate').value,
+                note: document.getElementById('note').value
+            };
+            
+            try {
+                const token = localStorage.getItem('sessionToken');
+                const response = await fetch(`${API_CONFIG.apiUrl}?action=setEmployeeSalaryTW&token=${token}`, {
+                    method: 'POST',
+                    body: JSON.stringify(salaryData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage('儲存成功!', 'success');
+                } else {
+                    showMessage(result.message || '儲存失敗', 'error');
+                }
+            } catch (error) {
+                console.error('儲存失敗:', error);
+                showMessage('儲存失敗，請稍後再試', 'error');
+            }
+        }
+
+        // 顯示訊息
+        function showMessage(text, type) {
+            const message = document.getElementById('message');
+            message.textContent = text;
+            message.className = `message ${type}`;
+            message.style.display = 'block';
+            
+            setTimeout(() => {
+                message.style.display = 'none';
+            }, 5000);
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('薪資管理系統已載入');
+        });
+    </script>
 </body>
 </html>

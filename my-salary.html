@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的薪資明細</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #4f46e5;
+            --primary-dark: #4338ca;
+            --secondary: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --background: #f8fafc;
+            --surface: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--background);
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            padding: 40px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            color: white;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title h1 {
+            font-size: 2em;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .header-title p {
+            opacity: 0.95;
+        }
+
+        .back-btn {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Month Selector */
+        .month-selector {
+            background: var(--surface);
+            padding: 24px;
+            border-radius: 16px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.05);
+        }
+
+        .month-selector-content {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .month-selector label {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .month-selector input {
+            padding: 12px 16px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: inherit;
+            transition: all 0.3s;
+        }
+
+        .month-selector input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .btn-query {
+            padding: 12px 30px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-query:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(79, 70, 229, 0.3);
+        }
+
+        /* Salary Card */
+        .salary-card {
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+
+        .salary-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 24px;
+            border-bottom: 2px solid var(--border);
+            margin-bottom: 30px;
+        }
+
+        .salary-title {
+            font-size: 1.5em;
+            font-weight: 600;
+        }
+
+        .salary-status {
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        .status-paid {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        /* Summary Box */
+        .summary-box {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 32px;
+            border-radius: 16px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .summary-label {
+            font-size: 0.95em;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+
+        .summary-amount {
+            font-size: 3em;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .summary-date {
+            font-size: 0.9em;
+            opacity: 0.85;
+        }
+
+        /* Detail Section */
+        .detail-section {
+            margin-bottom: 32px;
+        }
+
+        .section-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .detail-item {
+            background: var(--background);
+            padding: 16px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .detail-label {
+            color: var(--text-secondary);
+            font-size: 0.9em;
+        }
+
+        .detail-value {
+            font-weight: 600;
+            font-size: 1.1em;
+            color: var(--text-primary);
+        }
+
+        .detail-value.positive {
+            color: var(--secondary);
+        }
+
+        .detail-value.negative {
+            color: var(--danger);
+        }
+
+        /* Total Box */
+        .total-box {
+            background: var(--background);
+            padding: 24px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.2em;
+            font-weight: 600;
+            border: 2px solid var(--primary);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .empty-text {
+            font-size: 1.1em;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+
+        .loading::after {
+            content: '';
+            display: block;
+            width: 40px;
+            height: 40px;
+            margin: 20px auto;
+            border: 4px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Message */
+        .message {
+            padding: 16px 20px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            display: none;
+        }
+
+        .message.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border-left: 4px solid var(--danger);
+        }
+
+        .message.info {
+            background: #dbeafe;
+            color: #1e40af;
+            border-left: 4px solid var(--primary);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+
+            .month-selector-content {
+                flex-direction: column;
+            }
+
+            .summary-amount {
+                font-size: 2em;
+            }
+
+            .detail-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .total-box {
+                flex-direction: column;
+                gap: 12px;
+                text-align: center;
+            }
+        }
+
+        /* Print Styles */
+        @media print {
+            body {
+                background: white;
+            }
+
+            .back-btn,
+            .month-selector {
+                display: none;
+            }
+
+            .salary-card {
+                box-shadow: none;
+                border: 1px solid #ddd;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-content">
+                <div class="header-title">
+                    <h1>我的薪資明細</h1>
+                    <p id="employee-name">載入中...</p>
+                </div>
+                <button class="back-btn" onclick="window.history.back()">返回</button>
+            </div>
+        </div>
+
+        <!-- Month Selector -->
+        <div class="month-selector">
+            <div class="month-selector-content">
+                <label>查詢月份:</label>
+                <input type="month" id="query-month" value="">
+                <button class="btn-query" onclick="loadMySalary()">查詢</button>
+                <button class="btn-query" onclick="window.print()" style="background: var(--secondary);">列印</button>
+            </div>
+        </div>
+
+        <div id="message" class="message"></div>
+
+        <!-- Salary Content -->
+        <div id="salary-content" class="loading">載入中</div>
+
+    </div>
+
+    <script src="config.js"></script>
+    <script>
+        // 取得當前年月
+        function getCurrentYearMonth() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            return `${year}-${month}`;
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            // 設定預設月份為上個月 (因為薪資通常是月底發放)
+            const now = new Date();
+            now.setMonth(now.getMonth() - 1);
+            const lastMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            document.getElementById('query-month').value = lastMonth;
+
+            // 載入員工名稱
+            const employeeName = localStorage.getItem('sessionUserName') || '員工';
+            document.getElementById('employee-name').textContent = `${employeeName} 的薪資記錄`;
+
+            // 自動載入上個月薪資
+            loadMySalary();
+        });
+
+        // 載入我的薪資
+        async function loadMySalary() {
+            const content = document.getElementById('salary-content');
+            const message = document.getElementById('message');
+            const queryMonth = document.getElementById('query-month').value;
+
+            if (!queryMonth) {
+                showMessage('請選擇查詢月份', 'error');
+                return;
+            }
+
+            content.innerHTML = '<div class="loading">載入中</div>';
+            message.style.display = 'none';
+
+            try {
+                const token = localStorage.getItem('sessionToken');
+                const userId = localStorage.getItem('sessionUserId');
+
+                if (!token || !userId) {
+                    showMessage('請先登入', 'error');
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 2000);
+                    return;
+                }
+
+                // 呼叫後端 API
+                const response = await fetch(`${API_CONFIG.apiUrl}?action=getMySalary&token=${token}&yearMonth=${queryMonth}`);
+                const result = await response.json();
+
+                if (result.success && result.data) {
+                    renderSalary(result.data);
+                } else {
+                    renderEmptyState(queryMonth);
+                }
+
+            } catch (error) {
+                console.error('載入薪資失敗:', error);
+                showMessage('載入失敗,請稍後再試', 'error');
+                content.innerHTML = '';
+            }
+        }
+
+        // 顯示薪資明細
+        function renderSalary(data) {
+            const content = document.getElementById('salary-content');
+            
+            const html = `
+                <div class="salary-card">
+                    <div class="salary-header">
+                        <div class="salary-title">${data.yearMonth} 薪資明細</div>
+                        <div class="salary-status status-${data.status === '已發放' ? 'paid' : 'pending'}">
+                            ${data.status || '處理中'}
+                        </div>
+                    </div>
+
+                    <!-- 實發薪資 -->
+                    <div class="summary-box">
+                        <div class="summary-label">實發薪資</div>
+                        <div class="summary-amount">NT$ ${formatNumber(data.netSalary)}</div>
+                        <div class="summary-date">發放日期: ${data.paymentDate || '待確認'}</div>
+                    </div>
+
+                    <!-- 應發項目 -->
+                    <div class="detail-section">
+                        <div class="section-title">應發項目</div>
+                        <div class="detail-grid">
+                            <div class="detail-item">
+                                <span class="detail-label">基本薪資</span>
+                                <span class="detail-value positive">+${formatNumber(data.baseSalary)}</span>
+                            </div>
+                            ${data.fullAttendanceBonus ? `
+                            <div class="detail-item">
+                                <span class="detail-label">全勤獎金</span>
+                                <span class="detail-value positive">+${formatNumber(data.fullAttendanceBonus)}</span>
+                            </div>
+                            ` : ''}
+                            ${data.positionAllowance ? `
+                            <div class="detail-item">
+                                <span class="detail-label">職務加給</span>
+                                <span class="detail-value positive">+${formatNumber(data.positionAllowance)}</span>
+                            </div>
+                            ` : ''}
+                            ${data.mealAllowance ? `
+                            <div class="detail-item">
+                                <span class="detail-label">伙食津貼</span>
+                                <span class="detail-value positive">+${formatNumber(data.mealAllowance)}</span>
+                            </div>
+                            ` : ''}
+                            ${data.transportAllowance ? `
+                            <div class="detail-item">
+                                <span class="detail-label">交通津貼</span>
+                                <span class="detail-value positive">+${formatNumber(data.transportAllowance)}</span>
+                            </div>
+                            ` : ''}
+                            ${data.overtimePay ? `
+                            <div class="detail-item">
+                                <span class="detail-label">加班費</span>
+                                <span class="detail-value positive">+${formatNumber(data.overtimePay)}</span>
+                            </div>
+                            ` : ''}
+                        </div>
+                        <div class="total-box" style="margin-top: 16px;">
+                            <span>應發小計</span>
+                            <span class="detail-value positive">NT$ ${formatNumber(data.grossSalary)}</span>
+                        </div>
+                    </div>
+
+                    <!-- 扣款項目 -->
+                    <div class="detail-section">
+                        <div class="section-title">扣款項目</div>
+                        <div class="detail-grid">
+                            ${data.laborInsurance ? `
+                            <div class="detail-item">
+                                <span class="detail-label">勞保費</span>
+                                <span class="detail-value negative">-${formatNumber(data.laborInsurance)}</span>
+                            </div>
+                            ` : ''}
+                            ${data.healthInsurance ? `
+                            <div class="detail-item">
+                                <span class="detail-label">健保費</span>
+                                <span class="detail-value negative">-${formatNumber(data.healthInsurance)}</span>
+                            </div>
+                            ` : ''}
+                            ${data.employmentInsurance ? `
+                            <div class="detail-item">
+                                <span class="detail-label">就業保險</span>
+                                <span class="detail-value negative">-${formatNumber(data.employmentInsurance)}</span>
+                            </div>
+                            ` : ''}
+                            ${data.pensionSelf ? `
+                            <div class="detail-item">
+                                <span class="detail-label">勞退自提</span>
+                                <span class="detail-value negative">-${formatNumber(data.pensionSelf)}</span>
+                            </div>
+                            ` : ''}
+                            ${data.incomeTax ? `
+                            <div class="detail-item">
+                                <span class="detail-label">所得稅</span>
+                                <span class="detail-value negative">-${formatNumber(data.incomeTax)}</span>
+                            </div>
+                            ` : ''}
+                            ${data.leaveDeduction ? `
+                            <div class="detail-item">
+                                <span class="detail-label">請假扣款</span>
+                                <span class="detail-value negative">-${formatNumber(data.leaveDeduction)}</span>
+                            </div>
+                            ` : ''}
+                            ${data.lateDeduction ? `
+                            <div class="detail-item">
+                                <span class="detail-label">遲到扣款</span>
+                                <span class="detail-value negative">-${formatNumber(data.lateDeduction)}</span>
+                            </div>
+                            ` : ''}
+                        </div>
+                        <div class="total-box" style="margin-top: 16px;">
+                            <span>扣款小計</span>
+                            <span class="detail-value negative">NT$ ${formatNumber(data.totalDeduction)}</span>
+                        </div>
+                    </div>
+
+                    <!-- 銀行資訊 -->
+                    ${data.bankAccount ? `
+                    <div class="detail-section">
+                        <div class="section-title">匯款資訊</div>
+                        <div class="detail-grid">
+                            <div class="detail-item">
+                                <span class="detail-label">銀行代碼</span>
+                                <span class="detail-value">${data.bankCode || '-'}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">銀行帳號</span>
+                                <span class="detail-value">${maskBankAccount(data.bankAccount)}</span>
+                            </div>
+                        </div>
+                    </div>
+                    ` : ''}
+
+                    <!-- 備註 -->
+                    ${data.note ? `
+                    <div class="detail-section">
+                        <div class="section-title">備註</div>
+                        <div style="padding: 16px; background: var(--background); border-radius: 12px; color: var(--text-secondary);">
+                            ${data.note}
+                        </div>
+                    </div>
+                    ` : ''}
+                </div>
+            `;
+
+            content.innerHTML = html;
+        }
+
+        // 顯示空狀態
+        function renderEmptyState(month) {
+            const content = document.getElementById('salary-content');
+            content.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">📄</div>
+                    <div class="empty-text">查無 ${month} 的薪資記錄</div>
+                    <div style="margin-top: 12px; color: var(--text-secondary); font-size: 0.9em;">
+                        請選擇其他月份或聯繫人資部門
+                    </div>
+                </div>
+            `;
+        }
+
+        // 顯示訊息
+        function showMessage(text, type) {
+            const message = document.getElementById('message');
+            message.textContent = text;
+            message.className = `message ${type}`;
+            message.style.display = 'block';
+            
+            setTimeout(() => {
+                message.style.display = 'none';
+            }, 5000);
+        }
+
+        // 格式化數字
+        function formatNumber(num) {
+            if (!num) return '0';
+            return parseInt(num).toLocaleString('zh-TW');
+        }
+
+        // 遮蔽銀行帳號
+        function maskBankAccount(account) {
+            if (!account || account.length < 8) return account;
+            const visible = 4;
+            const masked = account.slice(0, visible) + '*'.repeat(account.length - visible * 2) + account.slice(-visible);
+            return masked;
+        }
+    </script>
+</body>
+</html>
