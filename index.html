@@ -534,7 +534,7 @@
                     
                 </section>
                 
-                <!-- 👇 薪資頁面 (Salary View) - 新增 -->
+                <!-- 👇 薪資頁面 (Salary View) -->
                 <section id="salary-view" class="space-y-6" style="display: none;">
                     
                     <!-- 一般員工：我的薪資 -->
@@ -542,10 +542,13 @@
                         
                         <!-- 本月薪資卡片 -->
                         <div class="card p-8">
-                            <div class="section-header">
+                            <div class="section-header mb-6">
                                 <h2 class="text-2xl font-bold text-gray-800 dark:text-white" data-i18n="SALARY_CURRENT_TITLE">
                                     本月薪資
                                 </h2>
+                                <p class="text-gray-500 dark:text-gray-400 mt-2" data-i18n="SALARY_CURRENT_DESCRIPTION">
+                                    查看您本月的薪資明細
+                                </p>
                             </div>
                             
                             <div id="current-salary-loading" class="text-center py-12">
@@ -554,7 +557,7 @@
                             </div>
                             
                             <div id="current-salary-empty" class="text-center py-12 text-gray-500" style="display: none;">
-                                <div class="text-6xl mb-4 opacity-20">₪</div>
+                                <div class="text-6xl mb-4 opacity-20">💰</div>
                                 <p class="text-lg font-medium" data-i18n="SALARY_NOT_CALCULATED">本月薪資尚未計算</p>
                                 <p class="text-sm mt-2" data-i18n="SALARY_CONTACT_ADMIN">請聯繫管理員進行薪資計算</p>
                             </div>
@@ -562,45 +565,47 @@
                             <div id="current-salary-content" style="display: none;">
                                 <!-- 薪資概覽 -->
                                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                                    <div class="metric-card">
-                                        <div class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2" data-i18n="SALARY_GROSS">
+                                    <div class="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30 p-6 rounded-xl border border-blue-200 dark:border-blue-700">
+                                        <div class="text-sm font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-2" data-i18n="SALARY_GROSS">
                                             應發總額
                                         </div>
-                                        <div class="amount-display" id="gross-salary">--</div>
+                                        <div class="text-3xl font-bold text-blue-900 dark:text-blue-100" id="gross-salary">--</div>
                                     </div>
-                                    <div class="metric-card">
-                                        <div class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2" data-i18n="SALARY_DEDUCTIONS">
+                                    <div class="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/30 dark:to-red-800/30 p-6 rounded-xl border border-red-200 dark:border-red-700">
+                                        <div class="text-sm font-semibold text-red-600 dark:text-red-400 uppercase tracking-wider mb-2" data-i18n="SALARY_DEDUCTIONS">
                                             扣款總額
                                         </div>
-                                        <div class="amount-display text-red-500" id="total-deductions">--</div>
+                                        <div class="text-3xl font-bold text-red-900 dark:text-red-100" id="total-deductions">--</div>
                                     </div>
-                                    <div class="metric-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">
+                                    <div class="bg-gradient-to-br from-indigo-500 to-purple-600 p-6 rounded-xl border-none shadow-lg">
                                         <div class="text-sm font-semibold text-white uppercase tracking-wider mb-2" data-i18n="SALARY_NET">
                                             實發金額
                                         </div>
-                                        <div class="amount-display text-white" id="net-salary">--</div>
+                                        <div class="text-3xl font-bold text-white" id="net-salary">--</div>
                                     </div>
                                 </div>
                                 
                                 <!-- 詳細資訊 -->
                                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                     <!-- 應發項目 -->
-                                    <div class="detail-section">
-                                        <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-4" data-i18n="SALARY_EARNINGS">應發項目</h3>
-                                        <div class="space-y-1">
-                                            <div class="detail-row">
+                                    <div class="bg-gray-50 dark:bg-gray-800/50 p-6 rounded-xl">
+                                        <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-4 flex items-center" data-i18n="SALARY_EARNINGS">
+                                            <span class="mr-2">💵</span>應發項目
+                                        </h3>
+                                        <div class="space-y-3">
+                                            <div class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700">
                                                 <span class="text-gray-600 dark:text-gray-400" data-i18n="SALARY_BASE">基本薪資</span>
                                                 <span id="detail-base-salary" class="font-mono font-semibold text-gray-800 dark:text-white">--</span>
                                             </div>
-                                            <div class="detail-row">
+                                            <div class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700">
                                                 <span class="text-gray-600 dark:text-gray-400" data-i18n="SALARY_WEEKDAY_OT">平日加班費</span>
                                                 <span id="detail-weekday-overtime" class="font-mono font-semibold text-gray-800 dark:text-white">--</span>
                                             </div>
-                                            <div class="detail-row">
+                                            <div class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700">
                                                 <span class="text-gray-600 dark:text-gray-400" data-i18n="SALARY_REST_OT">休息日加班費</span>
                                                 <span id="detail-restday-overtime" class="font-mono font-semibold text-gray-800 dark:text-white">--</span>
                                             </div>
-                                            <div class="detail-row">
+                                            <div class="flex justify-between items-center py-2">
                                                 <span class="text-gray-600 dark:text-gray-400" data-i18n="SALARY_HOLIDAY_OT">國定假日加班費</span>
                                                 <span id="detail-holiday-overtime" class="font-mono font-semibold text-gray-800 dark:text-white">--</span>
                                             </div>
@@ -608,30 +613,32 @@
                                     </div>
                                     
                                     <!-- 扣款項目 -->
-                                    <div class="detail-section">
-                                        <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-4" data-i18n="SALARY_DEDUCTIONS_DETAIL">扣款項目</h3>
-                                        <div class="space-y-1">
-                                            <div class="detail-row">
+                                    <div class="bg-gray-50 dark:bg-gray-800/50 p-6 rounded-xl">
+                                        <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-4 flex items-center" data-i18n="SALARY_DEDUCTIONS_DETAIL">
+                                            <span class="mr-2">📋</span>扣款項目
+                                        </h3>
+                                        <div class="space-y-3">
+                                            <div class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700">
                                                 <span class="text-gray-600 dark:text-gray-400" data-i18n="SALARY_LABOR_INS">勞保費</span>
                                                 <span id="detail-labor-fee" class="font-mono font-semibold text-red-600 dark:text-red-400">--</span>
                                             </div>
-                                            <div class="detail-row">
+                                            <div class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700">
                                                 <span class="text-gray-600 dark:text-gray-400" data-i18n="SALARY_HEALTH_INS">健保費</span>
                                                 <span id="detail-health-fee" class="font-mono font-semibold text-red-600 dark:text-red-400">--</span>
                                             </div>
-                                            <div class="detail-row">
+                                            <div class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700">
                                                 <span class="text-gray-600 dark:text-gray-400" data-i18n="SALARY_EMPLOYMENT_INS">就業保險費</span>
                                                 <span id="detail-employment-fee" class="font-mono font-semibold text-red-600 dark:text-red-400">--</span>
                                             </div>
-                                            <div class="detail-row">
+                                            <div class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700">
                                                 <span class="text-gray-600 dark:text-gray-400" data-i18n="SALARY_PENSION">勞退自提</span>
                                                 <span id="detail-pension-self" class="font-mono font-semibold text-red-600 dark:text-red-400">--</span>
                                             </div>
-                                            <div class="detail-row">
+                                            <div class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700">
                                                 <span class="text-gray-600 dark:text-gray-400" data-i18n="SALARY_TAX">所得稅</span>
                                                 <span id="detail-income-tax" class="font-mono font-semibold text-red-600 dark:text-red-400">--</span>
                                             </div>
-                                            <div class="detail-row">
+                                            <div class="flex justify-between items-center py-2">
                                                 <span class="text-gray-600 dark:text-gray-400" data-i18n="SALARY_LEAVE_DEDUCT">請假扣款</span>
                                                 <span id="detail-leave-deduction" class="font-mono font-semibold text-red-600 dark:text-red-400">--</span>
                                             </div>
@@ -640,15 +647,17 @@
                                 </div>
                                 
                                 <!-- 銀行資訊 -->
-                                <div class="mt-6 detail-section">
-                                    <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-4" data-i18n="SALARY_BANK_INFO">匯款資訊</h3>
+                                <div class="mt-6 bg-gray-50 dark:bg-gray-800/50 p-6 rounded-xl">
+                                    <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-4 flex items-center" data-i18n="SALARY_BANK_INFO">
+                                        <span class="mr-2">🏦</span>匯款資訊
+                                    </h3>
                                     <div class="flex flex-wrap gap-4">
-                                        <div class="bank-info-badge">
-                                            <span class="text-gray-600 dark:text-gray-400" data-i18n="SALARY_BANK">銀行</span>
+                                        <div class="bg-white dark:bg-gray-700 px-4 py-3 rounded-lg flex items-center space-x-3">
+                                            <span class="text-sm text-gray-600 dark:text-gray-400" data-i18n="SALARY_BANK">銀行：</span>
                                             <span id="detail-bank-name" class="font-semibold text-gray-800 dark:text-white">--</span>
                                         </div>
-                                        <div class="bank-info-badge">
-                                            <span class="text-gray-600 dark:text-gray-400" data-i18n="SALARY_ACCOUNT">帳號</span>
+                                        <div class="bg-white dark:bg-gray-700 px-4 py-3 rounded-lg flex items-center space-x-3">
+                                            <span class="text-sm text-gray-600 dark:text-gray-400" data-i18n="SALARY_ACCOUNT">帳號：</span>
                                             <span id="detail-bank-account" class="font-mono font-semibold text-gray-800 dark:text-white">--</span>
                                         </div>
                                     </div>
@@ -658,10 +667,13 @@
                         
                         <!-- 薪資歷史 -->
                         <div class="card p-8">
-                            <div class="section-header">
+                            <div class="section-header mb-6">
                                 <h2 class="text-xl font-bold text-gray-800 dark:text-white" data-i18n="SALARY_HISTORY_TITLE">
                                     薪資歷史
                                 </h2>
+                                <p class="text-gray-500 dark:text-gray-400 mt-2" data-i18n="SALARY_HISTORY_DESCRIPTION">
+                                    查看過往月份的薪資記錄
+                                </p>
                             </div>
                             
                             <div id="salary-history-loading" class="text-center py-8">
@@ -678,9 +690,9 @@
                         </div>
                     </div>
                     
-                    <!-- 管理員區域保持與 salary.html 相同，這裡省略 -->
+                    <!-- 管理員區域 - 保留原有結構 -->
                     <div id="admin-salary-section" class="space-y-6" style="display: none;">
-                        <!-- 管理員功能區域 -->
+                        <!-- 管理員功能區域將由 salary.js 處理 -->
                     </div>
                 </section>
                 <!-- Admin View -->

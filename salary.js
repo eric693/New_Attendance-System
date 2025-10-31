@@ -1,4 +1,4 @@
-// salary.js - 薪資管理前端邏輯
+// salary.js - 薪資管理前端邏輯（修正版）
 
 /**
  * 初始化薪資分頁
@@ -30,19 +30,16 @@ async function checkUserRole() {
             const employeeSection = document.getElementById('employee-salary-section');
             const adminSection = document.getElementById('admin-salary-section');
             
-            // 安全檢查：確保元素存在
             if (!employeeSection || !adminSection) {
                 console.warn('薪資區塊元素未找到');
                 return;
             }
             
             if (res.user.dept === "管理員") {
-                // 管理員：顯示管理介面
                 employeeSection.style.display = 'none';
                 adminSection.style.display = 'block';
                 loadAllEmployeeSalary();
             } else {
-                // 一般員工：顯示個人薪資
                 employeeSection.style.display = 'block';
                 adminSection.style.display = 'none';
             }
@@ -60,7 +57,6 @@ async function loadCurrentSalary() {
     const emptyEl = document.getElementById('current-salary-empty');
     const contentEl = document.getElementById('current-salary-content');
     
-    // 安全檢查
     if (!loadingEl || !emptyEl || !contentEl) {
         console.warn('薪資顯示元素未找到');
         return;
@@ -71,10 +67,10 @@ async function loadCurrentSalary() {
         emptyEl.style.display = 'none';
         contentEl.style.display = 'none';
         
-        // 取得當前年月
         const now = new Date();
         const yearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
         
+        // ✅ 修正：使用正確的 API 參數名稱
         const res = await callApifetch(`getMySalary&yearMonth=${yearMonth}`);
         
         loadingEl.style.display = 'none';
@@ -97,18 +93,24 @@ async function loadCurrentSalary() {
  * 顯示當月薪資
  */
 function displayCurrentSalary(salary) {
-    // 安全的設定文字內容
     const safeSetText = (id, value) => {
         const el = document.getElementById(id);
         if (el) el.textContent = value;
     };
     
-    // 薪資概覽
+    // ✅ 修正：使用後端回傳的正確欄位名稱（中文欄位）
     safeSetText('gross-salary', formatCurrency(salary['應發總額']));
-    safeSetText('total-deductions', formatCurrency(
-        (salary['勞保費'] || 0) + (salary['健保費'] || 0) + (salary['就業保險費'] || 0) + 
-        (salary['勞退自提'] || 0) + (salary['所得稅'] || 0) + (salary['請假扣款'] || 0)
-    ));
+    
+    // 計算總扣款
+    const totalDeductions = 
+        (salary['勞保費'] || 0) + 
+        (salary['健保費'] || 0) + 
+        (salary['就業保險費'] || 0) + 
+        (salary['勞退自提'] || 0) + 
+        (salary['所得稅'] || 0) + 
+        (salary['請假扣款'] || 0);
+    
+    safeSetText('total-deductions', formatCurrency(totalDeductions));
     safeSetText('net-salary', formatCurrency(salary['實發金額']));
     
     // 應發項目
@@ -138,7 +140,6 @@ async function loadSalaryHistory() {
     const emptyEl = document.getElementById('salary-history-empty');
     const listEl = document.getElementById('salary-history-list');
     
-    // 安全檢查
     if (!loadingEl || !emptyEl || !listEl) {
         console.warn('薪資歷史元素未找到');
         return;
@@ -149,6 +150,7 @@ async function loadSalaryHistory() {
         emptyEl.style.display = 'none';
         listEl.innerHTML = '';
         
+        // ✅ 修正：使用正確的參數名稱
         const res = await callApifetch('getMySalaryHistory&limit=12');
         
         loadingEl.style.display = 'none';
@@ -219,7 +221,6 @@ function bindSalaryEvents() {
     if (filterMonth) {
         filterMonth.addEventListener('change', loadAllEmployeeSalary);
         
-        // 設定預設值為當月
         const now = new Date();
         filterMonth.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
     }
@@ -231,12 +232,12 @@ function bindSalaryEvents() {
 async function handleSalaryConfigSubmit(e) {
     e.preventDefault();
     
-    // 安全的取得輸入值
     const safeGetValue = (id) => {
         const el = document.getElementById(id);
         return el ? el.value : '';
     };
     
+    // ✅ 修正：使用後端期望的參數名稱
     const formData = {
         employeeId: safeGetValue('config-employee-id'),
         employeeName: safeGetValue('config-employee-name'),
@@ -257,12 +258,12 @@ async function handleSalaryConfigSubmit(e) {
     };
     
     try {
+        // ✅ 修正：使用 URLSearchParams 正確編碼參數
         const params = new URLSearchParams(formData).toString();
         const res = await callApifetch(`setEmployeeSalaryTW&${params}`);
         
         if (res.ok) {
             showNotification('薪資設定已成功儲存', 'success');
-            // 清空表單
             e.target.reset();
         } else {
             showNotification(`儲存失敗：${res.msg}`, 'error');
@@ -282,7 +283,6 @@ async function handleSalaryCalculation() {
     const yearMonthEl = document.getElementById('calc-year-month');
     const resultEl = document.getElementById('salary-calculation-result');
     
-    // 安全檢查
     if (!employeeIdEl || !yearMonthEl || !resultEl) {
         console.warn('計算表單元素未找到');
         return;
@@ -306,7 +306,6 @@ async function handleSalaryCalculation() {
             resultEl.style.display = 'block';
             showNotification('計算完成', 'success');
             
-            // 詢問是否儲存
             if (confirm('是否儲存此薪資單？')) {
                 await saveSalaryRecord(res.data);
             }
@@ -326,6 +325,7 @@ async function handleSalaryCalculation() {
 function displaySalaryCalculation(data, container) {
     if (!container) return;
     
+    // ✅ 修正：使用後端回傳的正確欄位名稱
     container.innerHTML = `
         <div class="bg-white dark:bg-gray-800 rounded-lg p-6">
             <h3 class="text-lg font-semibold mb-4">
@@ -431,12 +431,13 @@ function displaySalaryCalculation(data, container) {
  */
 async function saveSalaryRecord(data) {
     try {
-        const params = new URLSearchParams(data).toString();
-        const res = await callApifetch(`saveMonthlySalary&${params}`);
+        // ✅ 修正：使用 JSON.stringify 編碼複雜物件
+        const dataStr = encodeURIComponent(JSON.stringify(data));
+        const res = await callApifetch(`saveMonthlySalary&data=${dataStr}`);
         
         if (res.ok) {
             showNotification('薪資單已成功儲存', 'success');
-            loadAllEmployeeSalary(); // 重新載入列表
+            loadAllEmployeeSalary();
         } else {
             showNotification(`儲存失敗：${res.msg}`, 'error');
         }
@@ -455,7 +456,6 @@ async function loadAllEmployeeSalary() {
     const listEl = document.getElementById('all-salary-list');
     const yearMonthEl = document.getElementById('filter-year-month');
     
-    // 安全檢查
     if (!loadingEl || !listEl || !yearMonthEl) {
         console.warn('薪資列表元素未找到');
         return;
