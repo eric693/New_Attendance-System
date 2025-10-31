@@ -702,6 +702,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const tabAdminBtn = document.getElementById('tab-admin-btn');
     const tabOvertimeBtn = document.getElementById('tab-overtime-btn');
     const tabLeaveBtn = document.getElementById('tab-leave-btn'); // 👈 新增請假按鈕
+    const tabSalaryBtn = document.getElementById('tab-salary-btn'); // 👈 新增
     const abnormalList = document.getElementById('abnormal-list');
     const adjustmentFormContainer = document.getElementById('adjustment-form-container');
     const calendarGrid = document.getElementById('calendar-grid');
@@ -1130,7 +1131,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             initOvertimeTab();
         } else if (tabId === 'leave-view') {
             initLeaveTab();
+        } else if (tabId === 'salary-view') { // 👈 新增
+            initSalaryTab();
         }
+        
     };
     
     // 語系初始化
@@ -1509,7 +1513,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     tabShiftBtn.addEventListener('click', () => {switchTab('shift-view');});
 
 
-    
+    tabSalaryBtn.addEventListener('click', () => {switchTab('salary-view');});
     tabDashboardBtn.addEventListener('click', () => switchTab('dashboard-view'));
     
     tabLocationBtn.addEventListener('click', () => switchTab('location-view'));

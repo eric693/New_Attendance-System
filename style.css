@@ -23,20 +23,20 @@ body {
 /* --- Main Image (Logo) --- */
 .main-image {
     width: auto;
-    max-width: 400px;           /* 改大 */
+    max-width: 400px;
     height: auto;
     margin: 0 auto 1.5rem;
     display: block;
     object-fit: contain;
-    background-color: white;    /* 強制白底 */
-    padding: 1.5rem;            /* 加大內距 */
-    border-radius: 1rem;        /* 圓角 */
+    background-color: white;
+    padding: 1.5rem;
+    border-radius: 1rem;
 }
 
 /* 暗黑模式下的 Logo 調整 */
 html.dark .main-image {
-    background-color: white;    /* 暗黑模式也保持白底 */
-    filter: none;               /* 移除濾鏡 */
+    background-color: white;
+    filter: none;
 }
 
 /* --- Primary Button --- */
@@ -118,15 +118,11 @@ html.dark .btn-secondary:hover {
     background-color: #4b5563;
 }
 
-/* --- Warning Button (可選,通常保持亮色,或略微變暗) --- */
-/* 如果要調整,請在這裡添加 html.dark .btn-warning 樣式 */
-
-
 /* ======================================= */
 /* 其他樣式 (Other Styles) */
 /* ======================================= */
 
-/* --- Fade In Animation (無須修改) --- */
+/* --- Fade In Animation --- */
 .fade-in {
     animation: fadeIn 0.5s ease-in-out;
 }
@@ -135,7 +131,7 @@ html.dark .btn-secondary:hover {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* --- Notification (無須修改) --- */
+/* --- Notification --- */
 .notification {
     position: fixed;
     top: 1rem;
@@ -146,21 +142,18 @@ html.dark .btn-secondary:hover {
     box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
     transform: translateX(200%);
     transition: transform 0.5s ease-in-out;
-    /* 💡 增加亮色模式預設背景,暗黑模式需另外定義通知背景 */
     background-color: white;
 }
 .notification.show {
     transform: translateX(0);
 }
 
-/* 💡 暗黑模式下的通知背景 (建議用 JS 處理,或在這裡補上) */
 html.dark .notification {
-    background-color: #374151; /* dark:bg-gray-700 */
-    color: #f3f4f6; /* dark:text-gray-100 */
+    background-color: #374151;
+    color: #f3f4f6;
 }
 
-
-/* --- Day Cell Styles (日曆單元格 - 關鍵需要調整對比度) --- */
+/* --- Day Cell Styles (日曆單元格) --- */
 .day-cell {
     padding: 0.5rem;
     text-align: center;
@@ -170,7 +163,7 @@ html.dark .notification {
     transition: all 0.2s;
 }
 
-/* 亮色模式 (已定義) */
+/* 亮色模式 */
 .day-cell.future-day { background-color: #d1d5db; color: #4b5563; }
 .day-cell.normal-day { background-color: #f3f4f6; color: #1f2937; }
 .day-cell.abnormal-day { background-color: #fecaca; color: #ef4444; }
@@ -184,36 +177,335 @@ html.dark .notification {
     box-shadow: 0 2px 4px -1px rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
 }
 
-
-/* 💡 暗黑模式下的日曆單元格 */
-html.dark .day-cell.future-day { background-color: #374151; color: #9ca3af; } /* dark:bg-gray-700, dark:text-gray-400 */
-html.dark .day-cell.normal-day { background-color: #1f2937; color: #d1d5db; } /* dark:bg-gray-800, dark:text-gray-300 */
-html.dark .day-cell.abnormal-day { background-color: #991b1b; color: #fecaca; } /* dark:bg-red-800, dark:text-red-300 */
-html.dark .day-cell.pending-adjustment { background-color: #92400e; color: #fde68a; } /* dark:bg-amber-800, dark:text-amber-300 */
-html.dark .day-cell.pending-virtual { background-color: #581c87; color: #e9d5ff; } /* dark:bg-purple-800, dark:text-purple-300 */
-html.dark .day-cell.approved-virtual { background-color: #1e40af; color: #bfdbfe; } /* dark:bg-blue-800, dark:text-blue-300 */
-html.dark .day-cell.day-off { background-color: #065f46; color: #ccfbf1; } /* dark:bg-teal-800, dark:text-teal-300 */
+/* 暗黑模式下的日曆單元格 */
+html.dark .day-cell.future-day { background-color: #374151; color: #9ca3af; }
+html.dark .day-cell.normal-day { background-color: #1f2937; color: #d1d5db; }
+html.dark .day-cell.abnormal-day { background-color: #991b1b; color: #fecaca; }
+html.dark .day-cell.pending-adjustment { background-color: #92400e; color: #fde68a; }
+html.dark .day-cell.pending-virtual { background-color: #581c87; color: #e9d5ff; }
+html.dark .day-cell.approved-virtual { background-color: #1e40af; color: #bfdbfe; }
+html.dark .day-cell.day-off { background-color: #065f46; color: #ccfbf1; }
 html.dark .day-cell.today {
-    background-color: #15803d; /* dark:bg-green-700 */
-    color: #bbf7d0; /* dark:text-green-200 */
+    background-color: #15803d;
+    color: #bbf7d0;
 }
 html.dark .day-cell:hover {
-    /* 確保 hover 效果在暗色模式下仍可見 */
     transform: translateY(-2px);
     box-shadow: 0 2px 4px -1px rgb(255 255 255 / 0.1), 0 1px 2px -1px rgb(255 255 255 / 0.05);
 }
 
-/* 確保地圖容器的背景在反轉時不會出現亮色閃爍 */
+/* --- Map Styles --- */
 #map {
-    background: #1e1e1e; /* 設置一個深色背景 */
+    background: #1e1e1e;
 }
 
-/* 當 HTML 處於暗黑模式時,對 Leaflet 的圖層應用濾鏡 */
+/* 暗黑模式下的 Leaflet 地圖 */
 html.dark .leaflet-layer,
 html.dark .leaflet-control-zoom-in,
 html.dark .leaflet-control-zoom-out,
 html.dark .leaflet-control-attribution {
-    /* invert(100%): 顏色完全反轉,亮變暗,暗變亮 */
-    /* hue-rotate(180deg): 可選,調整色調,讓藍色街道不至於變成難看的紅色 */
     filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+}
+
+/* ======================================= */
+/* 薪資系統專屬樣式 (Salary System Styles) */
+/* ======================================= */
+
+.salary-card-gradient {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.metric-card {
+    position: relative;
+    overflow: hidden;
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    border: 1px solid #e2e8f0;
+    transition: all 0.3s ease;
+}
+
+.metric-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100px;
+    height: 100px;
+    background: radial-gradient(circle, rgba(102,126,234,0.1) 0%, transparent 70%);
+}
+
+.metric-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(102, 126, 234, 0.15);
+}
+
+html.dark .metric-card {
+    background: #1e293b;
+    border-color: #334155;
+}
+
+.amount-display {
+    font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent;
+}
+
+/* 修復紅色金額顯示 */
+.amount-display.text-red-500 {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent;
+}
+
+/* 修復白色金額顯示 */
+.amount-display.text-white {
+    background: none;
+    -webkit-background-clip: unset;
+    -webkit-text-fill-color: white;
+    background-clip: unset;
+    color: white;
+}
+
+.detail-section {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 1px solid #e2e8f0;
+}
+
+html.dark .detail-section {
+    background: #0f172a;
+    border-color: #334155;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    transition: all 0.2s;
+}
+
+.detail-row:last-child {
+    border-bottom: none;
+}
+
+.detail-row:hover {
+    background: rgba(102,126,234,0.05);
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    border-radius: 0.5rem;
+}
+
+html.dark .detail-row {
+    border-bottom-color: rgba(255,255,255,0.05);
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.section-header::before {
+    content: '';
+    width: 4px;
+    height: 24px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 2px;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.status-calculated {
+    background: linear-gradient(135deg, #4facfe15 0%, #00f2fe15 100%);
+    color: #0891b2;
+    border: 1px solid #06b6d420;
+}
+
+.status-paid {
+    background: linear-gradient(135deg, #11998e15 0%, #38ef7d15 100%);
+    color: #059669;
+    border: 1px solid #10b98120;
+}
+
+.history-item {
+    background: white;
+    border-radius: 12px;
+    padding: 1.25rem;
+    border: 1px solid #e2e8f0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+html.dark .history-item {
+    background: #1e293b;
+    border-color: #334155;
+}
+
+.history-item:hover {
+    transform: translateX(8px);
+    box-shadow: 0 10px 20px rgba(102,126,234,0.15);
+    border-color: #667eea;
+}
+
+.form-section {
+    background: linear-gradient(135deg, #667eea05 0%, #764ba205 100%);
+    border-radius: 16px;
+    padding: 2rem;
+    border: 1px solid rgba(102,126,234,0.1);
+}
+
+.input-group {
+    margin-bottom: 1.5rem;
+}
+
+.input-label {
+    display: block;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+html.dark .input-label {
+    color: #cbd5e1;
+}
+
+.bank-info-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: linear-gradient(135deg, #667eea10 0%, #764ba210 100%);
+    border-radius: 8px;
+    border: 1px solid rgba(102,126,234,0.2);
+    font-size: 0.875rem;
+}
+
+/* 表單輸入元素 */
+.form-input,
+.form-select,
+.form-textarea {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    background-color: white;
+    color: #1f2937;
+    transition: all 0.2s;
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+html.dark .form-input,
+html.dark .form-select,
+html.dark .form-textarea {
+    background-color: #374151;
+    border-color: #4b5563;
+    color: #f3f4f6;
+}
+
+html.dark .form-input:focus,
+html.dark .form-select:focus,
+html.dark .form-textarea:focus {
+    border-color: #818cf8;
+    box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.1);
+}
+
+/* Loading Spinner */
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #e5e7eb;
+    border-top-color: #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+html.dark .loading-spinner {
+    border-color: #374151;
+    border-top-color: #818cf8;
+}
+
+/* Info Card (用於薪資計算結果顯示) */
+.info-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1rem;
+    border: 1px solid #e2e8f0;
+}
+
+html.dark .info-card {
+    background: #1e293b;
+    border-color: #334155;
+}
+
+.info-card.salary-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    color: white;
+}
+
+.info-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.25rem;
+}
+
+html.dark .info-label {
+    color: #9ca3af;
+}
+
+.info-card.salary-card .info-label {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.info-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1f2937;
+    font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
+}
+
+html.dark .info-value {
+    color: #f3f4f6;
+}
+
+.info-card.salary-card .info-value {
+    color: white;
 }
