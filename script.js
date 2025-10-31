@@ -1534,9 +1534,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 薪資按鈕 (新增)
     tabSalaryBtn.addEventListener('click', () => {
         switchTab('salary-view');
-        console.log('💰 切換到薪資頁面');
-        // 未來可以在這裡加入薪資頁面初始化函數
-        // initSalaryTab();
+        initSalaryTab(); // 載入 salary.js 的初始化函數
     });
     tabAdminBtn.addEventListener('click', async () => {
         // 獲取按鈕元素和處理中文字
