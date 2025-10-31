@@ -1132,7 +1132,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         } else if (tabId === 'leave-view') {
             initLeaveTab();
         } else if (tabId === 'salary-view') { // 👈 新增
-            initSalaryTab();
+            loadSalaryStats();
+            // initSalaryTab();
         }
         
     };

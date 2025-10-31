@@ -549,3 +549,34 @@ function getBankName(code) {
     
     return banks[code] || code || '--';
 }
+
+/**
+ * 載入薪資統計資訊（可選）
+ */
+async function loadSalaryStats() {
+    const currentMonthSalaryEl = document.getElementById('current-month-salary');
+    const workHoursEl = document.getElementById('work-hours');
+    
+    try {
+        const userId = localStorage.getItem('sessionUserId');
+        const now = new Date();
+        const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+        
+        // 這裡可以呼叫 API 取得本月薪資統計
+        // 目前先顯示載入中
+        currentMonthSalaryEl.textContent = '計算中...';
+        workHoursEl.textContent = '計算中...';
+        
+        // TODO: 實際 API 呼叫
+        // const res = await callApifetch(`getSalaryStats&userId=${userId}&month=${monthKey}`);
+        // if (res.ok) {
+        //     currentMonthSalaryEl.textContent = `NT$ ${res.salary?.toLocaleString() || '--'}`;
+        //     workHoursEl.textContent = `${res.hours || '--'} 小時`;
+        // }
+        
+    } catch (error) {
+        console.error('載入薪資統計失敗:', error);
+        currentMonthSalaryEl.textContent = '--';
+        workHoursEl.textContent = '--';
+    }
+}
