@@ -27,15 +27,24 @@ async function checkUserRole() {
         const res = await callApifetch("checkSession");
         
         if (res.ok && res.user) {
+            const employeeSection = document.getElementById('employee-salary-section');
+            const adminSection = document.getElementById('admin-salary-section');
+            
+            // 安全檢查：確保元素存在
+            if (!employeeSection || !adminSection) {
+                console.warn('薪資區塊元素未找到');
+                return;
+            }
+            
             if (res.user.dept === "管理員") {
                 // 管理員：顯示管理介面
-                document.getElementById('employee-salary-section').style.display = 'none';
-                document.getElementById('admin-salary-section').style.display = 'block';
+                employeeSection.style.display = 'none';
+                adminSection.style.display = 'block';
                 loadAllEmployeeSalary();
             } else {
                 // 一般員工：顯示個人薪資
-                document.getElementById('employee-salary-section').style.display = 'block';
-                document.getElementById('admin-salary-section').style.display = 'none';
+                employeeSection.style.display = 'block';
+                adminSection.style.display = 'none';
             }
         }
     } catch (error) {
@@ -50,6 +59,12 @@ async function loadCurrentSalary() {
     const loadingEl = document.getElementById('current-salary-loading');
     const emptyEl = document.getElementById('current-salary-empty');
     const contentEl = document.getElementById('current-salary-content');
+    
+    // 安全檢查
+    if (!loadingEl || !emptyEl || !contentEl) {
+        console.warn('薪資顯示元素未找到');
+        return;
+    }
     
     try {
         loadingEl.style.display = 'block';
@@ -82,31 +97,37 @@ async function loadCurrentSalary() {
  * 顯示當月薪資
  */
 function displayCurrentSalary(salary) {
+    // 安全的設定文字內容
+    const safeSetText = (id, value) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = value;
+    };
+    
     // 薪資概覽
-    document.getElementById('gross-salary').textContent = formatCurrency(salary['應發總額']);
-    document.getElementById('total-deductions').textContent = formatCurrency(
-        salary['勞保費'] + salary['健保費'] + salary['就業保險費'] + 
-        salary['勞退自提'] + salary['所得稅'] + salary['請假扣款']
-    );
-    document.getElementById('net-salary').textContent = formatCurrency(salary['實發金額']);
+    safeSetText('gross-salary', formatCurrency(salary['應發總額']));
+    safeSetText('total-deductions', formatCurrency(
+        (salary['勞保費'] || 0) + (salary['健保費'] || 0) + (salary['就業保險費'] || 0) + 
+        (salary['勞退自提'] || 0) + (salary['所得稅'] || 0) + (salary['請假扣款'] || 0)
+    ));
+    safeSetText('net-salary', formatCurrency(salary['實發金額']));
     
     // 應發項目
-    document.getElementById('detail-base-salary').textContent = formatCurrency(salary['基本薪資']);
-    document.getElementById('detail-weekday-overtime').textContent = formatCurrency(salary['平日加班費']);
-    document.getElementById('detail-restday-overtime').textContent = formatCurrency(salary['休息日加班費']);
-    document.getElementById('detail-holiday-overtime').textContent = formatCurrency(salary['國定假日加班費']);
+    safeSetText('detail-base-salary', formatCurrency(salary['基本薪資']));
+    safeSetText('detail-weekday-overtime', formatCurrency(salary['平日加班費']));
+    safeSetText('detail-restday-overtime', formatCurrency(salary['休息日加班費']));
+    safeSetText('detail-holiday-overtime', formatCurrency(salary['國定假日加班費']));
     
     // 扣款項目
-    document.getElementById('detail-labor-fee').textContent = formatCurrency(salary['勞保費']);
-    document.getElementById('detail-health-fee').textContent = formatCurrency(salary['健保費']);
-    document.getElementById('detail-employment-fee').textContent = formatCurrency(salary['就業保險費']);
-    document.getElementById('detail-pension-self').textContent = formatCurrency(salary['勞退自提']);
-    document.getElementById('detail-income-tax').textContent = formatCurrency(salary['所得稅']);
-    document.getElementById('detail-leave-deduction').textContent = formatCurrency(salary['請假扣款']);
+    safeSetText('detail-labor-fee', formatCurrency(salary['勞保費']));
+    safeSetText('detail-health-fee', formatCurrency(salary['健保費']));
+    safeSetText('detail-employment-fee', formatCurrency(salary['就業保險費']));
+    safeSetText('detail-pension-self', formatCurrency(salary['勞退自提']));
+    safeSetText('detail-income-tax', formatCurrency(salary['所得稅']));
+    safeSetText('detail-leave-deduction', formatCurrency(salary['請假扣款']));
     
     // 銀行資訊
-    document.getElementById('detail-bank-name').textContent = getBankName(salary['銀行代碼']);
-    document.getElementById('detail-bank-account').textContent = salary['銀行帳號'] || '--';
+    safeSetText('detail-bank-name', getBankName(salary['銀行代碼']));
+    safeSetText('detail-bank-account', salary['銀行帳號'] || '--');
 }
 
 /**
@@ -116,6 +137,12 @@ async function loadSalaryHistory() {
     const loadingEl = document.getElementById('salary-history-loading');
     const emptyEl = document.getElementById('salary-history-empty');
     const listEl = document.getElementById('salary-history-list');
+    
+    // 安全檢查
+    if (!loadingEl || !emptyEl || !listEl) {
+        console.warn('薪資歷史元素未找到');
+        return;
+    }
     
     try {
         loadingEl.style.display = 'block';
@@ -152,7 +179,7 @@ function createSalaryHistoryItem(salary) {
     div.innerHTML = `
         <div>
             <div class="font-semibold text-gray-800 dark:text-white">
-                ${salary['年月']}
+                ${salary['年月'] || '--'}
             </div>
             <div class="text-sm text-gray-500 dark:text-gray-400">
                 ${salary['狀態'] || '已計算'}
@@ -204,23 +231,29 @@ function bindSalaryEvents() {
 async function handleSalaryConfigSubmit(e) {
     e.preventDefault();
     
+    // 安全的取得輸入值
+    const safeGetValue = (id) => {
+        const el = document.getElementById(id);
+        return el ? el.value : '';
+    };
+    
     const formData = {
-        employeeId: document.getElementById('config-employee-id').value,
-        employeeName: document.getElementById('config-employee-name').value,
-        idNumber: document.getElementById('config-id-number').value,
-        employeeType: document.getElementById('config-employee-type').value,
-        salaryType: document.getElementById('config-salary-type').value,
-        baseSalary: document.getElementById('config-base-salary').value,
-        bankCode: document.getElementById('config-bank-code').value,
-        bankAccount: document.getElementById('config-bank-account').value,
-        hireDate: document.getElementById('config-hire-date').value,
-        paymentDay: document.getElementById('config-payment-day').value,
-        pensionSelfRate: document.getElementById('config-pension-rate').value,
-        laborFee: document.getElementById('config-labor-fee').value,
-        healthFee: document.getElementById('config-health-fee').value,
-        employmentFee: document.getElementById('config-employment-fee').value,
-        incomeTax: document.getElementById('config-income-tax').value,
-        note: document.getElementById('config-note').value
+        employeeId: safeGetValue('config-employee-id'),
+        employeeName: safeGetValue('config-employee-name'),
+        idNumber: safeGetValue('config-id-number'),
+        employeeType: safeGetValue('config-employee-type'),
+        salaryType: safeGetValue('config-salary-type'),
+        baseSalary: safeGetValue('config-base-salary'),
+        bankCode: safeGetValue('config-bank-code'),
+        bankAccount: safeGetValue('config-bank-account'),
+        hireDate: safeGetValue('config-hire-date'),
+        paymentDay: safeGetValue('config-payment-day'),
+        pensionSelfRate: safeGetValue('config-pension-rate'),
+        laborFee: safeGetValue('config-labor-fee'),
+        healthFee: safeGetValue('config-health-fee'),
+        employmentFee: safeGetValue('config-employment-fee'),
+        incomeTax: safeGetValue('config-income-tax'),
+        note: safeGetValue('config-note')
     };
     
     try {
@@ -245,9 +278,18 @@ async function handleSalaryConfigSubmit(e) {
  * 處理薪資計算
  */
 async function handleSalaryCalculation() {
-    const employeeId = document.getElementById('calc-employee-id').value;
-    const yearMonth = document.getElementById('calc-year-month').value;
+    const employeeIdEl = document.getElementById('calc-employee-id');
+    const yearMonthEl = document.getElementById('calc-year-month');
     const resultEl = document.getElementById('salary-calculation-result');
+    
+    // 安全檢查
+    if (!employeeIdEl || !yearMonthEl || !resultEl) {
+        console.warn('計算表單元素未找到');
+        return;
+    }
+    
+    const employeeId = employeeIdEl.value;
+    const yearMonth = yearMonthEl.value;
     
     if (!employeeId || !yearMonth) {
         showNotification('請輸入員工ID和計算月份', 'error');
@@ -282,10 +324,12 @@ async function handleSalaryCalculation() {
  * 顯示薪資計算結果
  */
 function displaySalaryCalculation(data, container) {
+    if (!container) return;
+    
     container.innerHTML = `
         <div class="bg-white dark:bg-gray-800 rounded-lg p-6">
             <h3 class="text-lg font-semibold mb-4">
-                ${data.employeeName} - ${data.yearMonth} 薪資計算結果
+                ${data.employeeName || '--'} - ${data.yearMonth || '--'} 薪資計算結果
             </h3>
             
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
@@ -409,7 +453,15 @@ async function saveSalaryRecord(data) {
 async function loadAllEmployeeSalary() {
     const loadingEl = document.getElementById('all-salary-loading');
     const listEl = document.getElementById('all-salary-list');
-    const yearMonth = document.getElementById('filter-year-month').value;
+    const yearMonthEl = document.getElementById('filter-year-month');
+    
+    // 安全檢查
+    if (!loadingEl || !listEl || !yearMonthEl) {
+        console.warn('薪資列表元素未找到');
+        return;
+    }
+    
+    const yearMonth = yearMonthEl.value;
     
     try {
         loadingEl.style.display = 'block';
@@ -445,10 +497,10 @@ function createAllSalaryItem(salary) {
     div.innerHTML = `
         <div>
             <div class="font-semibold text-gray-800 dark:text-white">
-                ${salary['員工姓名']} (${salary['員工ID']})
+                ${salary['員工姓名'] || '--'} (${salary['員工ID'] || '--'})
             </div>
             <div class="text-sm text-gray-500 dark:text-gray-400">
-                ${salary['年月']} | ${salary['狀態']}
+                ${salary['年月'] || '--'} | ${salary['狀態'] || '--'}
             </div>
         </div>
         <div class="text-right">
@@ -456,7 +508,7 @@ function createAllSalaryItem(salary) {
                 ${formatCurrency(salary['實發金額'])}
             </div>
             <div class="text-xs text-gray-500">
-                ${getBankName(salary['銀行代碼'])} ${salary['銀行帳號']}
+                ${getBankName(salary['銀行代碼'])} ${salary['銀行帳號'] || '--'}
             </div>
         </div>
     `;
@@ -468,7 +520,7 @@ function createAllSalaryItem(salary) {
  * 格式化貨幣
  */
 function formatCurrency(amount) {
-    if (amount === null || amount === undefined) return '$0';
+    if (amount === null || amount === undefined || isNaN(amount)) return '$0';
     return '$' + Number(amount).toLocaleString('zh-TW');
 }
 
@@ -495,30 +547,5 @@ function getBankName(code) {
         "822": "中國信託"
     };
     
-    return banks[code] || code;
-}
-
-/**
- * 顯示通知
- */
-function showNotification(message, type = 'success') {
-    const notification = document.getElementById('notification');
-    const notificationMessage = document.getElementById('notification-message');
-    
-    notificationMessage.textContent = message;
-    notification.className = 'notification show';
-    
-    if (type === 'success') {
-        notification.classList.add('bg-green-500');
-    } else if (type === 'error') {
-        notification.classList.add('bg-red-500');
-    } else if (type === 'info') {
-        notification.classList.add('bg-blue-500');
-    } else if (type === 'warning') {
-        notification.classList.add('bg-yellow-500');
-    }
-    
-    setTimeout(() => {
-        notification.classList.remove('show');
-    }, 3000);
+    return banks[code] || code || '--';
 }
