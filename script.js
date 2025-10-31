@@ -1134,8 +1134,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             // 請假頁面初始化
             initLeaveTab();
         } else if (tabId === 'salary-view') {
-            // 薪資頁面初始化 (未來可加入)
-            console.log('切換到薪資頁面');
+            if (typeof initSalaryTab === 'function') {
+                initSalaryTab();
+            } else {
+                console.error('salary.js 尚未載入或 initSalaryTab 函數不存在');
+            }
         }
     };
     
