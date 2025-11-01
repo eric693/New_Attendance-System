@@ -5,25 +5,29 @@ if (typeof callApifetch !== 'function') {
 }
 
 // ==================== 全域變數 ====================
-let currentUser = null;  // ✅ 在檔案頂部就定義
+// salary.js - 完全修正版
+
+// ==================== 全域變數 ====================
+let currentUser = null;  // ✅ 檔案最頂部定義
 
 /**
  * ✅ 初始化薪資頁面
  */
 async function initSalaryTab() {
     try {
-        console.log('🎯 初始化薪資頁面');
+        console.log('🎯 開始初始化薪資頁面');
         
-        // 1️⃣ 先驗證 Session
+        // ⭐ 步驟 1：驗證 Session
+        console.log('📡 正在驗證 Session...');
         const session = await callApifetch("checkSession");
         
         if (!session.ok || !session.user) {
-            console.warn('❌ 無法取得使用者資訊');
+            console.error('❌ Session 驗證失敗:', session);
             showNotification('請先登入', 'error');
             return;
         }
         
-        // 2️⃣ 立即設定 currentUser（在任何使用之前）
+        // ⭐⭐⭐ 步驟 2：立即設定 currentUser（最重要！在使用之前）
         currentUser = {
             userId: session.user.userId,
             employeeId: session.user.userId,
@@ -32,32 +36,40 @@ async function initSalaryTab() {
             isAdmin: session.user.dept === "管理員"
         };
         
-        console.log(`👤 使用者: ${currentUser.name} (${currentUser.userId})`);
-        console.log(`🔐 權限: ${currentUser.isAdmin ? '管理員' : '一般員工'}`);
+        console.log('✅ 使用者資訊已設定');
+        console.log('👤 使用者:', currentUser.name);
+        console.log('🔐 權限:', currentUser.isAdmin ? '管理員' : '一般員工');
+        console.log('📌 員工ID:', currentUser.employeeId);
         
-        // 3️⃣ 設定當前月份
+        // ⭐ 步驟 3：設定當前月份
         const now = new Date();
         const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+        console.log('📅 當前月份:', currentMonth);
         
         const employeeSalaryMonth = document.getElementById('employee-salary-month');
         if (employeeSalaryMonth) {
             employeeSalaryMonth.value = currentMonth;
         }
         
-        // 4️⃣ 載入薪資資料
+        // ⭐ 步驟 4：載入薪資資料
+        console.log('💰 開始載入薪資資料...');
         await loadCurrentEmployeeSalary();
+        
+        console.log('📋 開始載入薪資歷史...');
         await loadSalaryHistory();
         
-        // 5️⃣ 綁定事件（管理員才需要）
+        // ⭐ 步驟 5：綁定事件（管理員才需要）
         if (currentUser.isAdmin) {
+            console.log('🔧 綁定管理員功能...');
             bindSalaryEvents();
         }
         
-        console.log('✅ 薪資頁面初始化完成');
+        console.log('✅ 薪資頁面初始化完成！');
         
     } catch (error) {
         console.error('❌ 初始化失敗:', error);
-        showNotification('初始化失敗，請重新登入', 'error');
+        console.error('錯誤堆疊:', error.stack);
+        showNotification('初始化失敗：' + error.message, 'error');
     }
 }
 
