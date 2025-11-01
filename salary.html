@@ -6,15 +6,6 @@
     <title>薪資管理系統 - 打卡救星</title>
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- ✅ 加入 Leaflet 地圖 CSS 和 JS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-        crossorigin=""/>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-        crossorigin=""></script>
-
-
     <style>
         * {
             margin: 0;
@@ -35,7 +26,44 @@
             padding: 2rem;
         }
 
-        /* Header Section */
+        /* ⭐ 精美的圖示容器 */
+        .icon-box {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 圖示背景動畫效果 */
+        .icon-box::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transform: translateX(-100%);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            100% {
+                transform: translateX(100%);
+            }
+        }
+
+        /* SVG 圖示樣式 */
+        .salary-icon {
+            width: 48px;
+            height: 48px;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+        }
+
         .header {
             display: flex;
             align-items: center;
@@ -47,18 +75,6 @@
             display: flex;
             align-items: center;
             gap: 1.5rem;
-        }
-
-        .icon-box {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2rem;
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
         }
 
         .header-title h1 {
@@ -88,7 +104,6 @@
             transform: translateY(-2px);
         }
 
-        /* Tab Navigation */
         .tab-nav {
             display: flex;
             gap: 1rem;
@@ -116,13 +131,12 @@
         }
 
         .tab-btn.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
             border-color: transparent;
             color: #fff;
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 5px 20px rgba(16, 185, 129, 0.4);
         }
 
-        /* Feature Box */
         .feature-box {
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -144,11 +158,10 @@
             content: '';
             width: 4px;
             height: 24px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
             border-radius: 2px;
         }
 
-        /* Form Section */
         .form-section {
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -194,7 +207,7 @@
 
         .form-input:focus, .form-select:focus, .form-textarea:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: #10b981;
             background: rgba(255, 255, 255, 0.08);
         }
 
@@ -207,7 +220,6 @@
             color: #64748b;
         }
 
-        /* Auto Calculate Badge */
         .auto-badge {
             display: inline-flex;
             align-items: center;
@@ -221,12 +233,12 @@
             font-weight: 600;
         }
 
-        /* Salary Preview Box */
         .salary-preview {
-            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.15) 100%);
+            border: 1px solid rgba(16, 185, 129, 0.3);
             border-radius: 12px;
             padding: 1.5rem;
-            color: #78350f;
+            color: #fff;
             margin-top: 2rem;
         }
 
@@ -234,13 +246,14 @@
             font-size: 1rem;
             font-weight: 600;
             margin-bottom: 1rem;
+            color: #10b981;
         }
 
         .salary-preview-item {
             display: flex;
             justify-content: space-between;
             padding: 0.5rem 0;
-            border-bottom: 1px solid rgba(120, 53, 15, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .salary-preview-item:last-child {
@@ -252,9 +265,9 @@
             font-weight: 700;
             text-align: right;
             margin-top: 0.5rem;
+            color: #10b981;
         }
 
-        /* Bank Info Section */
         .bank-info {
             background: rgba(59, 130, 246, 0.1);
             border: 1px solid rgba(59, 130, 246, 0.2);
@@ -262,11 +275,10 @@
             padding: 1.5rem;
         }
 
-        /* Submit Button */
         .submit-btn {
             width: 100%;
             padding: 1rem 2rem;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
             border: none;
             border-radius: 12px;
             color: #fff;
@@ -279,7 +291,7 @@
 
         .submit-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4);
         }
 
         .submit-btn:disabled {
@@ -288,7 +300,6 @@
             transform: none;
         }
 
-        /* Tab Content */
         .tab-content {
             display: none;
         }
@@ -297,7 +308,6 @@
             display: block;
         }
 
-        /* Loading State */
         .loading {
             text-align: center;
             padding: 3rem;
@@ -308,7 +318,7 @@
             width: 40px;
             height: 40px;
             border: 4px solid rgba(255, 255, 255, 0.1);
-            border-top-color: #667eea;
+            border-top-color: #10b981;
             border-radius: 50%;
             animation: spin 1s linear infinite;
             margin: 0 auto 1rem;
@@ -318,7 +328,6 @@
             to { transform: rotate(360deg); }
         }
 
-        /* Info Cards */
         .info-card {
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -338,7 +347,47 @@
             color: #fff;
         }
 
-        /* Notification */
+        .calculation-card {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+
+        .calculation-card h3 {
+            color: #10b981;
+            margin-bottom: 1.5rem;
+        }
+
+        .calculation-detail {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .calculation-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            color: #e2e8f0;
+        }
+
+        .calculation-row:last-child {
+            border-bottom: none;
+        }
+
+        .calculation-row.total {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #10b981;
+            padding-top: 1rem;
+            margin-top: 0.5rem;
+            border-top: 2px solid rgba(16, 185, 129, 0.3);
+        }
+
         .notification {
             position: fixed;
             top: 2rem;
@@ -350,7 +399,7 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
             z-index: 1000;
             animation: slideIn 0.3s ease-out;
-            display: none; /* 👈 預設隱藏 */
+            display: none;
         }
 
         @keyframes slideIn {
@@ -365,8 +414,9 @@
         }
         
         .notification.show {
-            display: block; /* 👈 顯示時 */
+            display: block;
         }
+
         .notification.success {
             background: linear-gradient(135deg, #10b981 0%, #059669 100%);
         }
@@ -379,7 +429,6 @@
             background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
         }
 
-        /* Responsive */
         @media (max-width: 768px) {
             .container {
                 padding: 1rem;
@@ -402,7 +451,22 @@
         <!-- Header -->
         <div class="header">
             <div class="header-left">
-                <div class="icon-box">💰</div>
+                <!-- ⭐ 精美的 SVG 薪資圖示 -->
+                <div class="icon-box">
+                    <svg class="salary-icon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- 文件背景 -->
+                        <rect x="12" y="8" width="40" height="48" rx="4" fill="white" opacity="0.95"/>
+                        
+                        <!-- 文件線條 -->
+                        <line x1="18" y1="16" x2="46" y2="16" stroke="#10b981" stroke-width="2" stroke-linecap="round"/>
+                        <line x1="18" y1="22" x2="46" y2="22" stroke="#10b981" stroke-width="2" stroke-linecap="round"/>
+                        <line x1="18" y1="28" x2="38" y2="28" stroke="#10b981" stroke-width="2" stroke-linecap="round"/>
+                        
+                        <!-- 鈔票符號 -->
+                        <circle cx="32" cy="40" r="10" fill="#10b981"/>
+                        <text x="32" y="46" font-size="14" font-weight="bold" fill="white" text-anchor="middle">$</text>
+                    </svg>
+                </div>
                 <div class="header-title">
                     <h1>薪資管理系統</h1>
                     <p>完整薪資管理解決方案 - 自動計算扣款</p>
@@ -416,17 +480,16 @@
             <button class="tab-btn active" onclick="showTab('employee-salary')">員工薪酬</button>
             <button class="tab-btn" onclick="showTab('salary-setting')">薪資設定</button>
             <button class="tab-btn" onclick="showTab('monthly-calc')">月薪計算</button>
+            <button class="tab-btn" onclick="showTab('hourly-calc')">時薪計算</button>
             <button class="tab-btn" onclick="showTab('salary-list')">薪資列表</button>
         </div>
 
         <!-- Tab 1: 員工薪酬 -->
         <div id="employee-salary" class="tab-content active">
-            <!-- 員工查看自己的薪資 -->
             <div id="employee-salary-section">
                 <div class="feature-box">
                     <div class="feature-title">我的薪資明細</div>
                     
-                    <!-- 當月薪資 -->
                     <div id="current-salary-loading" class="loading" style="display: none;">
                         <div class="loading-spinner"></div>
                         <p>載入中...</p>
@@ -452,7 +515,6 @@
                             </div>
                         </div>
                         
-                        <!-- 詳細項目 -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                             <div class="feature-box">
                                 <h4 class="font-semibold mb-3 text-green-400">應發項目</h4>
@@ -519,7 +581,6 @@
                     </div>
                 </div>
                 
-                <!-- 薪資歷史 -->
                 <div class="feature-box">
                     <div class="feature-title">薪資歷史記錄</div>
                     
@@ -536,7 +597,6 @@
                 </div>
             </div>
             
-            <!-- 管理員查看所有員工薪資 -->
             <div id="admin-salary-section" style="display: none;">
                 <div class="feature-box">
                     <div class="feature-title">所有員工薪資列表</div>
@@ -564,9 +624,7 @@
                     設定基本薪資後，系統將自動計算勞保、健保、就業保險、勞退等扣款項目
                 </p>
 
-                <!-- ✅ 完整表單，包含所有必要的 ID -->
                 <form id="salary-config-form">
-                    <!-- 基本資訊 -->
                     <div class="feature-box">
                         <h3 class="text-lg font-semibold mb-4">基本資訊</h3>
                         <div class="form-grid">
@@ -614,7 +672,6 @@
                         </div>
                     </div>
 
-                    <!-- 自動計算的扣款項目 -->
                     <div class="feature-box">
                         <h3 class="text-lg font-semibold mb-2">
                             扣款項目 
@@ -669,7 +726,6 @@
                         </div>
                     </div>
 
-                    <!-- 薪資試算預覽 -->
                     <div class="salary-preview">
                         <div class="salary-preview-title">💡 薪資試算預覽</div>
                         <div class="salary-preview-item">
@@ -689,7 +745,6 @@
                         </div>
                     </div>
 
-                    <!-- 銀行資訊 -->
                     <div class="bank-info" style="margin-top: 2rem;">
                         <div class="feature-title">銀行帳號資訊</div>
                         <div class="form-grid">
@@ -736,7 +791,6 @@
                         </div>
                     </div>
 
-                    <!-- 備註 -->
                     <div class="form-group" style="margin-top: 1.5rem;">
                         <label class="form-label">備註</label>
                         <textarea id="config-note" class="form-textarea" rows="3" 
@@ -774,12 +828,60 @@
                     🧮 開始計算
                 </button>
 
-                <!-- 計算結果 -->
                 <div id="salary-calculation-result" style="display: none; margin-top: 2rem;"></div>
             </div>
         </div>
 
-        <!-- Tab 4: 薪資列表 -->
+        <!-- Tab 4: 時薪計算 -->
+        <div id="hourly-calc" class="tab-content">
+            <div class="form-section">
+                <div class="feature-title">時薪計算</div>
+                <p style="color: #94a3b8; margin-bottom: 2rem;">
+                    計算時薪人員的薪資，根據實際工作時數計算
+                </p>
+
+                <div class="form-grid" style="max-width: 1000px;">
+                    <div class="form-group">
+                        <label class="form-label required">員工ID</label>
+                        <input type="text" id="hourly-employee-id" class="form-input" placeholder="請輸入員工ID">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label required">時薪</label>
+                        <input type="number" id="hourly-rate" class="form-input" 
+                               placeholder="183" min="183" step="1">
+                        <span class="form-hint">最低時薪: 183元</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label required">工作時數</label>
+                        <input type="number" id="work-hours" class="form-input" 
+                               placeholder="例: 160" min="0" step="0.5">
+                        <span class="form-hint">本月實際工作時數</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">加班時數</label>
+                        <input type="number" id="overtime-hours" class="form-input" 
+                               placeholder="0" min="0" step="0.5" value="0">
+                        <span class="form-hint">平日加班時數（1.34倍）</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">計算年月</label>
+                        <input type="month" id="hourly-year-month" class="form-input">
+                    </div>
+                </div>
+
+                <button id="calculate-hourly-btn" class="submit-btn" style="max-width: 300px; margin-top: 1.5rem;">
+                    🧮 開始計算時薪
+                </button>
+
+                <div id="hourly-calculation-result" style="display: none;"></div>
+            </div>
+        </div>
+
+        <!-- Tab 5: 薪資列表 -->
         <div id="salary-list" class="tab-content">
             <div class="form-section">
                 <div class="feature-title">薪資列表</div>
@@ -806,75 +908,59 @@
         </div>
     </div>
 
-    <!-- ✅ 加入通知元素 -->
     <div id="notification" class="notification">
         <p id="notification-message"></p>
     </div>
 
-    <!-- 引入修正後的薪資管理 JS -->
     <script src="config.js"></script>
     <script src="script.js"></script>
     <script src="salary.js"></script>
     
     <script>
-        // ==================== 頁面初始化 ====================
-        
         document.addEventListener('DOMContentLoaded', function() {
             console.log('✅ 薪資管理頁面載入完成');
             
-            // 初始化薪資系統
             if (typeof initSalaryTab === 'function') {
                 initSalaryTab();
             }
             
-            // 設定當前年月
             const now = new Date();
             const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
             
             const calcYearMonth = document.getElementById('calc-year-month');
             if (calcYearMonth) calcYearMonth.value = currentMonth;
             
+            const hourlyYearMonth = document.getElementById('hourly-year-month');
+            if (hourlyYearMonth) hourlyYearMonth.value = currentMonth;
+            
             const filterYearMonthList = document.getElementById('filter-year-month-list');
             if (filterYearMonthList) filterYearMonthList.value = currentMonth;
             
-            // ✅ 綁定自動計算事件
             bindAutoCalculation();
+            bindHourlyCalculation();
         });
 
-        // ==================== Tab 切換 ====================
-        
         function showTab(tabId) {
-            // 隱藏所有 tab
             document.querySelectorAll('.tab-content').forEach(tab => {
                 tab.classList.remove('active');
             });
 
-            // 移除所有按鈕的 active class
             document.querySelectorAll('.tab-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
 
-            // 顯示選中的 tab
             const selectedTab = document.getElementById(tabId);
             if (selectedTab) {
                 selectedTab.classList.add('active');
             }
 
-            // 為點擊的按鈕加上 active class
             event.target.classList.add('active');
         }
 
-        // ==================== 返回按鈕 ====================
-        
         function goBack() {
             window.history.back();
         }
 
-        // ==================== 🔥 自動計算功能（核心） ====================
-        
-        /**
-         * 綁定自動計算事件
-         */
         function bindAutoCalculation() {
             const baseSalaryInput = document.getElementById('config-base-salary');
             const pensionRateInput = document.getElementById('config-pension-rate');
@@ -890,40 +976,30 @@
             console.log('✅ 自動計算功能已綁定');
         }
 
-        /**
-         * 自動計算扣款項目（根據台灣法規）
-         */
         function autoCalculateDeductions() {
             const baseSalary = parseFloat(document.getElementById('config-base-salary').value) || 0;
             const pensionRate = parseFloat(document.getElementById('config-pension-rate').value) || 0;
             
             if (baseSalary <= 0) {
-                // 清空所有欄位
-                setCalculatedValues(0, 0, 0, 0, 0, 0, 0, 0);
+                setCalculatedValues(0, 0, 0, 0, 0, 0, 0, 0, 0);
                 return;
             }
             
-            // 🎯 台灣勞健保投保薪資分級表（2024年）
             const insuredSalary = getInsuredSalary(baseSalary);
+            const laborFee = Math.round(insuredSalary * 0.115 * 0.2);
+            const healthFee = Math.round(insuredSalary * 0.0517 * 0.3);
+            const employmentFee = Math.round(insuredSalary * 0.01 * 0.2);
+            const pensionSelf = Math.round(insuredSalary * (pensionRate / 100));
             
-            // 📊 計算各項扣款
-            const laborFee = Math.round(insuredSalary * 0.115 * 0.2);        // 勞保費: 11.5% × 20%
-            const healthFee = Math.round(insuredSalary * 0.0517 * 0.3);      // 健保費: 5.17% × 30%
-            const employmentFee = Math.round(insuredSalary * 0.01 * 0.2);    // 就業保險: 1% × 20%
-            const pensionSelf = Math.round(insuredSalary * (pensionRate / 100)); // 勞退自提
-            
-            // 📋 計算所得稅（簡化版：月薪超過 34,000 才扣稅）
             let incomeTax = 0;
             if (baseSalary > 34000) {
-                incomeTax = Math.round((baseSalary - 34000) * 0.05); // 超過部分 × 5%
+                incomeTax = Math.round((baseSalary - 34000) * 0.05);
             }
             
-            // 💰 計算試算資料
-            const hourlyRate = Math.round(baseSalary / 30 / 8); // 時薪
+            const hourlyRate = Math.round(baseSalary / 30 / 8);
             const totalDeductions = laborFee + healthFee + employmentFee + pensionSelf + incomeTax;
             const netSalary = baseSalary - totalDeductions;
             
-            // ✅ 更新畫面
             setCalculatedValues(
                 laborFee, 
                 healthFee, 
@@ -935,23 +1011,8 @@
                 totalDeductions,
                 netSalary
             );
-            
-            console.log('💡 自動計算完成:', {
-                baseSalary,
-                insuredSalary,
-                laborFee,
-                healthFee,
-                employmentFee,
-                pensionSelf,
-                incomeTax,
-                totalDeductions,
-                netSalary
-            });
         }
 
-        /**
-         * 根據薪資查詢投保薪資級距（台灣勞保局 2024 年標準）
-         */
         function getInsuredSalary(salary) {
             const brackets = [
                 { min: 0, max: 26400, insured: 26400 },
@@ -976,12 +1037,9 @@
                 }
             }
             
-            return 26400; // 預設最低級距
+            return 26400;
         }
 
-        /**
-         * 更新計算結果到畫面
-         */
         function setCalculatedValues(
             laborFee, 
             healthFee, 
@@ -993,7 +1051,6 @@
             totalDeductions = 0,
             netSalary = 0
         ) {
-            // 扣款項目
             const laborFeeEl = document.getElementById('config-labor-fee');
             const healthFeeEl = document.getElementById('config-health-fee');
             const employmentFeeEl = document.getElementById('config-employment-fee');
@@ -1006,7 +1063,6 @@
             if (pensionSelfEl) pensionSelfEl.value = pensionSelf;
             if (incomeTaxEl) incomeTaxEl.value = incomeTax;
             
-            // 薪資試算預覽
             const insuredSalaryEl = document.getElementById('preview-insured-salary');
             const hourlyRateEl = document.getElementById('preview-hourly-rate');
             const totalDeductionsEl = document.getElementById('preview-total-deductions');
@@ -1018,8 +1074,158 @@
             if (netSalaryEl) netSalaryEl.textContent = `NT$ ${netSalary.toLocaleString('zh-TW')}`;
         }
 
-        // ==================== 從薪資列表載入 ====================
-        
+        function bindHourlyCalculation() {
+            const calculateBtn = document.getElementById('calculate-hourly-btn');
+            if (calculateBtn) {
+                calculateBtn.addEventListener('click', handleHourlyCalculation);
+            }
+        }
+
+        async function handleHourlyCalculation() {
+            const employeeId = document.getElementById('hourly-employee-id').value;
+            const hourlyRate = parseFloat(document.getElementById('hourly-rate').value) || 0;
+            const workHours = parseFloat(document.getElementById('work-hours').value) || 0;
+            const overtimeHours = parseFloat(document.getElementById('overtime-hours').value) || 0;
+            const yearMonth = document.getElementById('hourly-year-month').value;
+            
+            if (!employeeId || !yearMonth) {
+                showNotification('❌ 請輸入員工ID和計算年月', 'error');
+                return;
+            }
+            
+            if (hourlyRate < 183) {
+                showNotification('❌ 時薪不得低於183元', 'error');
+                return;
+            }
+            
+            if (workHours <= 0) {
+                showNotification('❌ 請輸入工作時數', 'error');
+                return;
+            }
+            
+            const basePay = hourlyRate * workHours;
+            const overtimePay = hourlyRate * overtimeHours * 1.34;
+            const grossSalary = basePay + overtimePay;
+            
+            let laborFee = 0;
+            let healthFee = 0;
+            let employmentFee = 0;
+            
+            if (grossSalary >= 27470) {
+                const insuredSalary = getInsuredSalary(grossSalary);
+                laborFee = Math.round(insuredSalary * 0.115 * 0.2);
+                healthFee = Math.round(insuredSalary * 0.0517 * 0.3);
+                employmentFee = Math.round(insuredSalary * 0.01 * 0.2);
+            }
+            
+            const totalDeductions = laborFee + healthFee + employmentFee;
+            const netSalary = grossSalary - totalDeductions;
+            
+            displayHourlyCalculation({
+                employeeId,
+                yearMonth,
+                hourlyRate,
+                workHours,
+                overtimeHours,
+                basePay,
+                overtimePay,
+                grossSalary,
+                laborFee,
+                healthFee,
+                employmentFee,
+                totalDeductions,
+                netSalary
+            });
+        }
+
+        function displayHourlyCalculation(data) {
+            const resultEl = document.getElementById('hourly-calculation-result');
+            if (!resultEl) return;
+            
+            resultEl.innerHTML = `
+                <div class="calculation-card">
+                    <h3 class="text-xl font-bold mb-4">
+                        時薪計算結果 - ${data.yearMonth}
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div class="info-card" style="background: rgba(34, 197, 94, 0.1);">
+                            <div class="info-label">應發總額</div>
+                            <div class="info-value" style="color: #22c55e;">$${data.grossSalary.toLocaleString('zh-TW')}</div>
+                        </div>
+                        <div class="info-card" style="background: rgba(239, 68, 68, 0.1);">
+                            <div class="info-label">扣款總額</div>
+                            <div class="info-value" style="color: #ef4444;">$${data.totalDeductions.toLocaleString('zh-TW')}</div>
+                        </div>
+                        <div class="info-card" style="background: rgba(168, 85, 247, 0.1);">
+                            <div class="info-label">實發金額</div>
+                            <div class="info-value" style="color: #a855f7;">$${data.netSalary.toLocaleString('zh-TW')}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="calculation-detail">
+                            <h4 class="font-semibold mb-3 text-green-400">應發項目</h4>
+                            <div class="calculation-row">
+                                <span>時薪</span>
+                                <span>NT$ ${data.hourlyRate}</span>
+                            </div>
+                            <div class="calculation-row">
+                                <span>工作時數</span>
+                                <span>${data.workHours} 小時</span>
+                            </div>
+                            <div class="calculation-row">
+                                <span>基本薪資</span>
+                                <span class="font-mono">$${data.basePay.toLocaleString('zh-TW')}</span>
+                            </div>
+                            <div class="calculation-row">
+                                <span>加班時數</span>
+                                <span>${data.overtimeHours} 小時 (×1.34)</span>
+                            </div>
+                            <div class="calculation-row">
+                                <span>加班費</span>
+                                <span class="font-mono">$${data.overtimePay.toLocaleString('zh-TW')}</span>
+                            </div>
+                            <div class="calculation-row total">
+                                <span>應發總額</span>
+                                <span>$${data.grossSalary.toLocaleString('zh-TW')}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="calculation-detail">
+                            <h4 class="font-semibold mb-3 text-red-400">扣款項目</h4>
+                            ${data.laborFee > 0 ? `
+                                <div class="calculation-row">
+                                    <span>勞保費</span>
+                                    <span class="font-mono">$${data.laborFee.toLocaleString('zh-TW')}</span>
+                                </div>
+                                <div class="calculation-row">
+                                    <span>健保費</span>
+                                    <span class="font-mono">$${data.healthFee.toLocaleString('zh-TW')}</span>
+                                </div>
+                                <div class="calculation-row">
+                                    <span>就業保險費</span>
+                                    <span class="font-mono">$${data.employmentFee.toLocaleString('zh-TW')}</span>
+                                </div>
+                            ` : `
+                                <div class="calculation-row">
+                                    <span>無強制保險</span>
+                                    <span class="text-gray-400">月薪未達基本工資</span>
+                                </div>
+                            `}
+                            <div class="calculation-row total">
+                                <span>扣款總額</span>
+                                <span>$${data.totalDeductions.toLocaleString('zh-TW')}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            resultEl.style.display = 'block';
+            showNotification('✅ 時薪計算完成', 'success');
+        }
+
         function loadAllEmployeeSalaryFromList() {
             const yearMonthEl = document.getElementById('filter-year-month-list');
             const loadingEl = document.getElementById('all-salary-loading-list');
@@ -1060,9 +1266,6 @@
                 });
         }
 
-        /**
-         * 建立薪資列表項目（共用函數）
-         */
         function createAllSalaryItem(salary) {
             const div = document.createElement('div');
             div.className = 'feature-box flex justify-between items-center hover:bg-white/10 transition cursor-pointer';
@@ -1077,7 +1280,7 @@
                     </div>
                 </div>
                 <div class="text-right">
-                    <div class="text-2xl font-bold text-purple-400">
+                    <div class="text-2xl font-bold text-green-400">
                         ${formatCurrency(salary['實發金額'])}
                     </div>
                     <div class="text-xs text-gray-400 mt-1">
@@ -1089,17 +1292,11 @@
             return div;
         }
 
-        /**
-         * 格式化貨幣（共用函數）
-         */
         function formatCurrency(amount) {
             if (amount === null || amount === undefined || isNaN(amount)) return '$0';
             return '$' + Number(amount).toLocaleString('zh-TW');
         }
 
-        /**
-         * 取得銀行名稱（共用函數）
-         */
         function getBankName(code) {
             const banks = {
                 "004": "臺灣銀行",
@@ -1125,6 +1322,7 @@
 
         console.log('✅ 薪資管理系統已完整載入');
         console.log('💡 自動計算功能已啟用：輸入基本薪資即可自動計算扣款');
+        console.log('⭐ 時薪計算功能已啟用');
     </script>
 </body>
 </html>
