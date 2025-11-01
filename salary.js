@@ -4,6 +4,108 @@ if (typeof callApifetch !== 'function') {
 }
 
 /**
+ * ✅ 初始化薪資頁面
+ */
+async function initSalaryTab() {
+    try {
+        console.log('🎯 初始化薪資頁面');
+        
+        // 檢查使用者 session
+        const session = await callApifetch("checkSession");
+        
+        if (!session.ok || !session.user) {
+            console.warn('❌ 無法取得使用者資訊');
+            showNotification('請先登入', 'error');
+            return;
+        }
+        
+        const user = session.user;
+        const isAdmin = user.dept === "管理員";
+        
+        console.log(`👤 使用者: ${user.name} (${user.userId})`);
+        console.log(`🔐 權限: ${isAdmin ? '管理員' : '一般員工'}`);
+        
+        // 載入當前員工的薪資（綁定 LINE userId）
+        await loadCurrentEmployeeSalary(user.userId);
+        
+    } catch (error) {
+        console.error('❌ 初始化薪資頁面失敗:', error);
+    }
+}
+
+/**
+ * ✅ 載入當前員工的薪資
+ */
+async function loadCurrentEmployeeSalary(userId) {
+    try {
+        console.log(`💰 載入員工薪資: ${userId}`);
+        
+        const now = new Date();
+        const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+        
+        const result = await callApifetch(`getMySalary&yearMonth=${currentMonth}`);
+        
+        console.log('📥 薪資資料:', result);
+        
+        if (result.ok && result.data) {
+            displayEmployeeSalary(result.data);
+            updateSalaryStats(result.data);
+        } else {
+            showNoSalaryMessage(currentMonth);
+        }
+        
+    } catch (error) {
+        console.error('❌ 載入失敗:', error);
+        showErrorMessage('載入薪資資料失敗');
+    }
+}
+
+/**
+ * 顯示薪資明細
+ */
+function displayEmployeeSalary(data) {
+    setElementText('gross-salary', formatCurrency(data['應發總額']));
+    setElementText('net-salary', formatCurrency(data['實發金額']));
+    
+    const deductions = 
+        (data['勞保費'] || 0) + 
+        (data['健保費'] || 0) + 
+        (data['就業保險費'] || 0) + 
+        (data['勞退自提'] || 0) + 
+        (data['所得稅'] || 0);
+    
+    setElementText('total-deductions', formatCurrency(deductions));
+    
+    setElementText('detail-base-salary', formatCurrency(data['基本薪資']));
+    setElementText('detail-labor-fee', formatCurrency(data['勞保費']));
+    setElementText('detail-bank-name', getBankName(data['銀行代碼']));
+}
+
+function updateSalaryStats(data) {
+    const salaryEl = document.getElementById('current-month-salary');
+    if (salaryEl) {
+        salaryEl.textContent = formatCurrency(data['實發金額']);
+    }
+}
+
+function showNoSalaryMessage(month) {
+    const container = document.querySelector('#employee-salary-section .feature-box');
+    if (container) {
+        container.innerHTML = `
+            <div class="text-center py-8">
+                <p class="text-gray-400">📄 ${month} 尚無薪資記錄</p>
+            </div>
+        `;
+    }
+}
+
+function setElementText(id, text) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = text;
+}
+
+
+/**
  * 初始化薪資分頁
  */
 function initSalaryTab() {
