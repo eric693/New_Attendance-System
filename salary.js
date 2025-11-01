@@ -3,10 +3,6 @@
 if (typeof callApifetch !== 'function') {
     console.error('❌ callApifetch 函數未定義，請確認 script.js 已正確載入');
 }
-
-// ==================== 全域變數 ====================
-// salary.js - 完全修正版
-
 // ==================== 全域變數 ====================
 let currentUser = null;  // ✅ 檔案最頂部定義
 
