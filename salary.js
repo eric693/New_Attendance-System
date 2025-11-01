@@ -5,33 +5,28 @@ if (typeof callApifetch !== 'function') {
 }
 
 // ==================== 全域變數 ====================
-let currentUser = null;  // ⭐ 儲存當前使用者資訊
+let currentUser = null;  // ✅ 在檔案頂部就定義
 
 /**
- * ✅ 初始化薪資頁面（完全修正版 - 修復 ReferenceError）
+ * ✅ 初始化薪資頁面
  */
 async function initSalaryTab() {
     try {
         console.log('🎯 初始化薪資頁面');
         
-        // ⭐ 關鍵：先驗證並取得使用者資訊
+        // 1️⃣ 先驗證 Session
         const session = await callApifetch("checkSession");
         
         if (!session.ok || !session.user) {
             console.warn('❌ 無法取得使用者資訊');
             showNotification('請先登入', 'error');
-            
-            // 重新導向到登入頁
-            setTimeout(() => {
-                window.location.href = 'index.html';
-            }, 2000);
             return;
         }
         
-        // ⭐⭐⭐ 修復重點：先儲存使用者資訊到全域變數（在使用之前）
+        // 2️⃣ 立即設定 currentUser（在任何使用之前）
         currentUser = {
             userId: session.user.userId,
-            employeeId: session.user.userId,  // ✅ 關鍵：employeeId = userId
+            employeeId: session.user.userId,
             name: session.user.name,
             dept: session.user.dept,
             isAdmin: session.user.dept === "管理員"
@@ -39,9 +34,8 @@ async function initSalaryTab() {
         
         console.log(`👤 使用者: ${currentUser.name} (${currentUser.userId})`);
         console.log(`🔐 權限: ${currentUser.isAdmin ? '管理員' : '一般員工'}`);
-        console.log(`📌 員工ID: ${currentUser.employeeId}`);
         
-        // ⭐ 設定當前月份
+        // 3️⃣ 設定當前月份
         const now = new Date();
         const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
         
@@ -50,13 +44,11 @@ async function initSalaryTab() {
             employeeSalaryMonth.value = currentMonth;
         }
         
-        // ⭐ 載入當前員工的薪資
+        // 4️⃣ 載入薪資資料
         await loadCurrentEmployeeSalary();
-        
-        // ⭐ 載入薪資歷史
         await loadSalaryHistory();
         
-        // ⭐ 綁定事件（如果是管理員）
+        // 5️⃣ 綁定事件（管理員才需要）
         if (currentUser.isAdmin) {
             bindSalaryEvents();
         }
@@ -64,18 +56,17 @@ async function initSalaryTab() {
         console.log('✅ 薪資頁面初始化完成');
         
     } catch (error) {
-        console.error('❌ 初始化薪資頁面失敗:', error);
-        console.error('錯誤堆疊:', error.stack);
+        console.error('❌ 初始化失敗:', error);
         showNotification('初始化失敗，請重新登入', 'error');
     }
 }
 
 /**
- * ✅ 載入當前員工的薪資（修正版）
+ * ✅ 載入當前員工的薪資
  */
 async function loadCurrentEmployeeSalary() {
     try {
-        console.log(`💰 載入員工薪資 - 使用 session token`);
+        console.log(`💰 載入員工薪資`);
         
         const now = new Date();
         const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
@@ -101,22 +92,17 @@ async function loadCurrentEmployeeSalary() {
             if (contentEl) contentEl.style.display = 'block';
         } else {
             console.log(`⚠️ 沒有 ${currentMonth} 的薪資記錄`);
-            showNoSalaryMessage(currentMonth);
             if (emptyEl) emptyEl.style.display = 'block';
         }
         
     } catch (error) {
         console.error('❌ 載入失敗:', error);
-        console.error('錯誤堆疊:', error.stack);
-        showErrorMessage('載入薪資資料失敗');
-        
         const loadingEl = document.getElementById('current-salary-loading');
         const emptyEl = document.getElementById('current-salary-empty');
         if (loadingEl) loadingEl.style.display = 'none';
         if (emptyEl) emptyEl.style.display = 'block';
     }
 }
-
 /**
  * ✅ 按月份查詢薪資（修正版）
  */
