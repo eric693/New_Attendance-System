@@ -1,181 +1,131 @@
-// salary.js - 薪資管理前端邏輯（✅ 完整修正版）
+// salary.js - 薪資管理前端邏輯（✅ 完整修正版 - 確保唯一性）
+
 if (typeof callApifetch !== 'function') {
     console.error('❌ callApifetch 函數未定義，請確認 script.js 已正確載入');
 }
 
+// ==================== 全域變數 ====================
+let currentUser = null;  // ⭐ 儲存當前使用者資訊
+
 /**
- * ✅ 初始化薪資頁面
+ * ✅ 初始化薪資頁面（修正版）
  */
 async function initSalaryTab() {
     try {
         console.log('🎯 初始化薪資頁面');
         
-        // 檢查使用者 session
+        // ⭐ 關鍵：先驗證並取得使用者資訊
         const session = await callApifetch("checkSession");
         
         if (!session.ok || !session.user) {
             console.warn('❌ 無法取得使用者資訊');
             showNotification('請先登入', 'error');
+            
+            // 重新導向到登入頁
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 2000);
             return;
         }
         
-        const user = session.user;
-        const isAdmin = user.dept === "管理員";
+        // ⭐ 儲存使用者資訊到全域變數
+        currentUser = {
+            userId: session.user.userId,
+            name: session.user.name,
+            dept: session.user.dept,
+            isAdmin: session.user.dept === "管理員"
+        };
         
-        console.log(`👤 使用者: ${user.name} (${user.userId})`);
-        console.log(`🔐 權限: ${isAdmin ? '管理員' : '一般員工'}`);
+        console.log(`👤 使用者: ${currentUser.name} (${currentUser.userId})`);
+        console.log(`🔐 權限: ${currentUser.isAdmin ? '管理員' : '一般員工'}`);
+        console.log(`📌 完整資訊:`, currentUser);
         
-        // 載入當前員工的薪資（綁定 LINE userId）
-        await loadCurrentEmployeeSalary(user.userId);
+        // ⭐ 載入當前員工的薪資（使用 session 中的 userId）
+        await loadCurrentEmployeeSalary();
+        
+        // ⭐ 載入薪資歷史
+        await loadSalaryHistory();
         
     } catch (error) {
         console.error('❌ 初始化薪資頁面失敗:', error);
+        showNotification('初始化失敗，請重新登入', 'error');
     }
 }
 
 /**
- * ✅ 載入當前員工的薪資
+ * ✅ 載入當前員工的薪資（修正版 - 不需傳入參數）
  */
-async function loadCurrentEmployeeSalary(userId) {
+async function loadCurrentEmployeeSalary() {
     try {
-        console.log(`💰 載入員工薪資: ${userId}`);
+        // ⭐ 關鍵修正：不需要傳入 userId，後端會從 session 取得
+        console.log(`💰 載入員工薪資 - 使用 session token`);
         
         const now = new Date();
         const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
         
+        const loadingEl = document.getElementById('current-salary-loading');
+        const emptyEl = document.getElementById('current-salary-empty');
+        const contentEl = document.getElementById('current-salary-content');
+        
+        if (loadingEl) loadingEl.style.display = 'block';
+        if (emptyEl) emptyEl.style.display = 'none';
+        if (contentEl) contentEl.style.display = 'none';
+        
+        // ⭐ 關鍵：後端會從 token 自動取得 userId
         const result = await callApifetch(`getMySalary&yearMonth=${currentMonth}`);
         
-        console.log('📥 薪資資料:', result);
+        console.log('📥 薪資資料回應:', result);
+        
+        if (loadingEl) loadingEl.style.display = 'none';
         
         if (result.ok && result.data) {
+            console.log('✅ 成功載入薪資資料');
             displayEmployeeSalary(result.data);
-            updateSalaryStats(result.data);
+            if (contentEl) contentEl.style.display = 'block';
         } else {
+            console.log('⚠️ 沒有薪資記錄');
             showNoSalaryMessage(currentMonth);
+            if (emptyEl) emptyEl.style.display = 'block';
         }
         
     } catch (error) {
         console.error('❌ 載入失敗:', error);
         showErrorMessage('載入薪資資料失敗');
-    }
-}
-
-/**
- * 顯示薪資明細
- */
-function displayEmployeeSalary(data) {
-    setElementText('gross-salary', formatCurrency(data['應發總額']));
-    setElementText('net-salary', formatCurrency(data['實發金額']));
-    
-    const deductions = 
-        (data['勞保費'] || 0) + 
-        (data['健保費'] || 0) + 
-        (data['就業保險費'] || 0) + 
-        (data['勞退自提'] || 0) + 
-        (data['所得稅'] || 0);
-    
-    setElementText('total-deductions', formatCurrency(deductions));
-    
-    setElementText('detail-base-salary', formatCurrency(data['基本薪資']));
-    setElementText('detail-labor-fee', formatCurrency(data['勞保費']));
-    setElementText('detail-bank-name', getBankName(data['銀行代碼']));
-}
-
-function updateSalaryStats(data) {
-    const salaryEl = document.getElementById('current-month-salary');
-    if (salaryEl) {
-        salaryEl.textContent = formatCurrency(data['實發金額']);
-    }
-}
-
-function showNoSalaryMessage(month) {
-    const container = document.querySelector('#employee-salary-section .feature-box');
-    if (container) {
-        container.innerHTML = `
-            <div class="text-center py-8">
-                <p class="text-gray-400">📄 ${month} 尚無薪資記錄</p>
-            </div>
-        `;
-    }
-}
-
-function setElementText(id, text) {
-    const el = document.getElementById(id);
-    if (el) el.textContent = text;
-}
-
-
-/**
- * 初始化薪資分頁
- */
-function initSalaryTab() {
-    console.log('💰 初始化薪資分頁');
-    
-    // 檢查使用者權限
-    checkUserRole();
-    
-    // 載入當月薪資
-    loadCurrentSalary();
-    
-    // 載入薪資歷史
-    loadSalaryHistory();
-    
-    // 綁定表單事件
-    bindSalaryEvents();
-}
-
-/**
- * 檢查使用者角色（管理員 vs 一般員工）
- */
-async function checkUserRole() {
-    try {
-        const res = await callApifetch("checkSession");
         
-        if (res.ok && res.user) {
-            const employeeSection = document.getElementById('employee-salary-section');
-            const adminSection = document.getElementById('admin-salary-section');
-            
-            if (!employeeSection || !adminSection) {
-                console.warn('薪資區塊元素未找到');
-                return;
-            }
-            
-            if (res.user.dept === "管理員") {
-                employeeSection.style.display = 'none';
-                adminSection.style.display = 'block';
-                loadAllEmployeeSalary();
-            } else {
-                employeeSection.style.display = 'block';
-                adminSection.style.display = 'none';
-            }
-        }
-    } catch (error) {
-        console.error('檢查使用者角色失敗:', error);
+        const loadingEl = document.getElementById('current-salary-loading');
+        const emptyEl = document.getElementById('current-salary-empty');
+        if (loadingEl) loadingEl.style.display = 'none';
+        if (emptyEl) emptyEl.style.display = 'block';
     }
 }
 
 /**
- * 載入當月薪資
+ * ✅ 按月份查詢薪資（修正版）
  */
-async function loadCurrentSalary() {
+async function loadEmployeeSalaryByMonth() {
+    const monthInput = document.getElementById('employee-salary-month');
+    const yearMonth = monthInput ? monthInput.value : '';
+    
+    if (!yearMonth) {
+        showNotification('請選擇查詢月份', 'error');
+        return;
+    }
+    
     const loadingEl = document.getElementById('current-salary-loading');
     const emptyEl = document.getElementById('current-salary-empty');
     const contentEl = document.getElementById('current-salary-content');
     
-    if (!loadingEl || !emptyEl || !contentEl) {
-        console.warn('薪資顯示元素未找到');
-        return;
-    }
+    if (!loadingEl || !emptyEl || !contentEl) return;
     
     try {
         loadingEl.style.display = 'block';
         emptyEl.style.display = 'none';
         contentEl.style.display = 'none';
         
-        const now = new Date();
-        const yearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-        
+        // ⭐ 關鍵：不傳 userId，後端從 session 取得
         const res = await callApifetch(`getMySalary&yearMonth=${yearMonth}`);
+        
+        console.log(`📥 查詢 ${yearMonth} 薪資:`, res);
         
         loadingEl.style.display = 'none';
         
@@ -187,52 +137,56 @@ async function loadCurrentSalary() {
         }
         
     } catch (error) {
-        console.error('載入當月薪資失敗:', error);
+        console.error('載入薪資失敗:', error);
         loadingEl.style.display = 'none';
         emptyEl.style.display = 'block';
     }
 }
 
 /**
- * 顯示當月薪資
+ * 顯示薪資明細
  */
-function displayCurrentSalary(salary) {
-    const safeSetText = (id, value) => {
-        const el = document.getElementById(id);
-        if (el) el.textContent = value;
-    };
+function displayEmployeeSalary(data) {
+    console.log('📊 顯示薪資明細:', data);
     
-    safeSetText('gross-salary', formatCurrency(salary['應發總額']));
+    setElementText('gross-salary', formatCurrency(data['應發總額']));
+    setElementText('net-salary', formatCurrency(data['實發金額']));
     
-    const totalDeductions = 
-        (salary['勞保費'] || 0) + 
-        (salary['健保費'] || 0) + 
-        (salary['就業保險費'] || 0) + 
-        (salary['勞退自提'] || 0) + 
-        (salary['所得稅'] || 0) + 
-        (salary['請假扣款'] || 0);
+    const deductions = 
+        (data['勞保費'] || 0) + 
+        (data['健保費'] || 0) + 
+        (data['就業保險費'] || 0) + 
+        (data['勞退自提'] || 0) + 
+        (data['所得稅'] || 0) +
+        (data['請假扣款'] || 0);
     
-    safeSetText('total-deductions', formatCurrency(totalDeductions));
-    safeSetText('net-salary', formatCurrency(salary['實發金額']));
+    setElementText('total-deductions', formatCurrency(deductions));
     
-    safeSetText('detail-base-salary', formatCurrency(salary['基本薪資']));
-    safeSetText('detail-weekday-overtime', formatCurrency(salary['平日加班費']));
-    safeSetText('detail-restday-overtime', formatCurrency(salary['休息日加班費']));
-    safeSetText('detail-holiday-overtime', formatCurrency(salary['國定假日加班費']));
+    setElementText('detail-base-salary', formatCurrency(data['基本薪資']));
+    setElementText('detail-weekday-overtime', formatCurrency(data['平日加班費']));
+    setElementText('detail-restday-overtime', formatCurrency(data['休息日加班費']));
+    setElementText('detail-holiday-overtime', formatCurrency(data['國定假日加班費']));
     
-    safeSetText('detail-labor-fee', formatCurrency(salary['勞保費']));
-    safeSetText('detail-health-fee', formatCurrency(salary['健保費']));
-    safeSetText('detail-employment-fee', formatCurrency(salary['就業保險費']));
-    safeSetText('detail-pension-self', formatCurrency(salary['勞退自提']));
-    safeSetText('detail-income-tax', formatCurrency(salary['所得稅']));
-    safeSetText('detail-leave-deduction', formatCurrency(salary['請假扣款']));
+    setElementText('detail-labor-fee', formatCurrency(data['勞保費']));
+    setElementText('detail-health-fee', formatCurrency(data['健保費']));
+    setElementText('detail-employment-fee', formatCurrency(data['就業保險費']));
+    setElementText('detail-pension-self', formatCurrency(data['勞退自提']));
+    setElementText('detail-income-tax', formatCurrency(data['所得稅']));
+    setElementText('detail-leave-deduction', formatCurrency(data['請假扣款']));
     
-    safeSetText('detail-bank-name', getBankName(salary['銀行代碼']));
-    safeSetText('detail-bank-account', salary['銀行帳號'] || '--');
+    setElementText('detail-bank-name', getBankName(data['銀行代碼']));
+    setElementText('detail-bank-account', data['銀行帳號'] || '--');
 }
 
 /**
- * 載入薪資歷史
+ * 顯示當月薪資（相容舊函數名稱）
+ */
+function displayCurrentSalary(salary) {
+    displayEmployeeSalary(salary);
+}
+
+/**
+ * ✅ 載入薪資歷史（修正版）
  */
 async function loadSalaryHistory() {
     const loadingEl = document.getElementById('salary-history-loading');
@@ -249,7 +203,10 @@ async function loadSalaryHistory() {
         emptyEl.style.display = 'none';
         listEl.innerHTML = '';
         
+        // ⭐ 關鍵：不傳 userId，後端從 session 取得
         const res = await callApifetch('getMySalaryHistory&limit=12');
+        
+        console.log('📥 薪資歷史:', res);
         
         loadingEl.style.display = 'none';
         
@@ -274,22 +231,22 @@ async function loadSalaryHistory() {
  */
 function createSalaryHistoryItem(salary) {
     const div = document.createElement('div');
-    div.className = 'bg-white dark:bg-gray-800 rounded-lg p-4 flex justify-between items-center hover:shadow-md transition';
+    div.className = 'feature-box flex justify-between items-center hover:bg-white/10 transition cursor-pointer';
     
     div.innerHTML = `
         <div>
-            <div class="font-semibold text-gray-800 dark:text-white">
+            <div class="font-semibold text-lg">
                 ${salary['年月'] || '--'}
             </div>
-            <div class="text-sm text-gray-500 dark:text-gray-400">
+            <div class="text-sm text-gray-400 mt-1">
                 ${salary['狀態'] || '已計算'}
             </div>
         </div>
         <div class="text-right">
-            <div class="text-lg font-bold text-purple-900 dark:text-purple-200">
+            <div class="text-2xl font-bold text-purple-400">
                 ${formatCurrency(salary['實發金額'])}
             </div>
-            <div class="text-xs text-gray-500">
+            <div class="text-xs text-gray-400 mt-1">
                 應發 ${formatCurrency(salary['應發總額'])}
             </div>
         </div>
@@ -297,6 +254,59 @@ function createSalaryHistoryItem(salary) {
     
     return div;
 }
+
+/**
+ * 顯示無薪資訊息
+ */
+function showNoSalaryMessage(month) {
+    const container = document.getElementById('current-salary-content');
+    if (container) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon">📄</div>
+                <div class="empty-state-title">尚無薪資記錄</div>
+                <div class="empty-state-text">
+                    <p>${month} 還沒有薪資資料</p>
+                    <p style="margin-top: 0.5rem; font-size: 0.875rem;">
+                        💡 提示：薪資需要由管理員先設定和計算<br>
+                        請聯繫您的主管或人資部門
+                    </p>
+                </div>
+            </div>
+        `;
+        container.style.display = 'block';
+    }
+}
+
+/**
+ * 顯示錯誤訊息
+ */
+function showErrorMessage(message) {
+    const container = document.getElementById('current-salary-content');
+    if (container) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon">❌</div>
+                <div class="empty-state-title">${message}</div>
+            </div>
+        `;
+        container.style.display = 'block';
+    }
+}
+
+/**
+ * 設定元素文字內容（安全版本）
+ */
+function setElementText(id, text) {
+    const el = document.getElementById(id);
+    if (el) {
+        el.textContent = text;
+    } else {
+        console.warn(`元素 #${id} 未找到`);
+    }
+}
+
+// ==================== 管理員功能 ====================
 
 /**
  * 綁定表單事件
@@ -312,17 +322,15 @@ function bindSalaryEvents() {
         calculateBtn.addEventListener('click', handleSalaryCalculation);
     }
     
-    const filterMonth = document.getElementById('filter-year-month');
+    const filterMonth = document.getElementById('filter-year-month-list');
     if (filterMonth) {
-        filterMonth.addEventListener('change', loadAllEmployeeSalary);
-        
         const now = new Date();
         filterMonth.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
     }
 }
 
 /**
- * ✅ 處理薪資設定表單提交（關鍵修正）
+ * ✅ 處理薪資設定表單提交
  */
 async function handleSalaryConfigSubmit(e) {
     e.preventDefault();
@@ -334,7 +342,6 @@ async function handleSalaryConfigSubmit(e) {
         return el ? el.value : '';
     };
     
-    // ✅ 直接取得各欄位值
     const employeeId = safeGetValue('config-employee-id');
     const employeeName = safeGetValue('config-employee-name');
     const idNumber = safeGetValue('config-id-number');
@@ -349,31 +356,18 @@ async function handleSalaryConfigSubmit(e) {
     const laborFee = safeGetValue('config-labor-fee') || '0';
     const healthFee = safeGetValue('config-health-fee') || '0';
     const employmentFee = safeGetValue('config-employment-fee') || '0';
+    const pensionSelf = safeGetValue('config-pension-self') || '0';
     const incomeTax = safeGetValue('config-income-tax') || '0';
     const note = safeGetValue('config-note') || '';
     
-    // ✅ 驗證必填欄位
-    if (!employeeId) {
-        showNotification('❌ 請輸入員工ID', 'error');
+    if (!employeeId || !employeeName || !baseSalary) {
+        showNotification('❌ 請填寫必填欄位', 'error');
         return;
     }
-    
-    if (!employeeName) {
-        showNotification('❌ 請輸入員工姓名', 'error');
-        return;
-    }
-    
-    if (!baseSalary) {
-        showNotification('❌ 請輸入基本薪資', 'error');
-        return;
-    }
-    
-    console.log('📤 準備發送資料');
     
     try {
         showNotification('⏳ 正在儲存...', 'info');
         
-        // ✅ 修正：直接組合參數字串，不使用 URLSearchParams
         const queryString = 
             `employeeId=${encodeURIComponent(employeeId)}` +
             `&employeeName=${encodeURIComponent(employeeName)}` +
@@ -389,27 +383,16 @@ async function handleSalaryConfigSubmit(e) {
             `&laborFee=${encodeURIComponent(laborFee)}` +
             `&healthFee=${encodeURIComponent(healthFee)}` +
             `&employmentFee=${encodeURIComponent(employmentFee)}` +
+            `&pensionSelf=${encodeURIComponent(pensionSelf)}` +
             `&incomeTax=${encodeURIComponent(incomeTax)}` +
             `&note=${encodeURIComponent(note)}`;
         
-        console.log('📤 查詢字串:', queryString);
-        
         const res = await callApifetch(`setEmployeeSalaryTW&${queryString}`);
-        
-        console.log('📥 收到回應:', res);
         
         if (res.ok) {
             showNotification('✅ 薪資設定已成功儲存', 'success');
             e.target.reset();
-            
-            // 清空計算預覽
             setCalculatedValues(0, 0, 0, 0, 0, 0, 0, 0, 0);
-            
-            // 重新載入列表（如果是管理員）
-            const filterMonth = document.getElementById('filter-year-month');
-            if (filterMonth) {
-                loadAllEmployeeSalary();
-            }
         } else {
             showNotification(`❌ 儲存失敗：${res.msg || '未知錯誤'}`, 'error');
         }
@@ -428,10 +411,7 @@ async function handleSalaryCalculation() {
     const yearMonthEl = document.getElementById('calc-year-month');
     const resultEl = document.getElementById('salary-calculation-result');
     
-    if (!employeeIdEl || !yearMonthEl || !resultEl) {
-        console.warn('計算表單元素未找到');
-        return;
-    }
+    if (!employeeIdEl || !yearMonthEl || !resultEl) return;
     
     const employeeId = employeeIdEl.value;
     const yearMonth = yearMonthEl.value;
@@ -445,8 +425,6 @@ async function handleSalaryCalculation() {
         showNotification('⏳ 正在計算薪資...', 'info');
         
         const res = await callApifetch(`calculateMonthlySalary&employeeId=${employeeId}&yearMonth=${yearMonth}`);
-        
-        console.log('💰 計算結果:', res);
         
         if (res.ok && res.data) {
             displaySalaryCalculation(res.data, resultEl);
@@ -473,98 +451,80 @@ function displaySalaryCalculation(data, container) {
     if (!container) return;
     
     container.innerHTML = `
-        <div class="bg-white dark:bg-gray-800 rounded-lg p-6">
-            <h3 class="text-lg font-semibold mb-4">
+        <div class="calculation-card">
+            <h3 class="text-xl font-bold mb-4">
                 ${data.employeeName || '--'} - ${data.yearMonth || '--'} 薪資計算結果
             </h3>
             
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                <div class="info-card">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div class="info-card" style="background: rgba(34, 197, 94, 0.1);">
                     <div class="info-label">應發總額</div>
-                    <div class="info-value">${formatCurrency(data.grossSalary)}</div>
+                    <div class="info-value" style="color: #22c55e;">${formatCurrency(data.grossSalary)}</div>
                 </div>
-                <div class="info-card">
+                <div class="info-card" style="background: rgba(239, 68, 68, 0.1);">
                     <div class="info-label">扣款總額</div>
-                    <div class="info-value text-red-500">${formatCurrency(data.totalDeductions)}</div>
+                    <div class="info-value" style="color: #ef4444;">${formatCurrency(data.laborFee + data.healthFee + data.employmentFee + data.pensionSelf + data.incomeTax + (data.leaveDeduction || 0))}</div>
                 </div>
-                <div class="info-card salary-card">
-                    <div class="info-label salary-label">實發金額</div>
-                    <div class="info-value">${formatCurrency(data.netSalary)}</div>
+                <div class="info-card" style="background: rgba(168, 85, 247, 0.1);">
+                    <div class="info-label">實發金額</div>
+                    <div class="info-value" style="color: #a855f7;">${formatCurrency(data.netSalary)}</div>
                 </div>
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="bg-green-50 dark:bg-green-900/20 rounded-lg p-4">
-                    <h4 class="font-semibold mb-2">應發項目</h4>
-                    <div class="space-y-1 text-sm">
-                        <div class="flex justify-between">
-                            <span>基本薪資</span>
-                            <span class="font-mono">${formatCurrency(data.baseSalary)}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span>平日加班費</span>
-                            <span class="font-mono">${formatCurrency(data.weekdayOvertimePay)}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span>休息日加班費</span>
-                            <span class="font-mono">${formatCurrency(data.restdayOvertimePay)}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span>國定假日加班費</span>
-                            <span class="font-mono">${formatCurrency(data.holidayOvertimePay)}</span>
-                        </div>
+                <div class="calculation-detail">
+                    <h4 class="font-semibold mb-3 text-green-400">應發項目</h4>
+                    <div class="calculation-row">
+                        <span>基本薪資</span>
+                        <span class="font-mono">${formatCurrency(data.baseSalary)}</span>
+                    </div>
+                    <div class="calculation-row">
+                        <span>平日加班費</span>
+                        <span class="font-mono">${formatCurrency(data.weekdayOvertimePay)}</span>
+                    </div>
+                    <div class="calculation-row">
+                        <span>休息日加班費</span>
+                        <span class="font-mono">${formatCurrency(data.restdayOvertimePay)}</span>
+                    </div>
+                    <div class="calculation-row">
+                        <span>國定假日加班費</span>
+                        <span class="font-mono">${formatCurrency(data.holidayOvertimePay)}</span>
+                    </div>
+                    <div class="calculation-row total">
+                        <span>應發總額</span>
+                        <span>${formatCurrency(data.grossSalary)}</span>
                     </div>
                 </div>
                 
-                <div class="bg-red-50 dark:bg-red-900/20 rounded-lg p-4">
-                    <h4 class="font-semibold mb-2">扣款項目</h4>
-                    <div class="space-y-1 text-sm">
-                        <div class="flex justify-between">
-                            <span>勞保費</span>
-                            <span class="font-mono">${formatCurrency(data.laborFee)}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span>健保費</span>
-                            <span class="font-mono">${formatCurrency(data.healthFee)}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span>就業保險費</span>
-                            <span class="font-mono">${formatCurrency(data.employmentFee)}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span>勞退自提</span>
-                            <span class="font-mono">${formatCurrency(data.pensionSelf)}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span>所得稅</span>
-                            <span class="font-mono">${formatCurrency(data.incomeTax)}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span>請假扣款</span>
-                            <span class="font-mono">${formatCurrency(data.leaveDeduction)}</span>
-                        </div>
+                <div class="calculation-detail">
+                    <h4 class="font-semibold mb-3 text-red-400">扣款項目</h4>
+                    <div class="calculation-row">
+                        <span>勞保費</span>
+                        <span class="font-mono">${formatCurrency(data.laborFee)}</span>
                     </div>
-                </div>
-            </div>
-            
-            <div class="mt-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
-                <h4 class="font-semibold mb-2">雇主負擔（參考）</h4>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
-                    <div>
-                        <span class="text-gray-600 dark:text-gray-400">勞保費：</span>
-                        <span class="font-mono">${formatCurrency(data.employerLaborFee)}</span>
+                    <div class="calculation-row">
+                        <span>健保費</span>
+                        <span class="font-mono">${formatCurrency(data.healthFee)}</span>
                     </div>
-                    <div>
-                        <span class="text-gray-600 dark:text-gray-400">健保費：</span>
-                        <span class="font-mono">${formatCurrency(data.employerHealthFee)}</span>
+                    <div class="calculation-row">
+                        <span>就業保險費</span>
+                        <span class="font-mono">${formatCurrency(data.employmentFee)}</span>
                     </div>
-                    <div>
-                        <span class="text-gray-600 dark:text-gray-400">就保費：</span>
-                        <span class="font-mono">${formatCurrency(data.employerEmploymentFee)}</span>
+                    <div class="calculation-row">
+                        <span>勞退自提</span>
+                        <span class="font-mono">${formatCurrency(data.pensionSelf)}</span>
                     </div>
-                    <div>
-                        <span class="text-gray-600 dark:text-gray-400">勞退提繳：</span>
-                        <span class="font-mono">${formatCurrency(data.employerPension)}</span>
+                    <div class="calculation-row">
+                        <span>所得稅</span>
+                        <span class="font-mono">${formatCurrency(data.incomeTax)}</span>
+                    </div>
+                    <div class="calculation-row">
+                        <span>請假扣款</span>
+                        <span class="font-mono">${formatCurrency(data.leaveDeduction || 0)}</span>
+                    </div>
+                    <div class="calculation-row total">
+                        <span>實發金額</span>
+                        <span>${formatCurrency(data.netSalary)}</span>
                     </div>
                 </div>
             </div>
@@ -573,13 +533,12 @@ function displaySalaryCalculation(data, container) {
 }
 
 /**
- * ✅ 儲存薪資記錄（修正版）
+ * ✅ 儲存薪資記錄
  */
 async function saveSalaryRecord(data) {
     try {
         showNotification('⏳ 正在儲存薪資單...', 'info');
         
-        // ✅ 直接組合參數字串
         const queryString = 
             `employeeId=${encodeURIComponent(data.employeeId)}` +
             `&employeeName=${encodeURIComponent(data.employeeName)}` +
@@ -594,13 +553,8 @@ async function saveSalaryRecord(data) {
             `&pensionSelf=${encodeURIComponent(data.pensionSelf)}` +
             `&incomeTax=${encodeURIComponent(data.incomeTax)}` +
             `&leaveDeduction=${encodeURIComponent(data.leaveDeduction || 0)}` +
-            `&lateDeduction=${encodeURIComponent(data.lateDeduction || 0)}` +
             `&grossSalary=${encodeURIComponent(data.grossSalary)}` +
             `&netSalary=${encodeURIComponent(data.netSalary)}` +
-            `&employerLaborFee=${encodeURIComponent(data.employerLaborFee)}` +
-            `&employerHealthFee=${encodeURIComponent(data.employerHealthFee)}` +
-            `&employerEmploymentFee=${encodeURIComponent(data.employerEmploymentFee)}` +
-            `&employerPension=${encodeURIComponent(data.employerPension)}` +
             `&bankCode=${encodeURIComponent(data.bankCode || '')}` +
             `&bankAccount=${encodeURIComponent(data.bankAccount || '')}`;
         
@@ -608,7 +562,6 @@ async function saveSalaryRecord(data) {
         
         if (res.ok) {
             showNotification('✅ 薪資單已成功儲存', 'success');
-            loadAllEmployeeSalary();
         } else {
             showNotification(`❌ 儲存失敗：${res.msg || '未知錯誤'}`, 'error');
         }
@@ -622,17 +575,19 @@ async function saveSalaryRecord(data) {
 /**
  * 載入所有員工薪資列表
  */
-async function loadAllEmployeeSalary() {
-    const loadingEl = document.getElementById('all-salary-loading');
-    const listEl = document.getElementById('all-salary-list');
-    const yearMonthEl = document.getElementById('filter-year-month');
+async function loadAllEmployeeSalaryFromList() {
+    const yearMonthEl = document.getElementById('filter-year-month-list');
+    const loadingEl = document.getElementById('all-salary-loading-list');
+    const listEl = document.getElementById('all-salary-list-content');
     
-    if (!loadingEl || !listEl || !yearMonthEl) {
-        console.warn('薪資列表元素未找到');
-        return;
-    }
+    if (!yearMonthEl || !loadingEl || !listEl) return;
     
     const yearMonth = yearMonthEl.value;
+    
+    if (!yearMonth) {
+        showNotification('請選擇查詢年月', 'error');
+        return;
+    }
     
     try {
         loadingEl.style.display = 'block';
@@ -648,13 +603,13 @@ async function loadAllEmployeeSalary() {
                 listEl.appendChild(item);
             });
         } else {
-            listEl.innerHTML = '<p class="text-center text-gray-500 py-4">尚無薪資記錄</p>';
+            listEl.innerHTML = '<p class="text-center text-gray-400 py-8">尚無薪資記錄</p>';
         }
         
     } catch (error) {
         console.error('❌ 載入薪資列表失敗:', error);
         loadingEl.style.display = 'none';
-        listEl.innerHTML = '<p class="text-center text-red-500 py-4">載入失敗</p>';
+        listEl.innerHTML = '<p class="text-center text-red-400 py-8">載入失敗</p>';
     }
 }
 
@@ -663,22 +618,22 @@ async function loadAllEmployeeSalary() {
  */
 function createAllSalaryItem(salary) {
     const div = document.createElement('div');
-    div.className = 'bg-white dark:bg-gray-800 rounded-lg p-4 flex justify-between items-center';
+    div.className = 'feature-box flex justify-between items-center hover:bg-white/10 transition cursor-pointer';
     
     div.innerHTML = `
         <div>
-            <div class="font-semibold text-gray-800 dark:text-white">
-                ${salary['員工姓名'] || '--'} (${salary['員工ID'] || '--'})
+            <div class="font-semibold text-lg">
+                ${salary['員工姓名'] || '--'} <span class="text-gray-400 text-sm">(${salary['員工ID'] || '--'})</span>
             </div>
-            <div class="text-sm text-gray-500 dark:text-gray-400">
+            <div class="text-sm text-gray-400 mt-1">
                 ${salary['年月'] || '--'} | ${salary['狀態'] || '--'}
             </div>
         </div>
         <div class="text-right">
-            <div class="text-lg font-bold text-purple-900 dark:text-purple-200">
+            <div class="text-2xl font-bold text-green-400">
                 ${formatCurrency(salary['實發金額'])}
             </div>
-            <div class="text-xs text-gray-500">
+            <div class="text-xs text-gray-400 mt-1">
                 ${getBankName(salary['銀行代碼'])} ${salary['銀行帳號'] || '--'}
             </div>
         </div>
@@ -686,6 +641,8 @@ function createAllSalaryItem(salary) {
     
     return div;
 }
+
+// ==================== 工具函數 ====================
 
 /**
  * 格式化貨幣
@@ -738,3 +695,5 @@ function showNotification(message, type = 'info') {
         console.log(message);
     }
 }
+
+console.log('✅ salary.js 已完整載入 - 確保唯一性版本');
