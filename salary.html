@@ -5,6 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>薪資管理系統 - 打卡救星</title>
     <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- ✅ 加入 Leaflet 地圖 CSS 和 JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+        crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+        crossorigin=""></script>
+
+        
     <style>
         * {
             margin: 0;
@@ -1102,28 +1112,6 @@
             };
             
             return banks[code] || code || '--';
-        }
-
-        // ==================== 通知功能 ====================
-        
-        function showNotification(message, type = 'info') {
-            // 移除現有通知
-            const existingNotification = document.querySelector('.notification');
-            if (existingNotification) {
-                existingNotification.remove();
-            }
-            
-            // 建立新通知
-            const notification = document.createElement('div');
-            notification.className = `notification ${type}`;
-            notification.textContent = message;
-            
-            document.body.appendChild(notification);
-            
-            // 3秒後自動移除
-            setTimeout(() => {
-                notification.remove();
-            }, 3000);
         }
 
         console.log('✅ 薪資管理系統已完整載入');
