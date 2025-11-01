@@ -26,7 +26,6 @@
             padding: 2rem;
         }
 
-        /* ⭐ 精美的圖示容器 */
         .icon-box {
             width: 80px;
             height: 80px;
@@ -40,7 +39,6 @@
             overflow: hidden;
         }
 
-        /* 圖示背景動畫效果 */
         .icon-box::before {
             content: '';
             position: absolute;
@@ -57,7 +55,6 @@
             }
         }
 
-        /* SVG 圖示樣式 */
         .salary-icon {
             width: 48px;
             height: 48px;
@@ -102,6 +99,20 @@
         .back-btn:hover {
             background: rgba(255, 255, 255, 0.15);
             transform: translateY(-2px);
+        }
+
+        /* ⭐ 權限提示 */
+        .permission-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(59, 130, 246, 0.2);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 8px;
+            font-size: 0.875rem;
+            color: #60a5fa;
+            margin-bottom: 1.5rem;
         }
 
         .tab-nav {
@@ -160,6 +171,75 @@
             height: 24px;
             background: linear-gradient(135deg, #10b981 0%, #059669 100%);
             border-radius: 2px;
+        }
+
+        /* ⭐ 月份選擇器 */
+        .month-selector {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+        }
+
+        .month-selector label {
+            font-weight: 600;
+            color: #10b981;
+        }
+
+        .month-selector input {
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 1rem;
+        }
+
+        .month-selector button {
+            padding: 0.5rem 1.5rem;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .month-selector button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        /* ⭐ 無資料提示 */
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            border: 2px dashed rgba(255, 255, 255, 0.1);
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .empty-state-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #94a3b8;
+        }
+
+        .empty-state-text {
+            color: #64748b;
+            line-height: 1.6;
         }
 
         .form-section {
@@ -443,26 +523,23 @@
             .form-grid {
                 grid-template-columns: 1fr;
             }
+
+            .month-selector {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- Header -->
         <div class="header">
             <div class="header-left">
-                <!-- ⭐ 精美的 SVG 薪資圖示 -->
                 <div class="icon-box">
                     <svg class="salary-icon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <!-- 文件背景 -->
                         <rect x="12" y="8" width="40" height="48" rx="4" fill="white" opacity="0.95"/>
-                        
-                        <!-- 文件線條 -->
                         <line x1="18" y1="16" x2="46" y2="16" stroke="#10b981" stroke-width="2" stroke-linecap="round"/>
                         <line x1="18" y1="22" x2="46" y2="22" stroke="#10b981" stroke-width="2" stroke-linecap="round"/>
                         <line x1="18" y1="28" x2="38" y2="28" stroke="#10b981" stroke-width="2" stroke-linecap="round"/>
-                        
-                        <!-- 鈔票符號 -->
                         <circle cx="32" cy="40" r="10" fill="#10b981"/>
                         <text x="32" y="46" font-size="14" font-weight="bold" fill="white" text-anchor="middle">$</text>
                     </svg>
@@ -475,18 +552,33 @@
             <button class="back-btn" onclick="goBack()">← 返回</button>
         </div>
 
+        <!-- ⭐ 權限提示 -->
+        <div id="permission-info" class="permission-badge" style="display: none;">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+            </svg>
+            <span id="permission-text">載入中...</span>
+        </div>
+
         <!-- Tab Navigation -->
-        <div class="tab-nav">
-            <button class="tab-btn active" onclick="showTab('employee-salary')">員工薪酬</button>
-            <button class="tab-btn" onclick="showTab('salary-setting')">薪資設定</button>
-            <button class="tab-btn" onclick="showTab('monthly-calc')">月薪計算</button>
-            <button class="tab-btn" onclick="showTab('hourly-calc')">時薪計算</button>
-            <button class="tab-btn" onclick="showTab('salary-list')">薪資列表</button>
+        <div class="tab-nav" id="tab-navigation">
+            <button class="tab-btn active" onclick="showTab('employee-salary')" data-role="all">員工薪酬</button>
+            <button class="tab-btn" onclick="showTab('salary-setting')" data-role="admin">薪資設定</button>
+            <button class="tab-btn" onclick="showTab('monthly-calc')" data-role="admin">月薪計算</button>
+            <button class="tab-btn" onclick="showTab('hourly-calc')" data-role="admin">時薪計算</button>
+            <button class="tab-btn" onclick="showTab('salary-list')" data-role="admin">薪資列表</button>
         </div>
 
         <!-- Tab 1: 員工薪酬 -->
         <div id="employee-salary" class="tab-content active">
             <div id="employee-salary-section">
+                <!-- ⭐ 月份選擇器 -->
+                <div class="month-selector">
+                    <label>📅 查詢月份：</label>
+                    <input type="month" id="employee-salary-month" class="form-input">
+                    <button onclick="loadEmployeeSalaryByMonth()">🔍 查詢</button>
+                </div>
+
                 <div class="feature-box">
                     <div class="feature-title">我的薪資明細</div>
                     
@@ -495,8 +587,16 @@
                         <p>載入中...</p>
                     </div>
                     
-                    <div id="current-salary-empty" class="text-center py-8 text-gray-400" style="display: none;">
-                        本月尚無薪資記錄
+                    <div id="current-salary-empty" class="empty-state" style="display: none;">
+                        <div class="empty-state-icon">📄</div>
+                        <div class="empty-state-title">尚無薪資記錄</div>
+                        <div class="empty-state-text">
+                            <p>此月份還沒有薪資資料</p>
+                            <p style="margin-top: 0.5rem; font-size: 0.875rem;">
+                                💡 提示：薪資需要由管理員先設定和計算<br>
+                                請聯繫您的主管或人資部門
+                            </p>
+                        </div>
                     </div>
                     
                     <div id="current-salary-content" style="display: none;">
@@ -589,8 +689,9 @@
                         <p>載入中...</p>
                     </div>
                     
-                    <div id="salary-history-empty" class="text-center py-8 text-gray-400" style="display: none;">
-                        尚無歷史記錄
+                    <div id="salary-history-empty" class="empty-state" style="display: none;">
+                        <div class="empty-state-icon">📋</div>
+                        <div class="empty-state-title">尚無歷史記錄</div>
                     </div>
                     
                     <div id="salary-history-list" class="space-y-3"></div>
@@ -917,15 +1018,20 @@
     <script src="salary.js"></script>
     
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        let currentUserRole = null;
+
+        document.addEventListener('DOMContentLoaded', async function() {
             console.log('✅ 薪資管理頁面載入完成');
             
-            if (typeof initSalaryTab === 'function') {
-                initSalaryTab();
-            }
+            await checkUserPermission();
             
             const now = new Date();
             const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            
+            const employeeSalaryMonth = document.getElementById('employee-salary-month');
+            if (employeeSalaryMonth) {
+                employeeSalaryMonth.value = currentMonth;
+            }
             
             const calcYearMonth = document.getElementById('calc-year-month');
             if (calcYearMonth) calcYearMonth.value = currentMonth;
@@ -936,9 +1042,118 @@
             const filterYearMonthList = document.getElementById('filter-year-month-list');
             if (filterYearMonthList) filterYearMonthList.value = currentMonth;
             
+            if (typeof initSalaryTab === 'function') {
+                initSalaryTab();
+            }
+            
             bindAutoCalculation();
             bindHourlyCalculation();
         });
+
+        async function checkUserPermission() {
+            try {
+                const res = await callApifetch("checkSession");
+                
+                if (res.ok && res.user) {
+                    const isAdmin = res.user.dept === "管理員";
+                    currentUserRole = isAdmin ? 'admin' : 'employee';
+                    
+                    const permissionInfo = document.getElementById('permission-info');
+                    const permissionText = document.getElementById('permission-text');
+                    
+                    if (permissionInfo && permissionText) {
+                        permissionInfo.style.display = 'flex';
+                        permissionText.textContent = isAdmin 
+                            ? `👤 管理員模式 - ${res.user.name || res.user.userId}` 
+                            : `👤 員工模式 - ${res.user.name || res.user.userId}`;
+                    }
+                    
+                    const tabs = document.querySelectorAll('[data-role="admin"]');
+                    tabs.forEach(tab => {
+                        if (!isAdmin) {
+                            tab.style.display = 'none';
+                        }
+                    });
+                    
+                    console.log(`✅ 使用者角色: ${currentUserRole}`);
+                }
+            } catch (error) {
+                console.error('檢查權限失敗:', error);
+            }
+        }
+
+        async function loadEmployeeSalaryByMonth() {
+            const monthInput = document.getElementById('employee-salary-month');
+            const yearMonth = monthInput ? monthInput.value : '';
+            
+            if (!yearMonth) {
+                showNotification('請選擇查詢月份', 'error');
+                return;
+            }
+            
+            const loadingEl = document.getElementById('current-salary-loading');
+            const emptyEl = document.getElementById('current-salary-empty');
+            const contentEl = document.getElementById('current-salary-content');
+            
+            if (!loadingEl || !emptyEl || !contentEl) return;
+            
+            try {
+                loadingEl.style.display = 'block';
+                emptyEl.style.display = 'none';
+                contentEl.style.display = 'none';
+                
+                const res = await callApifetch(`getMySalary&yearMonth=${yearMonth}`);
+                
+                loadingEl.style.display = 'none';
+                
+                if (res.ok && res.data) {
+                    displayCurrentSalary(res.data);
+                    contentEl.style.display = 'block';
+                } else {
+                    emptyEl.style.display = 'block';
+                }
+                
+            } catch (error) {
+                console.error('載入薪資失敗:', error);
+                loadingEl.style.display = 'none';
+                emptyEl.style.display = 'block';
+            }
+        }
+
+        function displayCurrentSalary(salary) {
+            const safeSetText = (id, value) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = value;
+            };
+            
+            safeSetText('gross-salary', formatCurrency(salary['應發總額']));
+            
+            const totalDeductions = 
+                (salary['勞保費'] || 0) + 
+                (salary['健保費'] || 0) + 
+                (salary['就業保險費'] || 0) + 
+                (salary['勞退自提'] || 0) + 
+                (salary['所得稅'] || 0) + 
+                (salary['請假扣款'] || 0);
+            
+            safeSetText('total-deductions', formatCurrency(totalDeductions));
+            safeSetText('net-salary', formatCurrency(salary['實發金額']));
+            
+            safeSetText('detail-base-salary', formatCurrency(salary['基本薪資']));
+            safeSetText('detail-weekday-overtime', formatCurrency(salary['平日加班費']));
+            safeSetText('detail-restday-overtime', formatCurrency(salary['休息日加班費']));
+            safeSetText('detail-holiday-overtime', formatCurrency(salary['國定假日加班費']));
+            
+            safeSetText('detail-labor-fee', formatCurrency(salary['勞保費']));
+            safeSetText('detail-health-fee', formatCurrency(salary['健保費']));
+            safeSetText('detail-employment-fee', formatCurrency(salary['就業保險費']));
+            safeSetText('detail-pension-self', formatCurrency(salary['勞退自提']));
+            safeSetText('detail-income-tax', formatCurrency(salary['所得稅']));
+            safeSetText('detail-leave-deduction', formatCurrency(salary['請假扣款']));
+            
+            safeSetText('detail-bank-name', getBankName(salary['銀行代碼']));
+            safeSetText('detail-bank-account', salary['銀行帳號'] || '--');
+        }
 
         function showTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(tab => {
@@ -1321,8 +1536,10 @@
         }
 
         console.log('✅ 薪資管理系統已完整載入');
-        console.log('💡 自動計算功能已啟用：輸入基本薪資即可自動計算扣款');
-        console.log('⭐ 時薪計算功能已啟用');
+        console.log('💡 權限控制已啟用');
+        console.log('⭐ 月份篩選功能已啟用');
+        console.log('🧮 自動計算功能已啟用');
+        console.log('⏱️ 時薪計算功能已啟用');
     </script>
 </body>
 </html>
