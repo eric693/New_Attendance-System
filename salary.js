@@ -1,4 +1,4 @@
-// salary.js - 薪資管理前端邏輯（✅ 完整修正版 - 修復初始化錯誤）
+// salary.js - 薪資管理前端邏輯（✅ 完整修正版 v1.1 - 修復初始化錯誤）
 
 if (typeof callApifetch !== 'function') {
     console.error('❌ callApifetch 函數未定義，請確認 script.js 已正確載入');
@@ -8,7 +8,7 @@ if (typeof callApifetch !== 'function') {
 let currentUser = null;  // ⭐ 儲存當前使用者資訊
 
 /**
- * ✅ 初始化薪資頁面（完全修正版）
+ * ✅ 初始化薪資頁面（完全修正版 - 修復 ReferenceError）
  */
 async function initSalaryTab() {
     try {
@@ -28,7 +28,7 @@ async function initSalaryTab() {
             return;
         }
         
-        // ⭐ 先儲存使用者資訊到全域變數（在使用之前）
+        // ⭐⭐⭐ 修復重點：先儲存使用者資訊到全域變數（在使用之前）
         currentUser = {
             userId: session.user.userId,
             employeeId: session.user.userId,  // ✅ 關鍵：employeeId = userId
@@ -334,18 +334,6 @@ function showErrorMessage(message) {
             </div>
         `;
         emptyEl.style.display = 'block';
-    }
-}
-
-/**
- * 設定元素文字內容（安全版本）
- */
-function setElementText(id, text) {
-    const el = document.getElementById(id);
-    if (el) {
-        el.textContent = text;
-    } else {
-        console.warn(`元素 #${id} 未找到`);
     }
 }
 
