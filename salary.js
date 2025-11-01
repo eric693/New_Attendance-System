@@ -1,4 +1,4 @@
-// salary.js - 薪資管理前端邏輯（修正版）
+// salary.js - 薪資管理前端邏輯（完整修正版）
 
 /**
  * 初始化薪資分頁
@@ -70,7 +70,7 @@ async function loadCurrentSalary() {
         const now = new Date();
         const yearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
         
-        // ✅ 修正：使用正確的 API 參數名稱
+        // ✅ 使用正確的 API 呼叫方式
         const res = await callApifetch(`getMySalary&yearMonth=${yearMonth}`);
         
         loadingEl.style.display = 'none';
@@ -98,7 +98,7 @@ function displayCurrentSalary(salary) {
         if (el) el.textContent = value;
     };
     
-    // ✅ 修正：使用後端回傳的正確欄位名稱（中文欄位）
+    // ✅ 使用後端回傳的正確欄位名稱（中文欄位）
     safeSetText('gross-salary', formatCurrency(salary['應發總額']));
     
     // 計算總扣款
@@ -150,7 +150,7 @@ async function loadSalaryHistory() {
         emptyEl.style.display = 'none';
         listEl.innerHTML = '';
         
-        // ✅ 修正：使用正確的參數名稱
+        // ✅ 使用正確的參數名稱
         const res = await callApifetch('getMySalaryHistory&limit=12');
         
         loadingEl.style.display = 'none';
@@ -227,10 +227,12 @@ function bindSalaryEvents() {
 }
 
 /**
- * 處理薪資設定表單提交
+ * ✅ 處理薪資設定表單提交（關鍵修正）
  */
 async function handleSalaryConfigSubmit(e) {
     e.preventDefault();
+    
+    console.log('📝 開始提交薪資設定表單');
     
     const safeGetValue = (id) => {
         const el = document.getElementById(id);
@@ -249,28 +251,56 @@ async function handleSalaryConfigSubmit(e) {
         bankAccount: safeGetValue('config-bank-account'),
         hireDate: safeGetValue('config-hire-date'),
         paymentDay: safeGetValue('config-payment-day'),
-        pensionSelfRate: safeGetValue('config-pension-rate'),
-        laborFee: safeGetValue('config-labor-fee'),
-        healthFee: safeGetValue('config-health-fee'),
-        employmentFee: safeGetValue('config-employment-fee'),
-        incomeTax: safeGetValue('config-income-tax'),
-        note: safeGetValue('config-note')
+        pensionSelfRate: safeGetValue('config-pension-rate') || '0',
+        laborFee: safeGetValue('config-labor-fee') || '0',
+        healthFee: safeGetValue('config-health-fee') || '0',
+        employmentFee: safeGetValue('config-employment-fee') || '0',
+        incomeTax: safeGetValue('config-income-tax') || '0',
+        note: safeGetValue('config-note') || ''
     };
     
+    // ✅ 驗證必填欄位
+    if (!formData.employeeId) {
+        showNotification('❌ 請輸入員工ID', 'error');
+        return;
+    }
+    
+    if (!formData.employeeName) {
+        showNotification('❌ 請輸入員工姓名', 'error');
+        return;
+    }
+    
+    if (!formData.baseSalary) {
+        showNotification('❌ 請輸入基本薪資', 'error');
+        return;
+    }
+    
+    console.log('📤 發送資料:', formData);
+    
     try {
+        showNotification('⏳ 正在儲存...', 'info');
+        
         // ✅ 修正：使用 URLSearchParams 正確編碼參數
         const params = new URLSearchParams(formData).toString();
         const res = await callApifetch(`setEmployeeSalaryTW&${params}`);
         
+        console.log('📥 收到回應:', res);
+        
         if (res.ok) {
-            showNotification('薪資設定已成功儲存', 'success');
+            showNotification('✅ 薪資設定已成功儲存', 'success');
             e.target.reset();
+            
+            // 重新載入列表（如果是管理員）
+            const filterMonth = document.getElementById('filter-year-month');
+            if (filterMonth) {
+                loadAllEmployeeSalary();
+            }
         } else {
-            showNotification(`儲存失敗：${res.msg}`, 'error');
+            showNotification(`❌ 儲存失敗：${res.msg || '未知錯誤'}`, 'error');
         }
         
     } catch (error) {
-        console.error('設定薪資失敗:', error);
+        console.error('❌ 設定薪資失敗:', error);
         showNotification('❌ 設定失敗，請稍後再試', 'error');
     }
 }
@@ -292,30 +322,33 @@ async function handleSalaryCalculation() {
     const yearMonth = yearMonthEl.value;
     
     if (!employeeId || !yearMonth) {
-        showNotification('請輸入員工ID和計算月份', 'error');
+        showNotification('❌ 請輸入員工ID和計算月份', 'error');
         return;
     }
     
     try {
-        showNotification('正在計算薪資...', 'info');
+        showNotification('⏳ 正在計算薪資...', 'info');
         
         const res = await callApifetch(`calculateMonthlySalary&employeeId=${employeeId}&yearMonth=${yearMonth}`);
+        
+        console.log('💰 計算結果:', res);
         
         if (res.ok && res.data) {
             displaySalaryCalculation(res.data, resultEl);
             resultEl.style.display = 'block';
-            showNotification('計算完成', 'success');
+            showNotification('✅ 計算完成', 'success');
             
+            // 詢問是否儲存
             if (confirm('是否儲存此薪資單？')) {
                 await saveSalaryRecord(res.data);
             }
         } else {
-            showNotification(`計算失敗：${res.msg}`, 'error');
+            showNotification(`❌ 計算失敗：${res.msg || '未知錯誤'}`, 'error');
         }
         
     } catch (error) {
-        console.error('計算薪資失敗:', error);
-        showNotification('計算失敗，請稍後再試', 'error');
+        console.error('❌ 計算薪資失敗:', error);
+        showNotification('❌ 計算失敗，請稍後再試', 'error');
     }
 }
 
@@ -325,7 +358,7 @@ async function handleSalaryCalculation() {
 function displaySalaryCalculation(data, container) {
     if (!container) return;
     
-    // ✅ 修正：使用後端回傳的正確欄位名稱
+    // ✅ 使用後端回傳的正確欄位名稱
     container.innerHTML = `
         <div class="bg-white dark:bg-gray-800 rounded-lg p-6">
             <h3 class="text-lg font-semibold mb-4">
@@ -427,24 +460,52 @@ function displaySalaryCalculation(data, container) {
 }
 
 /**
- * 儲存薪資記錄
+ * ✅ 儲存薪資記錄（修正版）
  */
 async function saveSalaryRecord(data) {
     try {
-        // ✅ 修正：使用 JSON.stringify 編碼複雜物件
-        const dataStr = encodeURIComponent(JSON.stringify(data));
-        const res = await callApifetch(`saveMonthlySalary&data=${dataStr}`);
+        showNotification('⏳ 正在儲存薪資單...', 'info');
+        
+        // ✅ 修正：直接使用 URLSearchParams 傳遞所有參數
+        const params = new URLSearchParams({
+            employeeId: data.employeeId,
+            employeeName: data.employeeName,
+            yearMonth: data.yearMonth,
+            baseSalary: data.baseSalary,
+            weekdayOvertimePay: data.weekdayOvertimePay,
+            restdayOvertimePay: data.restdayOvertimePay,
+            holidayOvertimePay: data.holidayOvertimePay,
+            laborFee: data.laborFee,
+            healthFee: data.healthFee,
+            employmentFee: data.employmentFee,
+            pensionSelf: data.pensionSelf,
+            incomeTax: data.incomeTax,
+            leaveDeduction: data.leaveDeduction,
+            lateDeduction: data.lateDeduction || 0,
+            grossSalary: data.grossSalary,
+            netSalary: data.netSalary,
+            employerLaborFee: data.employerLaborFee,
+            employerHealthFee: data.employerHealthFee,
+            employerEmploymentFee: data.employerEmploymentFee,
+            employerPension: data.employerPension,
+            bankCode: data.bankCode,
+            bankAccount: data.bankAccount
+        }).toString();
+        
+        const res = await callApifetch(`saveMonthlySalary&${params}`);
         
         if (res.ok) {
-            showNotification('薪資單已成功儲存', 'success');
+            showNotification('✅ 薪資單已成功儲存', 'success');
+            
+            // 重新載入列表
             loadAllEmployeeSalary();
         } else {
-            showNotification(`儲存失敗：${res.msg}`, 'error');
+            showNotification(`❌ 儲存失敗：${res.msg || '未知錯誤'}`, 'error');
         }
         
     } catch (error) {
-        console.error('儲存薪資單失敗:', error);
-        showNotification('儲存失敗，請稍後再試', 'error');
+        console.error('❌ 儲存薪資單失敗:', error);
+        showNotification('❌ 儲存失敗，請稍後再試', 'error');
     }
 }
 
@@ -481,7 +542,7 @@ async function loadAllEmployeeSalary() {
         }
         
     } catch (error) {
-        console.error('載入薪資列表失敗:', error);
+        console.error('❌ 載入薪資列表失敗:', error);
         loadingEl.style.display = 'none';
         listEl.innerHTML = '<p class="text-center text-red-500 py-4">載入失敗</p>';
     }
@@ -551,32 +612,21 @@ function getBankName(code) {
 }
 
 /**
- * 載入薪資統計資訊（可選）
+ * ✅ 顯示通知訊息（新增）
  */
-async function loadSalaryStats() {
-    const currentMonthSalaryEl = document.getElementById('current-month-salary');
-    const workHoursEl = document.getElementById('work-hours');
+// function showNotification(message, type = 'info') {
+//     // 檢查是否有全域的通知函數
+//     if (typeof window.showNotification === 'function') {
+//         window.showNotification(message, type);
+//         return;
+//     }
     
-    try {
-        const userId = localStorage.getItem('sessionUserId');
-        const now = new Date();
-        const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-        
-        // 這裡可以呼叫 API 取得本月薪資統計
-        // 目前先顯示載入中
-        currentMonthSalaryEl.textContent = '計算中...';
-        workHoursEl.textContent = '計算中...';
-        
-        // TODO: 實際 API 呼叫
-        // const res = await callApifetch(`getSalaryStats&userId=${userId}&month=${monthKey}`);
-        // if (res.ok) {
-        //     currentMonthSalaryEl.textContent = `NT$ ${res.salary?.toLocaleString() || '--'}`;
-        //     workHoursEl.textContent = `${res.hours || '--'} 小時`;
-        // }
-        
-    } catch (error) {
-        console.error('載入薪資統計失敗:', error);
-        currentMonthSalaryEl.textContent = '--';
-        workHoursEl.textContent = '--';
-    }
-}
+//     // 簡單的 alert 備用方案
+//     if (type === 'error') {
+//         alert('❌ ' + message);
+//     } else if (type === 'success') {
+//         alert('✅ ' + message);
+//     } else {
+//         console.log(message);
+//     }
+// }
