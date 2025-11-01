@@ -14,7 +14,7 @@
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
         crossorigin=""></script>
 
-        
+
     <style>
         * {
             margin: 0;
@@ -350,6 +350,7 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
             z-index: 1000;
             animation: slideIn 0.3s ease-out;
+            display: none; /* 👈 預設隱藏 */
         }
 
         @keyframes slideIn {
@@ -362,7 +363,10 @@
                 opacity: 1;
             }
         }
-
+        
+        .notification.show {
+            display: block; /* 👈 顯示時 */
+        }
         .notification.success {
             background: linear-gradient(135deg, #10b981 0%, #059669 100%);
         }
@@ -802,6 +806,11 @@
         </div>
     </div>
 
+    <!-- ✅ 加入通知元素 -->
+    <div id="notification" class="notification">
+        <p id="notification-message"></p>
+    </div>
+
     <!-- 引入修正後的薪資管理 JS -->
     <script src="config.js"></script>
     <script src="script.js"></script>
@@ -1117,6 +1126,5 @@
         console.log('✅ 薪資管理系統已完整載入');
         console.log('💡 自動計算功能已啟用：輸入基本薪資即可自動計算扣款');
     </script>
-
 </body>
 </html>
