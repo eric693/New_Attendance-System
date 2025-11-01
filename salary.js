@@ -1,5 +1,7 @@
 // salary.js - 薪資管理前端邏輯（完整修正版）
-
+if (typeof callApifetch !== 'function') {
+    console.error('❌ callApifetch 函數未定義，請確認 script.js 已正確載入');
+}
 /**
  * 初始化薪資分頁
  */
