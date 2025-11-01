@@ -616,19 +616,19 @@ function getBankName(code) {
 /**
  * ✅ 顯示通知訊息（新增）
  */
-// function showNotification(message, type = 'info') {
-//     // 檢查是否有全域的通知函數
-//     if (typeof window.showNotification === 'function') {
-//         window.showNotification(message, type);
-//         return;
-//     }
+function showNotification(message, type = 'info') {
+    // 檢查是否有全域的通知函數
+    if (typeof window.showNotification === 'function') {
+        window.showNotification(message, type);
+        return;
+    }
     
-//     // 簡單的 alert 備用方案
-//     if (type === 'error') {
-//         alert('❌ ' + message);
-//     } else if (type === 'success') {
-//         alert('✅ ' + message);
-//     } else {
-//         console.log(message);
-//     }
-// }
+    // 簡單的 alert 備用方案
+    if (type === 'error') {
+        alert('❌ ' + message);
+    } else if (type === 'success') {
+        alert('✅ ' + message);
+    } else {
+        console.log(message);
+    }
+}
