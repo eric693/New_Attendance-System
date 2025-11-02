@@ -133,6 +133,268 @@ async function loadEmployees() {
     }
 }
 
+// ==================== 員工載入函式（完整除錯版） ====================
+
+/**
+ * ✅ 載入員工列表（加強除錯版）
+ */
+async function loadEmployees() {
+    try {
+        const token = localStorage.getItem('sessionToken');
+        
+        // ✅ 步驟 1: 檢查 token
+        if (!token) {
+            console.error('❌ 沒有 session token');
+            showMessage('請先登入', 'error');
+            return;
+        }
+        
+        console.log('═══════════════════════════════════════');
+        console.log('📋 載入員工列表');
+        console.log('═══════════════════════════════════════');
+        console.log('📡 Token:', token.substring(0, 20) + '...');
+        console.log('📡 API URL:', apiUrl);
+        console.log('');
+        
+        // ✅ 步驟 2: 呼叫 API
+        const url = `${apiUrl}?action=getAllUsers&token=${token}`;
+        console.log('📡 完整 URL:', url);
+        console.log('📡 開始呼叫 API...');
+        
+        const response = await fetch(url);
+        
+        // ✅ 步驟 3: 檢查 HTTP 狀態
+        console.log('📤 HTTP 狀態:', response.status, response.statusText);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP 錯誤: ${response.status} ${response.statusText}`);
+        }
+        
+        // ✅ 步驟 4: 解析 JSON
+        const data = await response.json();
+        
+        console.log('');
+        console.log('📤 API 回應:');
+        console.log('   - ok:', data.ok);
+        console.log('   - msg:', data.msg || '無');
+        console.log('   - count:', data.count || '無');
+        console.log('   - users 存在:', data.users ? '是' : '否');
+        console.log('   - users 型別:', typeof data.users);
+        console.log('   - users 長度:', data.users ? data.users.length : 'null');
+        console.log('');
+        
+        // ✅ 步驟 5: 檢查回應
+        if (data.ok) {
+            allEmployees = data.users || [];
+            
+            console.log('✅ API 回傳成功');
+            console.log('   員工數量:', allEmployees.length);
+            
+            if (allEmployees.length === 0) {
+                console.warn('⚠️ 員工列表是空的');
+                console.warn('   可能原因:');
+                console.warn('   1. 員工工作表沒有資料');
+                console.warn('   2. 所有員工都不是「啟用」狀態');
+                console.warn('   3. 資料格式不正確');
+                showMessage('目前沒有員工資料', 'warning');
+            } else {
+                console.log('✅ 員工列表預覽（前 5 筆）:');
+                allEmployees.slice(0, 5).forEach((emp, index) => {
+                    console.log(`   ${index + 1}. ${emp.name} (${emp.userId}) - ${emp.dept}`);
+                });
+                
+                if (allEmployees.length > 5) {
+                    console.log(`   ... 還有 ${allEmployees.length - 5} 筆`);
+                }
+            }
+            
+            // ✅ 步驟 6: 填入下拉選單
+            console.log('');
+            console.log('📝 開始填入員工下拉選單...');
+            populateEmployeeSelect();
+            
+        } else {
+            console.error('❌ API 回傳失敗');
+            console.error('   原因:', data.msg || '未知錯誤');
+            showMessage(data.msg || '載入員工列表失敗', 'error');
+        }
+        
+        console.log('═══════════════════════════════════════');
+        
+    } catch (error) {
+        console.error('');
+        console.error('❌❌❌ 載入員工列表失敗');
+        console.error('錯誤訊息:', error.message);
+        console.error('錯誤堆疊:', error.stack);
+        console.error('═══════════════════════════════════════');
+        
+        showMessage('載入員工列表失敗: ' + error.message, 'error');
+    }
+}
+
+/**
+ * ✅ 填入員工下拉選單（加強除錯版）
+ */
+function populateEmployeeSelect() {
+    console.log('');
+    console.log('📝 populateEmployeeSelect 開始');
+    console.log('───────────────────────────────────────');
+    
+    const select = document.getElementById('employee-select');
+    
+    // ✅ 檢查元素是否存在
+    if (!select) {
+        console.error('❌ 找不到 employee-select 元素');
+        console.error('   請檢查 HTML 中是否有:');
+        console.error('   <select id="employee-select">');
+        return;
+    }
+    
+    console.log('✅ 找到 employee-select 元素');
+    console.log('   當前選項數量:', select.options.length);
+    
+    // ✅ 檢查員工列表
+    if (!allEmployees) {
+        console.error('❌ allEmployees 是 undefined 或 null');
+        return;
+    }
+    
+    if (!Array.isArray(allEmployees)) {
+        console.error('❌ allEmployees 不是陣列');
+        console.error('   型別:', typeof allEmployees);
+        console.error('   內容:', allEmployees);
+        return;
+    }
+    
+    console.log('✅ allEmployees 驗證通過');
+    console.log('   員工數量:', allEmployees.length);
+    
+    // ✅ 清空並重設為預設選項
+    select.innerHTML = '<option value="">請選擇員工</option>';
+    console.log('✅ 已重設為預設選項');
+    
+    if (allEmployees.length === 0) {
+        console.warn('⚠️ 沒有員工可以填入');
+        select.innerHTML = '<option value="">目前沒有員工資料</option>';
+        return;
+    }
+    
+    // ✅ 填入員工選項
+    console.log('📝 開始逐筆填入...');
+    
+    let successCount = 0;
+    let failCount = 0;
+    
+    allEmployees.forEach((emp, index) => {
+        try {
+            // 驗證必要欄位
+            if (!emp.userId) {
+                console.warn(`   ⚠️ 第 ${index + 1} 筆: 缺少 userId，跳過`);
+                failCount++;
+                return;
+            }
+            
+            if (!emp.name) {
+                console.warn(`   ⚠️ 第 ${index + 1} 筆: 缺少 name，跳過`);
+                failCount++;
+                return;
+            }
+            
+            const option = document.createElement('option');
+            option.value = emp.userId;
+            option.textContent = `${emp.name} (${emp.userId})`;
+            option.dataset.name = emp.name;
+            
+            if (emp.dept) {
+                option.textContent += ` - ${emp.dept}`;
+            }
+            
+            select.appendChild(option);
+            
+            successCount++;
+            
+            // 只顯示前 5 筆的詳細資訊
+            if (index < 5) {
+                console.log(`   ✅ ${index + 1}. ${emp.name} (${emp.userId})`);
+            }
+            
+        } catch (error) {
+            console.error(`   ❌ 第 ${index + 1} 筆失敗:`, error.message);
+            failCount++;
+        }
+    });
+    
+    if (allEmployees.length > 5) {
+        console.log(`   ... 還有 ${allEmployees.length - 5} 筆（已略過顯示）`);
+    }
+    
+    console.log('');
+    console.log('📊 填入結果:');
+    console.log('   成功:', successCount, '筆');
+    console.log('   失敗:', failCount, '筆');
+    console.log('   總計:', allEmployees.length, '筆');
+    console.log('   最終選項數量:', select.options.length, '個（含預設選項）');
+    console.log('───────────────────────────────────────');
+    console.log('✅ populateEmployeeSelect 完成');
+    console.log('');
+}
+
+// ==================== 除錯工具函式 ====================
+
+/**
+ * 🧪 手動測試載入員工
+ * 在瀏覽器 Console 中執行: testLoadEmployees()
+ */
+async function testLoadEmployees() {
+    console.log('🧪 手動測試載入員工');
+    console.log('');
+    
+    // 檢查 apiUrl
+    console.log('1️⃣ 檢查 apiUrl:');
+    console.log('   apiUrl:', typeof apiUrl !== 'undefined' ? apiUrl : '❌ undefined');
+    console.log('');
+    
+    // 檢查 token
+    console.log('2️⃣ 檢查 token:');
+    const token = localStorage.getItem('sessionToken');
+    console.log('   token 存在:', token ? '✅ 是' : '❌ 否');
+    if (token) {
+        console.log('   token 預覽:', token.substring(0, 20) + '...');
+    }
+    console.log('');
+    
+    // 檢查 HTML 元素
+    console.log('3️⃣ 檢查 HTML 元素:');
+    const select = document.getElementById('employee-select');
+    console.log('   employee-select 存在:', select ? '✅ 是' : '❌ 否');
+    if (select) {
+        console.log('   當前選項數量:', select.options.length);
+    }
+    console.log('');
+    
+    // 執行載入
+    console.log('4️⃣ 開始載入員工列表...');
+    console.log('');
+    
+    await loadEmployees();
+    
+    console.log('');
+    console.log('5️⃣ 檢查結果:');
+    console.log('   allEmployees 存在:', typeof allEmployees !== 'undefined' ? '✅ 是' : '❌ 否');
+    if (typeof allEmployees !== 'undefined') {
+        console.log('   allEmployees 長度:', allEmployees.length);
+    }
+    if (select) {
+        console.log('   下拉選單選項數量:', select.options.length);
+    }
+}
+
+// 將測試函式暴露到全域，方便在 Console 中呼叫
+window.testLoadEmployees = testLoadEmployees;
+
+console.log('✅ 員工載入模組（除錯版）已載入');
+console.log('💡 提示: 在 Console 中執行 testLoadEmployees() 可手動測試');
+
 function populateEmployeeSelect() {
     const select = document.getElementById('employee-select');
     if (!select) return;
