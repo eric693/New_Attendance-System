@@ -440,7 +440,8 @@ async function checkAbnormal() {
     const month = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0");
     const userId = localStorage.getItem("sessionUserId");
     
-    const recordsLoading = document.getElementById("records-loading");
+    // const recordsLoading = document.getElementById("records-loading");
+    const recordsLoading = document.getElementById("abnormal-records-loading");
     recordsLoading.style.display = 'block';
     
     try {
