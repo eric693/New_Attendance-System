@@ -369,27 +369,6 @@ async function testLoadEmployees() {
     }
 }
 
-// 將測試函式暴露到全域，方便在 Console 中呼叫
-window.testLoadEmployees = testLoadEmployees;
-
-console.log('✅ 員工載入模組（除錯版）已載入');
-console.log('💡 提示: 在 Console 中執行 testLoadEmployees() 可手動測試');
-
-// function populateEmployeeSelect() {
-//     const select = document.getElementById('employee-select');
-//     if (!select) return;
-    
-//     select.innerHTML = '<option value="">請選擇員工</option>';
-    
-//     allEmployees.forEach(emp => {
-//         const option = document.createElement('option');
-//         option.value = emp.userId;
-//         option.textContent = `${emp.name} (${emp.userId})`;
-//         option.dataset.name = emp.name;
-//         select.appendChild(option);
-//     });
-// }
-
 async function loadLocations() {
     try {
         const token = localStorage.getItem('sessionToken');

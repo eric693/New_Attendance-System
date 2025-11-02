@@ -67,6 +67,245 @@ function findEmployeeByLineUserId_(userId) {
   return { ok: false, code: "ERR_NO_DATA" };
 }
 
+
+/**
+ * ✅ 取得所有員工列表（根據實際資料表結構）
+ * 
+ * 資料表欄位:
+ * A (0) - userId
+ * B (1) - email
+ * C (2) - displayName
+ * D (3) - pictureUrl
+ * E (4) - 建立時間
+ * F (5) - 部門
+ * G (6) - 到職日期
+ * H (7) - 狀態
+ */
+function getAllUsers() {
+  try {
+    Logger.log('📋 開始取得員工列表');
+    
+    // 取得員工資料表
+    const sheet = SpreadsheetApp.getActive().getSheetByName(SHEET_EMPLOYEES);
+    
+    if (!sheet) {
+      Logger.log('❌ 找不到員工工作表: ' + SHEET_EMPLOYEES);
+      return { 
+        ok: false, 
+        msg: "找不到員工工作表",
+        users: []
+      };
+    }
+    
+    // 取得所有資料
+    const data = sheet.getDataRange().getValues();
+    
+    // 檢查是否有資料
+    if (data.length <= 1) {
+      Logger.log('⚠️ 員工工作表只有標題，沒有資料');
+      return {
+        ok: true,
+        users: [],
+        count: 0,
+        msg: "目前沒有員工資料"
+      };
+    }
+    
+    const users = [];
+    
+    Logger.log('📊 開始解析員工資料...');
+    Logger.log('   總行數（含標題）: ' + data.length);
+    Logger.log('');
+    
+    // 從第二行開始讀取（跳過標題）
+    for (let i = 1; i < data.length; i++) {
+      const row = data[i];  // ⭐⭐⭐ 定義 row 變數
+      
+      // 檢查員工ID是否存在（A欄 = row[0]）
+      if (!row[0] || String(row[0]).trim() === '') {
+        Logger.log(`   ⚠️ 第 ${i + 1} 行: 員工ID是空的，跳過`);
+        continue;
+      }
+      
+      // 檢查狀態（H欄 = row[7]）
+      const status = row[7] ? String(row[7]).trim() : '';
+      
+      // 只加入「啟用」或空值的員工
+      if (status !== '' && status !== '啟用') {
+        Logger.log(`   ⏸️ 第 ${i + 1} 行: ${row[2]} - 狀態是「${status}」，跳過`);
+        continue;
+      }
+      
+      // 建立使用者物件
+      const user = {
+        userId: String(row[0]).trim(),                    // A欄: userId
+        email: row[1] ? String(row[1]).trim() : '',       // B欄: email
+        name: row[2] ? String(row[2]).trim() : '未命名',   // C欄: displayName
+        picture: row[3] ? String(row[3]).trim() : '',     // D欄: pictureUrl
+        joinDate: row[4] || '',                           // E欄: 建立時間
+        dept: row[5] ? String(row[5]).trim() : '',        // F欄: 部門
+        hireDate: row[6] || '',                           // G欄: 到職日期
+        status: status || '啟用'                          // H欄: 狀態
+      };
+      
+      users.push(user);
+      Logger.log(`   ✅ 第 ${i + 1} 行: ${user.name} (${user.userId}) - ${user.dept}`);
+    }
+    
+    Logger.log('');
+    Logger.log('✅ 員工列表取得完成');
+    Logger.log('   總筆數: ' + users.length);
+    Logger.log('');
+    
+    return {
+      ok: true,
+      users: users,
+      count: users.length,
+      msg: `成功取得 ${users.length} 筆員工資料`
+    };
+    
+  } catch (error) {
+    Logger.log('❌ getAllUsers 錯誤: ' + error);
+    Logger.log('   錯誤訊息: ' + error.message);
+    Logger.log('   錯誤堆疊: ' + error.stack);
+    
+    return {
+      ok: false,
+      msg: error.message || '取得員工列表失敗',
+      users: [],
+      error: error.stack
+    };
+  }
+}
+
+/**
+ * 🧪 測試 getAllUsers 函式
+ */
+function testGetAllUsers() {
+  Logger.log('🧪🧪🧪 測試 getAllUsers');
+  Logger.log('═══════════════════════════════════════');
+  Logger.log('');
+  
+  const result = getAllUsers();
+  
+  Logger.log('📤 測試結果:');
+  Logger.log('   - ok: ' + result.ok);
+  Logger.log('   - msg: ' + (result.msg || '無'));
+  Logger.log('   - count: ' + (result.count || 0));
+  Logger.log('   - users 數量: ' + (result.users ? result.users.length : 0));
+  Logger.log('');
+  
+  if (result.ok && result.users && result.users.length > 0) {
+    Logger.log('✅✅✅ 測試成功！');
+    Logger.log('');
+    Logger.log('👥 員工列表詳細資訊:');
+    Logger.log('');
+    
+    result.users.forEach((user, index) => {
+      Logger.log(`${index + 1}. ${user.name}`);
+      Logger.log(`   - userId: ${user.userId}`);
+      Logger.log(`   - email: ${user.email}`);
+      Logger.log(`   - dept: ${user.dept}`);
+      Logger.log(`   - status: ${user.status}`);
+      Logger.log('');
+    });
+    
+    Logger.log('═══════════════════════════════════════');
+    Logger.log('🎉 可以使用了！');
+    
+  } else {
+    Logger.log('❌ 測試失敗或沒有資料');
+    if (!result.ok) {
+      Logger.log('   錯誤原因: ' + result.msg);
+      if (result.error) {
+        Logger.log('   錯誤堆疊: ' + result.error);
+      }
+    } else {
+      Logger.log('   可能原因: 員工資料表沒有資料，或所有員工都不是「啟用」狀態');
+    }
+    Logger.log('═══════════════════════════════════════');
+  }
+}
+
+/**
+ * 🔍 診斷工具：檢查員工資料表結構
+ */
+function diagnoseEmployeeSheet() {
+  Logger.log('🔍 診斷員工資料表');
+  Logger.log('═══════════════════════════════════════');
+  Logger.log('');
+  
+  try {
+    const sheet = SpreadsheetApp.getActive().getSheetByName(SHEET_EMPLOYEES);
+    
+    if (!sheet) {
+      Logger.log('❌ 找不到工作表: ' + SHEET_EMPLOYEES);
+      return;
+    }
+    
+    Logger.log('✅ 工作表存在: ' + SHEET_EMPLOYEES);
+    Logger.log('');
+    
+    const data = sheet.getDataRange().getValues();
+    
+    Logger.log('📊 資料表資訊:');
+    Logger.log('   總行數: ' + data.length);
+    Logger.log('   總欄數: ' + (data[0] ? data[0].length : 0));
+    Logger.log('');
+    
+    if (data.length > 0) {
+      Logger.log('📋 標題列（第1行）:');
+      data[0].forEach((header, index) => {
+        const column = String.fromCharCode(65 + index); // A, B, C, ...
+        Logger.log(`   ${column} (${index}): ${header}`);
+      });
+      Logger.log('');
+    }
+    
+    if (data.length > 1) {
+      Logger.log('📝 資料列數（不含標題）: ' + (data.length - 1));
+      Logger.log('');
+      Logger.log('👤 第一筆員工資料（第2行）:');
+      const firstRow = data[1];
+      data[0].forEach((header, index) => {
+        const column = String.fromCharCode(65 + index);
+        Logger.log(`   ${column} (${index}) ${header}: ${firstRow[index]}`);
+      });
+      Logger.log('');
+      
+      // 檢查狀態欄位
+      Logger.log('🔍 狀態檢查:');
+      let enabledCount = 0;
+      let disabledCount = 0;
+      let emptyCount = 0;
+      
+      for (let i = 1; i < data.length; i++) {
+        const status = data[i][7] ? String(data[i][7]).trim() : '';
+        if (status === '啟用') {
+          enabledCount++;
+        } else if (status === '') {
+          emptyCount++;
+        } else {
+          disabledCount++;
+        }
+      }
+      
+      Logger.log('   狀態=「啟用」: ' + enabledCount + ' 筆');
+      Logger.log('   狀態=「空值」: ' + emptyCount + ' 筆');
+      Logger.log('   狀態=「其他」: ' + disabledCount + ' 筆');
+      Logger.log('   可用員工總數: ' + (enabledCount + emptyCount) + ' 筆');
+    } else {
+      Logger.log('⚠️ 沒有資料列（只有標題）');
+    }
+    
+    Logger.log('');
+    Logger.log('═══════════════════════════════════════');
+    
+  } catch (error) {
+    Logger.log('❌ 診斷失敗: ' + error);
+    Logger.log('   錯誤堆疊: ' + error.stack);
+  }
+}
 // ==================== Session 管理 ====================
 
 /**
