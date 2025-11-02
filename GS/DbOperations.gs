@@ -1,26 +1,33 @@
-// DbOperations.gs - 完整優化版（精簡版 - 約 300 行）
+// DbOperations.gs - 完整優化版（精簡版）
 
 // ==================== 員工相關功能 ====================
 
 /**
- * 寫入員工資料
- * ⭐ 新增或更新時，自動設定為「管理員」和「啟用」狀態
+ * ✅ 修正：寫入員工資料時，統一使用 LINE userId 作為員工ID
  */
 function writeEmployee_(profile) {
   const sheet = SpreadsheetApp.getActive().getSheetByName(SHEET_EMPLOYEES);
   const values = sheet.getDataRange().getValues();
   
+  // ✅ 關鍵：LINE userId 就是員工ID
+  const employeeId = profile.userId;
+  
   for (let i = 1; i < values.length; i++) {
-    if (values[i][0] === profile.userId) {
+    if (values[i][0] === employeeId) {
+      // 更新現有員工資料
+      sheet.getRange(i + 1, 2).setValue(profile.email || "");
+      sheet.getRange(i + 1, 3).setValue(profile.displayName);
+      sheet.getRange(i + 1, 4).setValue(profile.pictureUrl);
       sheet.getRange(i + 1, 6).setValue("管理員");
       sheet.getRange(i + 1, 8).setValue("啟用");
-      Logger.log(`使用者 ${profile.userId} 已存在，更新為管理員（啟用）`);
+      Logger.log(`✅ 更新員工 ${employeeId}`);
       return values[i];
     }
   }
   
+  // 新增員工
   const row = [ 
-    profile.userId,
+    employeeId,           // 🔑 關鍵：LINE userId 作為員工ID
     profile.email || "",
     profile.displayName,
     profile.pictureUrl,
@@ -31,12 +38,12 @@ function writeEmployee_(profile) {
   ];
   
   sheet.appendRow(row);
-  Logger.log(`新增使用者 ${profile.userId} 為管理員（啟用）`);
+  Logger.log(`✅ 新增員工 ${employeeId}`);
   return row;
 }
 
 /**
- * 根據 LINE User ID 查詢員工資料
+ * ✅ 修正：根據 LINE User ID 查詢員工資料
  */
 function findEmployeeByLineUserId_(userId) {
   const sh = SpreadsheetApp.getActive().getSheetByName(SHEET_EMPLOYEES);
@@ -44,20 +51,15 @@ function findEmployeeByLineUserId_(userId) {
 
   for (let i = 1; i < values.length; i++) {
     if (String(values[i][0]).trim() === userId) {
-      const dept = values[i][5] || "管理員";
-      
-      if (dept !== "管理員") {
-        sh.getRange(i + 1, 6).setValue("管理員");
-      }
-      
       return {
         ok: true,
-        userId: values[i][0],
+        userId: values[i][0],        // ✅ LINE userId
+        employeeId: values[i][0],    // ✅ 員工ID = LINE userId
         email: values[i][1] || "",
         name: values[i][2],
         picture: values[i][3],
-        dept: "管理員",
-        status: "啟用"
+        dept: values[i][5] || "管理員",
+        status: values[i][7] || "啟用"
       };
     }
   }
@@ -66,6 +68,19 @@ function findEmployeeByLineUserId_(userId) {
 }
 
 // ==================== Session 管理 ====================
+
+/**
+ * ⭐ 驗證 Session Token（簡化版 - 只返回 true/false）
+ */
+function validateSession(sessionToken) {
+  try {
+    const result = checkSession_(sessionToken);
+    return result.ok === true;
+  } catch (error) {
+    Logger.log('validateSession 錯誤: ' + error);
+    return false;
+  }
+}
 
 /**
  * 建立 Session
@@ -106,7 +121,7 @@ function verifyOneTimeToken_(otoken) {
 }
 
 /**
- * 檢查 Session（自動延期）
+ * ✅ 檢查 Session（自動延期）- 修正版
  */
 function checkSession_(sessionToken) {
   if (!sessionToken) return { ok: false, code: "MISSING_SESSION_TOKEN" };
@@ -122,18 +137,29 @@ function checkSession_(sessionToken) {
         return { ok: false, code: "ERR_SESSION_EXPIRED" };
       }
       
+      // 延長 Session
       const newExpiredAt = new Date(new Date().getTime() + SESSION_TTL_MS);
       sh.getRange(i + 1, 4).setValue(newExpiredAt);
       
+      // 查詢員工資料
       const employee = findEmployeeByLineUserId_(userId);
       if (!employee.ok) {
-        Logger.log("Session 檢查失敗: " + JSON.stringify(employee));
-        return { ok: employee.ok, code: employee.code };
+        Logger.log("❌ Session 檢查失敗: " + JSON.stringify(employee));
+        return { ok: false, code: employee.code };
       }
       
+      // ⭐⭐⭐ 關鍵修正：不要返回整個 employee 物件，而是只返回純淨的 user 資料
       return { 
         ok: true, 
-        user: employee,
+        user: {
+          userId: employee.userId,
+          employeeId: employee.employeeId,
+          email: employee.email,
+          name: employee.name,
+          picture: employee.picture,
+          dept: employee.dept,
+          status: employee.status
+        },
         code: "WELCOME_BACK",
         params: { name: employee.name }
       };
@@ -142,6 +168,42 @@ function checkSession_(sessionToken) {
   return { ok: false, code: "ERR_SESSION_INVALID" };
 }
 
+/**
+ * 🧪 測試 checkSession_
+ */
+function testCheckSession() {
+  Logger.log('🧪 測試 checkSession_');
+  Logger.log('');
+  
+  const token = '04fd1452-4aca-4b03-ad17-45f03144c6ff';
+  
+  Logger.log('📡 Token: ' + token.substring(0, 20) + '...');
+  Logger.log('');
+  
+  const result = checkSession_(token);
+  
+  Logger.log('📤 checkSession_ 結果:');
+  Logger.log(JSON.stringify(result, null, 2));
+  Logger.log('');
+  
+  if (result.ok && result.user) {
+    Logger.log('✅ Session 有效');
+    Logger.log('');
+    Logger.log('👤 User 資料:');
+    Logger.log('   - userId: ' + result.user.userId);
+    Logger.log('   - employeeId: ' + result.user.employeeId);
+    Logger.log('   - name: ' + result.user.name);
+    Logger.log('   - dept: ' + result.user.dept);
+    Logger.log('   - email: ' + result.user.email);
+    Logger.log('   - status: ' + result.user.status);
+    Logger.log('');
+    Logger.log('🔍 檢查 user 物件是否乾淨:');
+    Logger.log('   - user.ok 存在嗎? ' + (result.user.ok !== undefined ? '❌ 是（有問題）' : '✅ 否（正常）'));
+  } else {
+    Logger.log('❌ Session 無效');
+    Logger.log('   code: ' + result.code);
+  }
+}
 // ==================== 打卡功能 ====================
 
 /**
@@ -251,25 +313,24 @@ function getAttendanceRecords(monthParam, userIdParam) {
 }
 
 /**
- * 👉 新增：取得出勤詳細資料（用於報表匯出）
+ * 取得出勤詳細資料（用於報表匯出）
  */
 function getAttendanceDetails(monthParam, userIdParam) {
   const records = getAttendanceRecords(monthParam, userIdParam);
   
-  // 按員工和日期分組
   const dailyRecords = {};
   
   records.forEach(r => {
     const dateKey = formatDate(r.date);
-    const userId = r.userId || 'unknown';  // 👈 確保 userId 不為空
-    const userName = r.name || '未知員工';   // 👈 確保 name 不為空
+    const userId = r.userId || 'unknown';
+    const userName = r.name || '未知員工';
     const key = `${userId}_${dateKey}`;
     
     if (!dailyRecords[key]) {
       dailyRecords[key] = {
         date: dateKey,
-        userId: userId,      // 👈 使用處理過的 userId
-        name: userName,      // 👈 使用處理過的 userName
+        userId: userId,
+        name: userName,
         record: [],
         reason: ""
       };
@@ -283,7 +344,6 @@ function getAttendanceDetails(monthParam, userIdParam) {
     });
   });
   
-  // 判斷每日狀態
   const result = Object.values(dailyRecords).map(day => {
     const hasIn = day.record.some(r => r.type === "上班");
     const hasOut = day.record.some(r => r.type === "下班");
@@ -396,7 +456,6 @@ function updateReviewStatus(rowNumber, status, note) {
       return { ok: false, msg: "試算表缺少必要欄位：'管理員審核'" };
     }
 
-    // 👉 取得該筆打卡記錄的詳細資訊
     const record = sheet.getRange(rowNumber, 1, 1, sheet.getLastColumn()).getValues()[0];
     const userId = record[headers.indexOf('員工ID')];
     const employeeName = record[headers.indexOf('打卡人員')];
@@ -404,12 +463,10 @@ function updateReviewStatus(rowNumber, status, note) {
     const punchTime = formatTime(record[headers.indexOf('打卡時間')]);
     const punchType = record[headers.indexOf('打卡類別')];
 
-    // 更新審核狀態
     sheet.getRange(rowNumber, reviewStatusCol).setValue(status);
     
-    // 👉 發送 LINE 通知
     const isApproved = (status === "v");
-    const reviewer = "系統管理員"; // 可以從 session 取得審核人姓名
+    const reviewer = "系統管理員";
     
     notifyPunchReview(
       userId,
@@ -485,4 +542,42 @@ function formatTime(date) {
   } catch (e) {
     return String(date);
   }
+}
+
+
+function debugCheckSession() {
+  Logger.log('═══════════════════════════════════════');
+  Logger.log('🔍 診斷 checkSession_');
+  Logger.log('═══════════════════════════════════════');
+  
+  const token = '1fb23a74-f5ee-4d87-bcf7-2bcde4a13d17';  // 你的有效 token
+  
+  Logger.log('📡 Token: ' + token);
+  Logger.log('');
+  
+  const session = checkSession_(token);
+  
+  Logger.log('📤 checkSession_ 返回結果:');
+  Logger.log(JSON.stringify(session, null, 2));
+  Logger.log('');
+  
+  Logger.log('🔍 詳細檢查:');
+  Logger.log('   - session 存在: ' + (session ? '是' : '否'));
+  Logger.log('   - session.ok: ' + session.ok);
+  Logger.log('   - session.user 存在: ' + (session.user ? '是' : '否'));
+  
+  if (session.user) {
+    Logger.log('');
+    Logger.log('👤 User 物件內容:');
+    Logger.log('   - userId: ' + session.user.userId);
+    Logger.log('   - employeeId: ' + session.user.employeeId);
+    Logger.log('   - name: ' + session.user.name);
+    Logger.log('   - dept: ' + session.user.dept);
+    Logger.log('   - email: ' + session.user.email);
+    Logger.log('   - status: ' + session.user.status);
+  } else {
+    Logger.log('❌ session.user 是 null 或 undefined');
+  }
+  
+  Logger.log('═══════════════════════════════════════');
 }

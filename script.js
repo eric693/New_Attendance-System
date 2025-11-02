@@ -608,13 +608,30 @@ function renderCalendarWithData(year, month, today, records, calendarGrid, month
     }
 }
 
+// ==================== 📝 renderDailyRecords 函式修正 ====================
+
+/**
+ * ✅ 修正：將 records-loading 改為 daily-records-loading
+ * 
+ * 原本的問題：
+ * - 函式使用了錯誤的 ID "records-loading"
+ * - 但 HTML 中出勤記錄區塊沒有這個 ID
+ * - 導致 recordsLoading.style.display 時出現 null 錯誤
+ * 
+ * 解決方案：
+ * - 在 HTML 中加入 <div id="daily-records-loading">
+ * - 將 JS 中的 ID 從 "records-loading" 改為 "daily-records-loading"
+ */
+
 // 新增：渲染每日紀錄的函式 (修正非同步問題)
 async function renderDailyRecords(dateKey) {
     const dailyRecordsCard = document.getElementById('daily-records-card');
     const dailyRecordsTitle = document.getElementById('daily-records-title');
     const dailyRecordsList = document.getElementById('daily-records-list');
     const dailyRecordsEmpty = document.getElementById('daily-records-empty');
-    const recordsLoading = document.getElementById("records-loading");
+    
+    // ✅ 修正：使用正確的 loading 元素 ID
+    const recordsLoading = document.getElementById("daily-records-loading");
     
     dailyRecordsTitle.textContent = t("DAILY_RECORDS_TITLE", {
         dateKey: dateKey
@@ -622,7 +639,11 @@ async function renderDailyRecords(dateKey) {
     
     dailyRecordsList.innerHTML = '';
     dailyRecordsEmpty.style.display = 'none';
-    recordsLoading.style.display = 'block';
+    
+    // ✅ 確保元素存在才設定樣式
+    if (recordsLoading) {
+        recordsLoading.style.display = 'block';
+    }
     
     const dateObject = new Date(dateKey);
     const month = dateObject.getFullYear() + "-" + String(dateObject.getMonth() + 1).padStart(2, "0");
@@ -631,12 +652,16 @@ async function renderDailyRecords(dateKey) {
     // 檢查快取
     if (monthDataCache[month]) {
         renderRecords(monthDataCache[month]);
-        recordsLoading.style.display = 'none';
+        if (recordsLoading) {
+            recordsLoading.style.display = 'none';
+        }
     } else {
         // 否則從 API 取得資料
         try {
             const res = await callApifetch(`getAttendanceDetails&month=${month}&userId=${userId}`);
-            recordsLoading.style.display = 'none';
+            if (recordsLoading) {
+                recordsLoading.style.display = 'none';
+            }
             if (res.ok) {
                 // 將資料存入快取
                 monthDataCache[month] = res.records;
@@ -647,6 +672,9 @@ async function renderDailyRecords(dateKey) {
             }
         } catch (err) {
             console.error(err);
+            if (recordsLoading) {
+                recordsLoading.style.display = 'none';
+            }
         }
     }
     
@@ -689,6 +717,7 @@ async function renderDailyRecords(dateKey) {
         dailyRecordsCard.style.display = 'block';
     }
 }
+
 
 document.addEventListener('DOMContentLoaded', async () => {
     

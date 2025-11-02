@@ -102,6 +102,21 @@ function doGet(e) {
       case "exportShifts":
         return respond1(handleExportShifts(e.parameter));
       
+      // ==================== 薪資系統 ====================
+      case "setEmployeeSalaryTW":
+        return respond1(handleSetEmployeeSalaryTW(e.parameter));
+      case "getEmployeeSalaryTW":
+        return respond1(handleGetEmployeeSalaryTW(e.parameter));
+      case "getMySalary":
+        return respond1(handleGetMySalary(e.parameter));
+      case "getMySalaryHistory":
+        return respond1(handleGetMySalaryHistory(e.parameter));
+      case "calculateMonthlySalary":
+        return respond1(handleCalculateMonthlySalary(e.parameter));
+      case "saveMonthlySalary":
+        return respond1(handleSaveMonthlySalary(e.parameter));
+      case "getAllMonthlySalary":
+    return respond1(handleGetAllMonthlySalary(e.parameter));
       // ==================== 測試端點 ====================
       case "testEndpoint":
         return respond1({ ok: true, msg: "CORS 測試成功!" });
@@ -392,4 +407,76 @@ function testShiftAPI() {
   };
   const queryResult = handleGetShifts(queryParams);
   Logger.log('查詢排班結果: ' + JSON.stringify(queryResult));
+}
+
+
+
+// ==================== 薪資系統 Handler 函數 ====================
+
+/**
+ * 處理設定員工薪資
+ */
+function handleSetEmployeeSalaryTW(params) {
+  try {
+    if (!params.token || !validateSession(params.token)) {
+      return { ok: false, msg: "未授權或 session 已過期" };
+    }
+    
+    const salaryData = {
+      employeeId: params.employeeId,
+      employeeName: params.employeeName,
+      idNumber: params.idNumber,
+      employeeType: params.employeeType,
+      salaryType: params.salaryType,
+      baseSalary: parseFloat(params.baseSalary) || 0,
+      bankCode: params.bankCode,
+      bankAccount: params.bankAccount,
+      hireDate: params.hireDate,
+      paymentDay: params.paymentDay,
+      pensionSelfRate: parseFloat(params.pensionSelfRate) || 0,
+      laborFee: parseFloat(params.laborFee) || 0,
+      healthFee: parseFloat(params.healthFee) || 0,
+      employmentFee: parseFloat(params.employmentFee) || 0,
+      pensionSelf: parseFloat(params.pensionSelf) || 0,
+      incomeTax: parseFloat(params.incomeTax) || 0,
+      note: params.note
+    };
+    
+    if (salaryData.salaryType === '月薪' && salaryData.baseSalary < 27470) {
+      return { ok: false, msg: "月薪不得低於27,470元" };
+    }
+    
+    if (salaryData.salaryType === '時薪' && salaryData.baseSalary < 183) {
+      return { ok: false, msg: "時薪不得低於183元" };
+    }
+    
+    const result = setEmployeeSalaryTW(salaryData);
+    
+    return { 
+      ok: result.success, 
+      msg: result.message,
+      data: result 
+    };
+    
+  } catch (error) {
+    Logger.log('handleSetEmployeeSalaryTW 錯誤: ' + error);
+    return { ok: false, msg: error.message };
+  }
+}
+
+/**
+ * 處理取得員工薪資
+ */
+function handleGetEmployeeSalaryTW(params) {
+  try {
+    if (!params.token || !validateSession(params.token)) {
+      return { ok: false, msg: "未授權" };
+    }
+    
+    const result = getEmployeeSalaryTW(params.employeeId);
+    return { ok: result.success, data: result.data, msg: result.message };
+    
+  } catch (error) {
+    return { ok: false, msg: error.message };
+  }
 }

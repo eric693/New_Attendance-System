@@ -210,8 +210,17 @@
                     
                     <div id="daily-records-card" class="card p-6" style="display: none;">
                         <h4 id="daily-records-title" class="text-xl font-bold text-gray-800 dark:text-white mb-2"></h4>
+                        
+                        <!-- ✅ 加入 loading 元素 -->
+                        <div id="daily-records-loading" 
+                             data-i18n="RECORDS_LOADING" 
+                             class="text-center text-gray-500 dark:text-gray-400 py-4" 
+                             style="display: none;">
+                            正在載入記錄...
+                        </div>
+                        
                         <ul id="daily-records-list" class="space-y-3"></ul>
-                        <div id="daily-records-empty" data-i18n="DAILY_RECORDS_EMPTY" class="text-center text-gray-500 dark:text-gray-400 py-4" style="display: none;">
+                        <div id="daily-records-empty" ... style="display: none;">
                             該日沒有打卡紀錄。
                         </div>
                     </div>
@@ -768,7 +777,7 @@
             </div>
             <footer class="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
                 <p>
-                    <span data-i18n="APP_TITLE">出勤管家</span> v3.4.12 |
+                    <span data-i18n="APP_TITLE">出勤管家</span> v3.4.13 |
                     <span class="text-gray-400 dark:text-gray-500">
                         <span data-i18n="FOOTER_CREDITS_PREFIX">由</span>
                         <a href="https://github.com/0rigind1865-bit/Attendance-System" class="hover:underline hover:text-indigo-600 dark:hover:text-indigo-400">0J</a>

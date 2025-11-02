@@ -194,8 +194,8 @@ function formatDate(date) {
 
 // ==================== 系統版本資訊 ====================
 const SYSTEM_VERSION = {
-  version: '1.7.0',
-  buildDate: '2025-10-24',
+  version: '0.7.0',
+  buildDate: '2025-11-11',
   features: [
     '打卡系統',
     '補打卡審核',
@@ -203,6 +203,6 @@ const SYSTEM_VERSION = {
     '地點管理',
     '加班管理',
     '請假管理',
-    '排班管理',
+    '薪資管理'
   ]
 };
