@@ -113,26 +113,6 @@ function autoFillShiftTime(shiftType) {
     }
 }
 
-// ========== API 呼叫函數 ==========
-
-async function loadEmployees() {
-    try {
-        const token = localStorage.getItem('sessionToken');
-        const response = await fetch(`${apiUrl}?action=getAllUsers&token=${token}`);
-        const data = await response.json();
-        
-        console.log('✅ 員工列表回應:', data);
-        
-        if (data.ok) {
-            allEmployees = data.users || [];
-            populateEmployeeSelect();
-        }
-    } catch (error) {
-        console.error('載入員工列表失敗:', error);
-        showMessage('載入員工列表失敗', 'error');
-    }
-}
-
 // ==================== 員工載入函式（完整除錯版） ====================
 
 /**
