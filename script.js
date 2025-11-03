@@ -440,17 +440,30 @@ async function checkAbnormal() {
     const month = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0");
     const userId = localStorage.getItem("sessionUserId");
     
-    // const recordsLoading = document.getElementById("records-loading");
+    // ✅ 修正：確保元素存在才操作
     const recordsLoading = document.getElementById("abnormal-records-loading");
-    recordsLoading.style.display = 'block';
+    if (recordsLoading) {
+        recordsLoading.style.display = 'block';
+    }
     
     try {
         const res = await callApifetch(`getAbnormalRecords&month=${month}&userId=${userId}`);
-        recordsLoading.style.display = 'none';
+        
+        // ✅ 修正：確保元素存在才隱藏
+        if (recordsLoading) {
+            recordsLoading.style.display = 'none';
+        }
+        
         if (res.ok) {
             const abnormalRecordsSection = document.getElementById("abnormal-records-section");
             const abnormalList = document.getElementById("abnormal-list");
             const recordsEmpty = document.getElementById("records-empty");
+            
+            // ✅ 修正：確保所有元素都存在
+            if (!abnormalRecordsSection || !abnormalList || !recordsEmpty) {
+                console.error('❌ 找不到必要的 DOM 元素');
+                return;
+            }
             
             if (res.records.length > 0) {
                 abnormalRecordsSection.style.display = 'block';
@@ -462,17 +475,19 @@ async function checkAbnormal() {
                     li.innerHTML = `
                         <div>
                             <p class="font-medium text-gray-800 dark:text-white">${record.date}</p>
-                    <p class="text-sm text-red-600 dark:text-red-400"
-                       data-i18n-dynamic="true"
-                       data-i18n-key="${record.reason}">
-                       </p>
+                            <p class="text-sm text-red-600 dark:text-red-400"
+                               data-i18n-dynamic="true"
+                               data-i18n-key="${record.reason}">
+                            </p>
                         </div>
-                    <button data-i18n="ADJUST_BUTTON_TEXT" data-date="${record.date}" data-reason="${record.reason}" 
-                            class="adjust-btn text-sm font-semibold 
-                                   text-indigo-600 dark:text-indigo-400 
-                                   hover:text-indigo-800 dark:hover:text-indigo-300">
-                        補打卡
-                    </button>
+                        <button data-i18n="ADJUST_BUTTON_TEXT" 
+                                data-date="${record.date}" 
+                                data-reason="${record.reason}" 
+                                class="adjust-btn text-sm font-semibold 
+                                       text-indigo-600 dark:text-indigo-400 
+                                       hover:text-indigo-800 dark:hover:text-indigo-300">
+                            補打卡
+                        </button>
                     `;
                     abnormalList.appendChild(li);
                     renderTranslations(li);
@@ -489,10 +504,11 @@ async function checkAbnormal() {
         }
     } catch (err) {
         console.error(err);
-        recordsLoading.style.display = 'none';
+        if (recordsLoading) {
+            recordsLoading.style.display = 'none';
+        }
     }
 }
-
 // 渲染日曆的函式
 async function renderCalendar(date) {
     const monthTitle = document.getElementById('month-title');
