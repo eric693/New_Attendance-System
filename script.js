@@ -440,26 +440,31 @@ async function checkAbnormal() {
     const month = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0");
     const userId = localStorage.getItem("sessionUserId");
     
-    // ✅ 修正：確保所有必要的 DOM 元素都存在
+    // ✅ 修正：確保元素存在才操作
     const recordsLoading = document.getElementById("abnormal-records-loading");
-    const abnormalRecordsSection = document.getElementById("abnormal-records-section");
-    const abnormalList = document.getElementById("abnormal-list");
-    const recordsEmpty = document.getElementById("records-empty");
-    
-    // ✅ 如果找不到必要元素，延遲重試
-    if (!recordsLoading || !abnormalRecordsSection || !abnormalList || !recordsEmpty) {
-        console.warn('⚠️ DOM 元素尚未載入，延遲重試...');
-        setTimeout(() => checkAbnormal(), 100);
-        return;
+    if (recordsLoading) {
+        recordsLoading.style.display = 'block';
     }
-    
-    recordsLoading.style.display = 'block';
     
     try {
         const res = await callApifetch(`getAbnormalRecords&month=${month}&userId=${userId}`);
-        recordsLoading.style.display = 'none';
+        
+        // ✅ 修正：確保元素存在才隱藏
+        if (recordsLoading) {
+            recordsLoading.style.display = 'none';
+        }
         
         if (res.ok) {
+            const abnormalRecordsSection = document.getElementById("abnormal-records-section");
+            const abnormalList = document.getElementById("abnormal-list");
+            const recordsEmpty = document.getElementById("records-empty");
+            
+            // ✅ 修正：確保所有元素都存在
+            if (!abnormalRecordsSection || !abnormalList || !recordsEmpty) {
+                console.error('❌ 找不到必要的 DOM 元素');
+                return;
+            }
+            
             if (res.records.length > 0) {
                 abnormalRecordsSection.style.display = 'block';
                 recordsEmpty.style.display = 'none';
@@ -487,6 +492,7 @@ async function checkAbnormal() {
                     abnormalList.appendChild(li);
                     renderTranslations(li);
                 });
+                
             } else {
                 abnormalRecordsSection.style.display = 'block';
                 recordsEmpty.style.display = 'block';
