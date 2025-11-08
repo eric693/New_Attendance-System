@@ -72,7 +72,7 @@ function bindLeaveEventListeners() {
 async function loadLeaveBalance() {
     const balanceContainer = document.getElementById('leave-balance-container');
     const loadingEl = document.getElementById('leave-balance-loading');
-    
+    const token = localStorage.getItem('sessionToken');
     if (loadingEl) loadingEl.style.display = 'block';
     
     try {
@@ -143,6 +143,7 @@ async function loadLeaveRecords() {
     const loadingEl = document.getElementById('leave-records-loading');
     const emptyEl = document.getElementById('leave-records-empty');
     const listEl = document.getElementById('leave-records-list');
+    const token = localStorage.getItem('sessionToken');
     
     if (loadingEl) loadingEl.style.display = 'block';
     if (emptyEl) emptyEl.style.display = 'none';
@@ -273,7 +274,7 @@ function calculateLeaveDays() {
 }
 
 /**
- * 提交請假申請（修正版）
+ * 提交請假申請（完全修正版）
  */
 async function handleSubmitLeave() {
     const button = document.getElementById('submit-leave-btn');
@@ -301,12 +302,21 @@ async function handleSubmitLeave() {
     const formattedStartDate = formatLeaveDate(startDate);
     const formattedEndDate = formatLeaveDate(endDate);
     
+    // ⭐⭐⭐ 關鍵修正：加入 token 參數
+    const token = localStorage.getItem('sessionToken');
+    
+    if (!token) {
+        showNotification(t('ERR_NO_SESSION'), 'error');
+        return;
+    }
+    
     // 進入處理中狀態
     generalButtonState(button, 'processing', loadingText);
     
     try {
         const res = await callApifetch(
-            `submitLeave&leaveType=${encodeURIComponent(leaveType)}` +
+            `submitLeave&token=${encodeURIComponent(token)}` + // ⭐ 新增 token
+            `&leaveType=${encodeURIComponent(leaveType)}` +
             `&startDate=${encodeURIComponent(formattedStartDate)}` +
             `&endDate=${encodeURIComponent(formattedEndDate)}` +
             `&days=${encodeURIComponent(days)}` +
