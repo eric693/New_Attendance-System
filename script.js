@@ -1893,55 +1893,6 @@ function displayTodayShift(res) {
 }
 
 /**
- * 載入本週排班
- */
-// async function loadWeekShift() {
-//     const loadingEl = document.getElementById('week-shift-loading');
-//     const emptyEl = document.getElementById('week-shift-empty');
-//     const listEl = document.getElementById('week-shift-list');
-    
-//     // 如果有快取，直接使用
-//     if (weekShiftCache !== null) {
-//         displayWeekShift(weekShiftCache);
-//         return;
-//     }
-    
-//     try {
-//         loadingEl.style.display = 'block';
-//         emptyEl.style.display = 'none';
-//         listEl.innerHTML = '';
-        
-//         const userId = localStorage.getItem('sessionUserId');
-        
-//         // 計算本週日期範圍
-//         const now = new Date();
-//         const startOfWeek = new Date(now);
-//         startOfWeek.setDate(now.getDate() - now.getDay());
-//         const endOfWeek = new Date(startOfWeek);
-//         endOfWeek.setDate(startOfWeek.getDate() + 6);
-        
-//         const filters = {
-//             employeeId: userId,
-//             startDate: startOfWeek.toISOString().split('T')[0],
-//             endDate: endOfWeek.toISOString().split('T')[0]
-//         };
-        
-//         const res = await callApifetch(`getShifts&filters=${encodeURIComponent(JSON.stringify(filters))}`);
-        
-//         loadingEl.style.display = 'none';
-        
-//         // 快取結果
-//         weekShiftCache = res;
-//         displayWeekShift(res);
-        
-//     } catch (error) {
-//         console.error('載入本週排班失敗:', error);
-//         loadingEl.style.display = 'none';
-//         emptyEl.style.display = 'block';
-//     }
-// }
-
-/**
  * ✅ 載入未來 7 天排班（完全修正版 - 強制清除舊快取）
  */
 async function loadWeekShift() {
