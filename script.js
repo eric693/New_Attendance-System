@@ -1895,6 +1895,55 @@ function displayTodayShift(res) {
 /**
  * 載入本週排班
  */
+// async function loadWeekShift() {
+//     const loadingEl = document.getElementById('week-shift-loading');
+//     const emptyEl = document.getElementById('week-shift-empty');
+//     const listEl = document.getElementById('week-shift-list');
+    
+//     // 如果有快取，直接使用
+//     if (weekShiftCache !== null) {
+//         displayWeekShift(weekShiftCache);
+//         return;
+//     }
+    
+//     try {
+//         loadingEl.style.display = 'block';
+//         emptyEl.style.display = 'none';
+//         listEl.innerHTML = '';
+        
+//         const userId = localStorage.getItem('sessionUserId');
+        
+//         // 計算本週日期範圍
+//         const now = new Date();
+//         const startOfWeek = new Date(now);
+//         startOfWeek.setDate(now.getDate() - now.getDay());
+//         const endOfWeek = new Date(startOfWeek);
+//         endOfWeek.setDate(startOfWeek.getDate() + 6);
+        
+//         const filters = {
+//             employeeId: userId,
+//             startDate: startOfWeek.toISOString().split('T')[0],
+//             endDate: endOfWeek.toISOString().split('T')[0]
+//         };
+        
+//         const res = await callApifetch(`getShifts&filters=${encodeURIComponent(JSON.stringify(filters))}`);
+        
+//         loadingEl.style.display = 'none';
+        
+//         // 快取結果
+//         weekShiftCache = res;
+//         displayWeekShift(res);
+        
+//     } catch (error) {
+//         console.error('載入本週排班失敗:', error);
+//         loadingEl.style.display = 'none';
+//         emptyEl.style.display = 'block';
+//     }
+// }
+
+/**
+ * 載入本週排班
+ */
 async function loadWeekShift() {
     const loadingEl = document.getElementById('week-shift-loading');
     const emptyEl = document.getElementById('week-shift-empty');
@@ -1913,12 +1962,27 @@ async function loadWeekShift() {
         
         const userId = localStorage.getItem('sessionUserId');
         
-        // 計算本週日期範圍
+        // ✅ 修正：計算「今天到本週日」的範圍
         const now = new Date();
-        const startOfWeek = new Date(now);
-        startOfWeek.setDate(now.getDate() - now.getDay());
-        const endOfWeek = new Date(startOfWeek);
-        endOfWeek.setDate(startOfWeek.getDate() + 6);
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        
+        // 計算本週日（週日是一週的最後一天）
+        const currentDay = now.getDay(); // 0 (日) ~ 6 (六)
+        const daysUntilSunday = currentDay === 0 ? 0 : 7 - currentDay;
+        
+        const endOfWeek = new Date(today);
+        endOfWeek.setDate(today.getDate() + daysUntilSunday);
+        
+        // 開始日期就是今天
+        const startOfWeek = today;
+        
+        console.log('📅 本週範圍:', {
+            today: today.toISOString().split('T')[0],
+            startOfWeek: startOfWeek.toISOString().split('T')[0],
+            endOfWeek: endOfWeek.toISOString().split('T')[0],
+            currentDay: currentDay,
+            daysUntilSunday: daysUntilSunday
+        });
         
         const filters = {
             employeeId: userId,
@@ -1940,7 +2004,6 @@ async function loadWeekShift() {
         emptyEl.style.display = 'block';
     }
 }
-
 /**
  * 顯示本週排班
  */
