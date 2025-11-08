@@ -453,8 +453,6 @@ async function checkAbnormal() {
         const res = await callApifetch(`getAbnormalRecords&month=${month}&userId=${userId}`);
         
         console.log('📤 API 回傳結果:', res);
-        console.log('   res.ok:', res.ok);
-        console.log('   res.records:', res.records);
         console.log('   記錄數量:', res.records?.length || 0);
         
         if (recordsLoading) {
@@ -466,17 +464,12 @@ async function checkAbnormal() {
             const abnormalList = document.getElementById("abnormal-list");
             const recordsEmpty = document.getElementById("abnormal-records-empty");
             
-            console.log('📋 檢查 DOM 元素:');
-            console.log('   abnormalRecordsSection:', abnormalRecordsSection ? '存在' : '不存在');
-            console.log('   abnormalList:', abnormalList ? '存在' : '不存在');
-            console.log('   recordsEmpty:', recordsEmpty ? '存在' : '不存在');
-            
             if (!abnormalRecordsSection || !abnormalList || !recordsEmpty) {
                 console.error('❌ 找不到必要的 DOM 元素');
                 return;
             }
             
-            if (res.records.length > 0) {
+            if (res.records && res.records.length > 0) {
                 console.log('✅ 有異常記錄，開始渲染');
                 
                 abnormalRecordsSection.style.display = 'block';
@@ -486,30 +479,57 @@ async function checkAbnormal() {
                 res.records.forEach((record, index) => {
                     console.log(`   渲染第 ${index + 1} 筆: ${record.date} - ${record.reason}`);
                     
+                    // ⭐⭐⭐ 根據狀態設定樣式和行為
+                    let reasonClass = 'text-red-600 dark:text-red-400';
+                    let buttonDisabled = '';
+                    let buttonClass = 'adjust-btn text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors';
+                    let buttonText = t('ADJUST_BUTTON_TEXT');
+                    
+                    switch(record.reason) {
+                        case 'STATUS_REPAIR_PENDING':
+                            // 審核中 - 黃色，按鈕禁用
+                            reasonClass = 'text-yellow-600 dark:text-yellow-400';
+                            buttonDisabled = 'disabled';
+                            buttonClass = 'text-sm font-semibold text-gray-400 dark:text-gray-500 cursor-not-allowed';
+                            buttonText = '審核中';
+                            break;
+                            
+                        case 'STATUS_REPAIR_APPROVED':
+                            // 已通過 - 綠色，按鈕禁用
+                            reasonClass = 'text-green-600 dark:text-green-400';
+                            buttonDisabled = 'disabled';
+                            buttonClass = 'text-sm font-semibold text-gray-400 dark:text-gray-500 cursor-not-allowed';
+                            buttonText = '已通過';
+                            break;
+                            
+                        case 'STATUS_NO_RECORD':
+                        case 'STATUS_PUNCH_IN_MISSING':
+                        case 'STATUS_PUNCH_OUT_MISSING':
+                        default:
+                            // 異常 - 紅色，可以補打卡
+                            reasonClass = 'text-red-600 dark:text-red-400';
+                            break;
+                    }
+                    
                     const li = document.createElement('li');
                     li.className = 'p-3 bg-gray-50 rounded-lg flex justify-between items-center dark:bg-gray-700';
+                    
                     li.innerHTML = `
                         <div>
                             <p class="font-medium text-gray-800 dark:text-white">${record.date}</p>
-                            <p class="text-sm text-red-600 dark:text-red-400"
-                               data-i18n-key="${record.reason}">
+                            <p class="text-sm ${reasonClass}">
                                 ${t(record.reason)}
                             </p>
                         </div>
-                        <button data-i18n="ADJUST_BUTTON_TEXT" 
-                                data-date="${record.date}" 
+                        <button data-date="${record.date}" 
                                 data-reason="${record.reason}" 
-                                class="adjust-btn text-sm font-semibold 
-                                       text-indigo-600 dark:text-indigo-400 
-                                       hover:text-indigo-800 dark:hover:text-indigo-300">
-                            補打卡
+                                class="${buttonClass}"
+                                ${buttonDisabled}>
+                            ${buttonText}
                         </button>
                     `;
                     abnormalList.appendChild(li);
                 });
-                
-                // 重新翻譯動態內容
-                renderTranslations(abnormalList);
                 
                 console.log('✅ 渲染完成');
                 
@@ -520,14 +540,15 @@ async function checkAbnormal() {
                 abnormalList.innerHTML = '';
             }
         } else {
-            console.error("❌ API 返回失敗:", res.msg);
-            showNotification(t("ERROR_FETCH_RECORDS"), "error");
+            console.error("❌ API 返回失敗:", res.msg || res.code);
+            showNotification(t("ERROR_FETCH_RECORDS") || "無法取得記錄", "error");
         }
     } catch (err) {
         console.error('❌ 發生錯誤:', err);
         if (recordsLoading) {
             recordsLoading.style.display = 'none';
         }
+        showNotification(t("ERROR_FETCH_RECORDS") || "無法取得記錄", "error");
     }
 }
 // async function checkAbnormal() {
@@ -644,6 +665,51 @@ async function renderCalendar(date) {
         } catch (err) {
             console.error(err);
         }
+    }
+}
+
+async function submitAdjustPunch(date, type, note) {
+    try {
+        showNotification("正在提交補打卡...", "info");
+        
+        const sessionToken = localStorage.getItem("sessionToken");
+        
+        // 取得當前位置
+        const position = await new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject);
+        });
+        
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        
+        // 設定預設時間
+        const datetime = `${date}T${type === '上班' ? '09:00:00' : '18:00:00'}`;
+        
+        const params = new URLSearchParams({
+            token: sessionToken,
+            type: type,
+            lat: lat,
+            lng: lng,
+            datetime: datetime,
+            note: note || `補打卡 - ${type}`
+        });
+        
+        const res = await callApifetch(`adjustPunch&${params.toString()}`);
+        
+        if (res.ok) {
+            showNotification("補打卡申請成功！等待管理員審核", "success");
+            
+            // ⭐⭐⭐ 關鍵：補打卡成功後，重新檢查異常記錄
+            await checkAbnormal();
+            
+            // 關閉對話框
+            closeAdjustDialog();
+        } else {
+            showNotification(t(res.code) || "補打卡失敗", "error");
+        }
+    } catch (err) {
+        console.error('補打卡錯誤:', err);
+        showNotification("補打卡失敗", "error");
     }
 }
 
