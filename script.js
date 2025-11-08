@@ -786,30 +786,13 @@ function renderCalendarWithData(year, month, today, records, calendarGrid, month
     }
 }
 
-// ==================== 📝 renderDailyRecords 函式修正 ====================
-
-/**
- * ✅ 修正：將 records-loading 改為 daily-records-loading
- * 
- * 原本的問題：
- * - 函式使用了錯誤的 ID "records-loading"
- * - 但 HTML 中出勤記錄區塊沒有這個 ID
- * - 導致 recordsLoading.style.display 時出現 null 錯誤
- * 
- * 解決方案：
- * - 在 HTML 中加入 <div id="daily-records-loading">
- * - 將 JS 中的 ID 從 "records-loading" 改為 "daily-records-loading"
- */
-
-// 新增：渲染每日紀錄的函式 (修正非同步問題)
 async function renderDailyRecords(dateKey) {
     const dailyRecordsCard = document.getElementById('daily-records-card');
     const dailyRecordsTitle = document.getElementById('daily-records-title');
     const dailyRecordsList = document.getElementById('daily-records-list');
     const dailyRecordsEmpty = document.getElementById('daily-records-empty');
-    
-    // ✅ 修正：使用正確的 loading 元素 ID
     const recordsLoading = document.getElementById("daily-records-loading");
+    const adjustmentFormContainer = document.getElementById('daily-adjustment-form-container'); // ✅ 新增
     
     dailyRecordsTitle.textContent = t("DAILY_RECORDS_TITLE", {
         dateKey: dateKey
@@ -817,8 +800,8 @@ async function renderDailyRecords(dateKey) {
     
     dailyRecordsList.innerHTML = '';
     dailyRecordsEmpty.style.display = 'none';
+    if (adjustmentFormContainer) adjustmentFormContainer.innerHTML = ''; // ✅ 清空補打卡表單
     
-    // ✅ 確保元素存在才設定樣式
     if (recordsLoading) {
         recordsLoading.style.display = 'block';
     }
@@ -827,21 +810,18 @@ async function renderDailyRecords(dateKey) {
     const month = dateObject.getFullYear() + "-" + String(dateObject.getMonth() + 1).padStart(2, "0");
     const userId = localStorage.getItem("sessionUserId");
     
-    // 檢查快取
     if (monthDataCache[month]) {
         renderRecords(monthDataCache[month]);
         if (recordsLoading) {
             recordsLoading.style.display = 'none';
         }
     } else {
-        // 否則從 API 取得資料
         try {
             const res = await callApifetch(`getAttendanceDetails&month=${month}&userId=${userId}`);
             if (recordsLoading) {
                 recordsLoading.style.display = 'none';
             }
             if (res.ok) {
-                // 將資料存入快取
                 monthDataCache[month] = res.records;
                 renderRecords(res.records);
             } else {
@@ -857,20 +837,16 @@ async function renderDailyRecords(dateKey) {
     }
     
     function renderRecords(records) {
-        // 從該月份的所有紀錄中，過濾出所選日期的紀錄
-        const dailyRecords = records.filter(record =>{
-            
-            return record.date === dateKey
-        });
+        const dailyRecords = records.filter(record => record.date === dateKey);
+        
         if (dailyRecords.length > 0) {
             dailyRecordsEmpty.style.display = 'none';
-            dailyRecords.forEach(records => {
+            dailyRecords.forEach(recordData => {
                 const li = document.createElement('li');
                 li.className = 'p-3 bg-gray-50 dark:bg-gray-700 rounded-lg';
-                const recordHtml = records.record.map(r => {
-                    // 根據 r.type 的值來選擇正確的翻譯鍵值
+                
+                const recordHtml = recordData.record.map(r => {
                     const typeKey = r.type === '上班' ? 'PUNCH_IN' : 'PUNCH_OUT';
-                    
                     return `
                         <p class="font-medium text-gray-800 dark:text-white">${r.time} - ${t(typeKey)}</p>
                         <p class="text-sm text-gray-500 dark:text-gray-400">${r.location}</p>
@@ -879,24 +855,128 @@ async function renderDailyRecords(dateKey) {
                 }).join("");
                 
                 li.innerHTML = `
-    ${recordHtml}
-    <p class="text-sm text-gray-500 dark:text-gray-400">
-        <span data-i18n="RECORD_REASON_PREFIX">系統判斷：</span>
-        
-        ${t(records.reason)}
-    </p>                `;
+                    ${recordHtml}
+                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                        <span data-i18n="RECORD_REASON_PREFIX">系統判斷：</span>
+                        ${t(recordData.reason)}
+                    </p>
+                `;
                 dailyRecordsList.appendChild(li);
                 renderTranslations(li);
             });
             
+            // ✅ 新增：檢查是否需要顯示補打卡按鈕
+            const firstRecord = dailyRecords[0];
+            const hasAbnormal = [
+                "STATUS_NO_RECORD",
+                "STATUS_PUNCH_IN_MISSING",
+                "STATUS_PUNCH_OUT_MISSING"
+            ].includes(firstRecord.reason);
+            
+            if (hasAbnormal && adjustmentFormContainer) {
+                showAdjustmentButtons(dateKey, firstRecord.reason);
+            }
+            
         } else {
             dailyRecordsEmpty.style.display = 'block';
+            
+            // ✅ 新增：沒有記錄也顯示補打卡按鈕
+            if (adjustmentFormContainer) {
+                showAdjustmentButtons(dateKey, "STATUS_NO_RECORD");
+            }
         }
         dailyRecordsCard.style.display = 'block';
     }
+    
+    // ✅ 新增：顯示補打卡按鈕的函數
+    function showAdjustmentButtons(date, reason) {
+        const formHtml = `
+            <div class="p-4 border-t border-gray-200 dark:border-gray-600 fade-in">
+                <p data-i18n="ADJUST_BUTTON_TEXT" class="font-semibold mb-2 dark:text-white">
+                    補打卡：<span class="text-indigo-600 dark:text-indigo-400">${date}</span>
+                </p>
+                <div class="form-group mb-3">
+                    <label for="daily-adjustDateTime" data-i18n="SELECT_DATETIME_LABEL" 
+                           class="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">
+                        選擇日期與時間：
+                    </label>
+                    <input id="daily-adjustDateTime" 
+                           type="datetime-local" 
+                           class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm 
+                                  dark:bg-gray-700 dark:text-white focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <button data-type="in" data-i18n="BTN_ADJUST_IN" 
+                            class="daily-submit-adjust-btn w-full py-2 px-4 rounded-lg font-bold btn-secondary">
+                        補上班卡
+                    </button>
+                    <button data-type="out" data-i18n="BTN_ADJUST_OUT" 
+                            class="daily-submit-adjust-btn w-full py-2 px-4 rounded-lg font-bold btn-secondary">
+                        補下班卡
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        adjustmentFormContainer.innerHTML = formHtml;
+        renderTranslations(adjustmentFormContainer);
+        
+        // 設定預設時間
+        const adjustDateTimeInput = document.getElementById("daily-adjustDateTime");
+        let defaultTime = reason.includes("下班") ? "18:00" : "09:00";
+        adjustDateTimeInput.value = `${date}T${defaultTime}`;
+    }
 }
 
+// ✅ 新增：處理每日記錄的補打卡按鈕點擊
+document.addEventListener('click', async (e) => {
+    const button = e.target.closest('.daily-submit-adjust-btn');
+    
+    if (button) {
+        const loadingText = t('LOADING') || '處理中...';
+        const datetime = document.getElementById("daily-adjustDateTime").value;
+        const type = button.dataset.type;
 
+        if (!datetime) {
+            showNotification("請選擇補打卡日期時間", "error");
+            return;
+        }
+        
+        if (!validateAdjustTime(datetime)) return;
+
+        generalButtonState(button, 'processing', loadingText);
+        
+        const dateObj = new Date(datetime);
+        const lat = 0;
+        const lng = 0;
+        const action = `adjustPunch&type=${type === 'in' ? "上班" : "下班"}&lat=${lat}&lng=${lng}&datetime=${dateObj.toISOString()}&note=${encodeURIComponent(navigator.userAgent)}`;
+        
+        try {
+            const res = await callApifetch(action, "loadingMsg");
+            const msg = t(res.code || "UNKNOWN_ERROR", res.params || {});
+            showNotification(msg, res.ok ? "success" : "error");
+
+            if (res.ok) {
+                document.getElementById('daily-adjustment-form-container').innerHTML = '';
+                checkAbnormal();
+                
+                // ✅ 重新載入該日期的記錄
+                const dateKey = datetime.split('T')[0];
+                renderDailyRecords(dateKey);
+            }
+
+        } catch (err) {
+            console.error(err);
+            showNotification(t('NETWORK_ERROR') || '網路錯誤', 'error');
+            
+        } finally {
+            const container = document.getElementById('daily-adjustment-form-container');
+            if (container && container.innerHTML !== '') {
+                generalButtonState(button, 'idle');
+            }
+        }
+    }
+});
 document.addEventListener('DOMContentLoaded', async () => {
     
     const loginBtn = document.getElementById('login-btn');
