@@ -144,13 +144,14 @@
                 
                 <!-- Dashboard View -->
                 <main id="dashboard-view" class="space-y-6">
+                    <!-- 打卡專區（保持不變）-->
                     <div class="card p-6">
                         <h2 data-i18n="PUNCH_SECTION_TITLE"
                             class="text-xl font-bold text-gray-800 dark:text-white mb-1">
                             打卡專區
                         </h2>
                         <p data-i18n="PUNCH_SECTION_DESC"
-                           class="text-gray-500 dark:text-gray-400 mb-4">
+                        class="text-gray-500 dark:text-gray-400 mb-4">
                             請點擊下方按鈕進行上班或下班打卡。
                         </p>
                         <div class="flex space-x-4">
@@ -167,14 +168,35 @@
                         </div>
                     </div>
                     
-                    <div class="card p-6">
-                        <h2 data-i18n="ABNORMAL_RECORDS_TITLE" class="text-xl font-bold text-gray-800 dark:text-white mb-2">考勤紀錄</h2>
-                        <p data-i18n="ABNORMAL_RECORDS_DESCRIPTION" class="text-gray-500 dark:text-gray-400 mb-4">系統會自動偵測本月異常紀錄，您可以在此進行補打卡。</p>
-                        <div id="abnormal-records-loading" data-i18n="RECORDS_LOADING" class="text-center text-gray-500 dark:text-gray-400">正在載入記錄...</div>
-                        <div id="abnormal-records-empty" class="text-center text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/30 p-4 rounded-lg" style="display: none;">
-                            <p data-i18n="ABNORMAL_RECORDS_EMPTY" class="font-semibold">太棒了！本月目前沒有任何異常紀錄。</p>
+                    <!-- ✅ 修正：考勤紀錄區塊 -->
+                    <div id="abnormal-records-section" class="card p-6" style="display: none;">
+                        <h2 data-i18n="ABNORMAL_RECORDS_TITLE" 
+                            class="text-xl font-bold text-gray-800 dark:text-white mb-2">
+                            考勤紀錄
+                        </h2>
+                        <p data-i18n="ABNORMAL_RECORDS_DESCRIPTION" 
+                        class="text-gray-500 dark:text-gray-400 mb-4">
+                            系統會自動偵測本月異常紀錄，您可以在此進行補打卡。
+                        </p>
+                        
+                        <!-- ✅ 新增容器包裹 -->
+                        <div id="abnormal-records-container">
+                            <div id="abnormal-records-loading" 
+                                data-i18n="RECORDS_LOADING" 
+                                class="text-center text-gray-500 dark:text-gray-400">
+                                正在載入記錄...
+                            </div>
+                            <div id="abnormal-records-empty" 
+                                class="text-center text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/30 p-4 rounded-lg" 
+                                style="display: none;">
+                                <p data-i18n="ABNORMAL_RECORDS_EMPTY" class="font-semibold">
+                                    太棒了！本月目前沒有任何異常紀錄。
+                                </p>
+                            </div>
+                            <ul id="abnormal-list" class="space-y-3"></ul>
                         </div>
-                        <ul id="abnormal-list" class="space-y-3"></ul>
+                        
+                        <!-- ✅ 補打卡表單容器 -->
                         <div id="adjustment-form-container" class="mt-4"></div>
                     </div>
                 </main>
