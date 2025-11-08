@@ -457,7 +457,7 @@ async function checkAbnormal() {
         if (res.ok) {
             const abnormalRecordsSection = document.getElementById("abnormal-records-section");
             const abnormalList = document.getElementById("abnormal-list");
-            const recordsEmpty = document.getElementById("records-empty");
+            const recordsEmpty = document.getElementById("abnormal-records-empty"); // ✅
             
             // ✅ 修正：確保所有元素都存在
             if (!abnormalRecordsSection || !abnormalList || !recordsEmpty) {
