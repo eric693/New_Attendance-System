@@ -24,19 +24,59 @@ function getDistanceMeters_(lat1, lng1, lat2, lng2) {
  * [打卡時間, 員工ID, 薪資, 員工姓名, 上下班, GPS位置, 地點, 備註, 使用裝置詳細訊息]
  * @returns {Array} 每天每位員工的異常結果，格式為 { date: string, reason: string, id: string } 的陣列
  */
+function testCheckAbnormalWithStatus() {
+  Logger.log('🧪 測試方案 B - 顯示審核狀態');
+  Logger.log('');
+  
+  const month = '2025-11';
+  const userId = 'Uffac21d92d99e3404b9228fd8c251e2a';
+  
+  const records = getAttendanceRecords(month, userId);
+  const abnormalResults = checkAttendanceAbnormal(records);
+  
+  Logger.log('📊 測試結果:');
+  Logger.log(`   總記錄數: ${records.length}`);
+  Logger.log(`   異常數量: ${abnormalResults.length}`);
+  Logger.log('');
+  Logger.log('📋 詳細記錄:');
+  abnormalResults.forEach((r, i) => {
+    Logger.log(`   ${i + 1}. ${r.date} - ${r.reason}`);
+  });
+}
+/**
+ * ✅ 檢查員工每天的打卡異常狀態（方案 B - 顯示審核狀態）
+ * @param {Array} attendanceRows - 打卡紀錄陣列
+ * @returns {Array} - 異常記錄陣列
+ */
 function checkAttendanceAbnormal(attendanceRows) {
   const dailyRecords = {}; // 按 userId+date 分組
-  const abnormalRecords = []; // 新增：用於儲存格式化的異常紀錄
-  let abnormalIdCounter = 0; // 新增：用於產生唯一的 id
+  const abnormalRecords = []; // 用於儲存格式化的異常紀錄
   
-  Logger.log("checkAttendanceAbnormal開始");
+  Logger.log("═══════════════════════════════════════");
+  Logger.log("🔍 checkAttendanceAbnormal 開始");
+  Logger.log(`📊 總記錄數: ${attendanceRows.length}`);
+  
   const today = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "yyyy-MM-dd");
+  
+  // ===== 步驟 1：按使用者和日期分組 =====
+  let targetUserId = null;  // 用於記錄目標使用者ID
+  let targetMonth = null;   // 用於記錄目標月份
+  
   attendanceRows.forEach(row => {
     try {
       const date = getYmdFromRow(row);
       const userId = row.userId;
-        // 🚫 跳過今天的資料
-      if (date === today) return;
+      
+      // 記錄使用者ID和月份（用於後續檢查缺少的日期）
+      if (!targetUserId) targetUserId = userId;
+      if (!targetMonth && date) targetMonth = date.substring(0, 7); // "2025-11"
+      
+      // 🚫 跳過今天的資料
+      if (date === today) {
+        Logger.log(`⏭️  跳過今天的資料: ${date}`);
+        return;
+      }
+      
       if (!dailyRecords[userId]) dailyRecords[userId] = {};
       if (!dailyRecords[userId][date]) dailyRecords[userId][date] = [];
       dailyRecords[userId][date].push(row);
@@ -46,44 +86,174 @@ function checkAttendanceAbnormal(attendanceRows) {
     }
   });
 
-  for (const userId in dailyRecords) {
-    for (const date in dailyRecords[userId]) {
-      const rows = dailyRecords[userId][date];
+  // ===== 步驟 2：生成整個月份的日期列表 =====
+  const allDatesInMonth = [];
+  if (targetMonth) {
+    const [year, month] = targetMonth.split('-').map(Number);
+    const daysInMonth = new Date(year, month, 0).getDate();
+    
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      
+      // ⭐ 排除週末（可選）
+      const dayOfWeek = new Date(year, month - 1, day).getDay();
+      const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6); // 0=週日, 6=週六
+      
+      // 只加入過去的工作日（不包含今天、未來和週末）
+      if (dateStr < today && !isWeekend) {
+        allDatesInMonth.push(dateStr);
+      }
+    }
+    
+    Logger.log(`📅 本月應檢查的日期數: ${allDatesInMonth.length}`);
+  }
 
+  // ===== 步驟 3：檢查每一天的打卡狀態 =====
+  if (targetUserId && targetMonth) {
+    for (const date of allDatesInMonth) {
+      // 檢查這一天是否有打卡記錄
+      const dayRecords = dailyRecords[targetUserId]?.[date] || [];
+      
       // 過濾系統虛擬卡
-      const filteredRows = rows.filter(r => r.notes !== "系統虛擬卡");
+      const filteredRows = dayRecords.filter(r => r.note !== "系統虛擬卡");
+      
       const types = filteredRows.map(r => r.type);
-      const notes = filteredRows.map(r => r.note);
-      const audits =filteredRows.map(r => r.audit);
+      const notes = filteredRows.map(r => r.note || "");
+      const audits = filteredRows.map(r => r.audit || "");
 
+      // ⭐⭐⭐ 方案 B：檢查補打卡狀態
+      const hasPendingAdjustment = notes.some(n => n === "補打卡") && 
+                                   audits.some(a => a === "?");
+      
+      const hasApprovedAdjustment = notes.some(n => n === "補打卡") && 
+                                    audits.some(a => a === "v");
+      
+      const hasRejectedAdjustment = notes.some(n => n === "補打卡") && 
+                                    audits.some(a => a === "x");
+
+      // ⭐ 如果有待審核的補打卡，標記為「審核中」
+      if (hasPendingAdjustment) {
+        Logger.log(`⏳ ${date}: 補打卡審核中`);
+        abnormalRecords.push({
+          date: date,
+          reason: "STATUS_REPAIR_PENDING",
+          userId: targetUserId
+        });
+        continue;
+      }
+
+      // ⭐ 如果補打卡已通過，標記為「已通過」
+      if (hasApprovedAdjustment) {
+        Logger.log(`✅ ${date}: 補打卡已通過`);
+        abnormalRecords.push({
+          date: date,
+          reason: "STATUS_REPAIR_APPROVED",
+          userId: targetUserId
+        });
+        continue;
+      }
+
+      // ⭐ 如果補打卡被拒絕，仍顯示為異常（可重新申請）
+      if (hasRejectedAdjustment) {
+        Logger.log(`❌ ${date}: 補打卡被拒絕`);
+        // 繼續往下判斷異常類型
+      }
+
+      // 判斷異常類型
       let reason = "";
-      if (types.length === 0) {
-        reason = "未打上班卡, 未打下班卡";
+      
+      if (dayRecords.length === 0 || types.length === 0) {
+        reason = "STATUS_NO_RECORD";
+        Logger.log(`📋 ${date}: 完全沒有打卡記錄`);
       } else if (types.every(t => t === "上班")) {
-        reason = "未打下班卡";
+        reason = "STATUS_PUNCH_OUT_MISSING";
+        Logger.log(`📋 ${date}: 缺少下班卡`);
       } else if (types.every(t => t === "下班")) {
-        reason = "未打上班卡";
-      }else if (notes.every(t => t === "補卡")) {
-        reason = "補卡(審核中)";
-      }else if (audits.every(t => t === "v")) {
-        reason = "補卡通過";
+        reason = "STATUS_PUNCH_IN_MISSING";
+        Logger.log(`📋 ${date}: 缺少上班卡`);
+      } else {
+        // 有成對的上下班打卡，視為正常
+        Logger.log(`✅ ${date}: 打卡正常`);
+        continue;
       }
 
       if (reason) {
-        abnormalIdCounter++;
         abnormalRecords.push({
           date: date,
           reason: reason,
-          id: `abnormal-${abnormalIdCounter}`
+          userId: targetUserId
         });
       }
     }
   }
 
-  Logger.log("checkAttendanceAbnormal debug: %s", JSON.stringify(abnormalRecords));
+  Logger.log("═══════════════════════════════════════");
+  Logger.log(`📋 檢查完成，發現 ${abnormalRecords.length} 筆記錄`);
+  Logger.log("異常記錄: " + JSON.stringify(abnormalRecords, null, 2));
+  Logger.log("═══════════════════════════════════════");
+  
   return abnormalRecords;
 }
-
+/**
+ * 🧪 測試修正後的 checkAttendanceAbnormal
+ */
+function testCheckAbnormalFixed() {
+  Logger.log('');
+  Logger.log('🧪🧪🧪 測試修正後的 checkAttendanceAbnormal');
+  Logger.log('');
+  
+  const month = '2025-11';
+  const userId = 'Uffac21d92d99e3404b9228fd8c251e2a';  // ⚠️ 替換成真實的 userId
+  
+  Logger.log(`📅 測試月份: ${month}`);
+  Logger.log(`👤 員工ID: ${userId}`);
+  Logger.log('');
+  
+  // 1. 取得出勤記錄
+  Logger.log('📡 步驟 1: 取得出勤記錄');
+  const records = getAttendanceRecords(month, userId);
+  Logger.log(`   ✅ 找到 ${records.length} 筆記錄`);
+  Logger.log('');
+  
+  // 2. 顯示前 5 筆記錄的詳情
+  Logger.log('📋 記錄詳情（前 5 筆）:');
+  records.slice(0, 5).forEach((r, i) => {
+    const date = Utilities.formatDate(new Date(r.date), 'Asia/Taipei', 'yyyy-MM-dd HH:mm');
+    Logger.log(`   ${i + 1}. ${date} | ${r.type} | note: "${r.note}" | audit: "${r.audit}"`);
+  });
+  Logger.log('');
+  
+  // 3. 檢查異常
+  Logger.log('📡 步驟 2: 檢查異常記錄');
+  const abnormalResults = checkAttendanceAbnormal(records);
+  Logger.log('');
+  
+  // 4. 顯示結果摘要
+  Logger.log('═══════════════════════════════════════');
+  Logger.log('📊 測試結果摘要');
+  Logger.log('═══════════════════════════════════════');
+  Logger.log(`   總記錄數: ${records.length}`);
+  Logger.log(`   異常數量: ${abnormalResults.length}`);
+  Logger.log('');
+  
+  if (abnormalResults.length === 0) {
+    Logger.log('   ✅ 沒有異常記錄（或都已提交補打卡）');
+  } else {
+    Logger.log('   📋 異常記錄詳情:');
+    abnormalResults.forEach((record, index) => {
+      Logger.log(`      ${index + 1}. ${record.date} - ${record.reason}`);
+    });
+  }
+  
+  Logger.log('═══════════════════════════════════════');
+  
+  return {
+    ok: true,
+    total: records.length,
+    abnormal: abnormalResults.length,
+    records: abnormalResults
+  };
+}
 function checkAttendance(attendanceRows) {
   const dailyRecords = {}; // 按 userId+date 分組
   const dailyStatus = []; // 用於儲存格式化的異常紀錄
