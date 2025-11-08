@@ -440,7 +440,10 @@ async function checkAbnormal() {
     const month = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0");
     const userId = localStorage.getItem("sessionUserId");
     
-    // ✅ 修正：確保元素存在才操作
+    console.log('🔍 開始檢查異常記錄');
+    console.log('   month:', month);
+    console.log('   userId:', userId);
+    
     const recordsLoading = document.getElementById("abnormal-records-loading");
     if (recordsLoading) {
         recordsLoading.style.display = 'block';
@@ -449,7 +452,11 @@ async function checkAbnormal() {
     try {
         const res = await callApifetch(`getAbnormalRecords&month=${month}&userId=${userId}`);
         
-        // ✅ 修正：確保元素存在才隱藏
+        console.log('📤 API 回傳結果:', res);
+        console.log('   res.ok:', res.ok);
+        console.log('   res.records:', res.records);
+        console.log('   記錄數量:', res.records?.length || 0);
+        
         if (recordsLoading) {
             recordsLoading.style.display = 'none';
         }
@@ -457,27 +464,36 @@ async function checkAbnormal() {
         if (res.ok) {
             const abnormalRecordsSection = document.getElementById("abnormal-records-section");
             const abnormalList = document.getElementById("abnormal-list");
-            const recordsEmpty = document.getElementById("abnormal-records-empty"); // ✅
+            const recordsEmpty = document.getElementById("abnormal-records-empty");
             
-            // ✅ 修正：確保所有元素都存在
+            console.log('📋 檢查 DOM 元素:');
+            console.log('   abnormalRecordsSection:', abnormalRecordsSection ? '存在' : '不存在');
+            console.log('   abnormalList:', abnormalList ? '存在' : '不存在');
+            console.log('   recordsEmpty:', recordsEmpty ? '存在' : '不存在');
+            
             if (!abnormalRecordsSection || !abnormalList || !recordsEmpty) {
                 console.error('❌ 找不到必要的 DOM 元素');
                 return;
             }
             
             if (res.records.length > 0) {
+                console.log('✅ 有異常記錄，開始渲染');
+                
                 abnormalRecordsSection.style.display = 'block';
                 recordsEmpty.style.display = 'none';
                 abnormalList.innerHTML = '';
-                res.records.forEach(record => {
+                
+                res.records.forEach((record, index) => {
+                    console.log(`   渲染第 ${index + 1} 筆: ${record.date} - ${record.reason}`);
+                    
                     const li = document.createElement('li');
                     li.className = 'p-3 bg-gray-50 rounded-lg flex justify-between items-center dark:bg-gray-700';
                     li.innerHTML = `
                         <div>
                             <p class="font-medium text-gray-800 dark:text-white">${record.date}</p>
                             <p class="text-sm text-red-600 dark:text-red-400"
-                               data-i18n-dynamic="true"
                                data-i18n-key="${record.reason}">
+                                ${t(record.reason)}
                             </p>
                         </div>
                         <button data-i18n="ADJUST_BUTTON_TEXT" 
@@ -490,25 +506,104 @@ async function checkAbnormal() {
                         </button>
                     `;
                     abnormalList.appendChild(li);
-                    renderTranslations(li);
                 });
                 
+                // 重新翻譯動態內容
+                renderTranslations(abnormalList);
+                
+                console.log('✅ 渲染完成');
+                
             } else {
+                console.log('ℹ️  沒有異常記錄');
                 abnormalRecordsSection.style.display = 'block';
                 recordsEmpty.style.display = 'block';
                 abnormalList.innerHTML = '';
             }
         } else {
-            console.error("Failed to fetch abnormal records:", res.msg);
+            console.error("❌ API 返回失敗:", res.msg);
             showNotification(t("ERROR_FETCH_RECORDS"), "error");
         }
     } catch (err) {
-        console.error(err);
+        console.error('❌ 發生錯誤:', err);
         if (recordsLoading) {
             recordsLoading.style.display = 'none';
         }
     }
 }
+// async function checkAbnormal() {
+//     const now = new Date();
+//     const month = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0");
+//     const userId = localStorage.getItem("sessionUserId");
+    
+//     // ✅ 修正：確保元素存在才操作
+//     const recordsLoading = document.getElementById("abnormal-records-loading");
+//     if (recordsLoading) {
+//         recordsLoading.style.display = 'block';
+//     }
+    
+//     try {
+//         const res = await callApifetch(`getAbnormalRecords&month=${month}&userId=${userId}`);
+        
+//         // ✅ 修正：確保元素存在才隱藏
+//         if (recordsLoading) {
+//             recordsLoading.style.display = 'none';
+//         }
+        
+//         if (res.ok) {
+//             const abnormalRecordsSection = document.getElementById("abnormal-records-section");
+//             const abnormalList = document.getElementById("abnormal-list");
+//             const recordsEmpty = document.getElementById("abnormal-records-empty"); // ✅
+            
+//             // ✅ 修正：確保所有元素都存在
+//             if (!abnormalRecordsSection || !abnormalList || !recordsEmpty) {
+//                 console.error('❌ 找不到必要的 DOM 元素');
+//                 return;
+//             }
+            
+//             if (res.records.length > 0) {
+//                 abnormalRecordsSection.style.display = 'block';
+//                 recordsEmpty.style.display = 'none';
+//                 abnormalList.innerHTML = '';
+//                 res.records.forEach(record => {
+//                     const li = document.createElement('li');
+//                     li.className = 'p-3 bg-gray-50 rounded-lg flex justify-between items-center dark:bg-gray-700';
+//                     li.innerHTML = `
+//                         <div>
+//                             <p class="font-medium text-gray-800 dark:text-white">${record.date}</p>
+//                             <p class="text-sm text-red-600 dark:text-red-400"
+//                                data-i18n-dynamic="true"
+//                                data-i18n-key="${record.reason}">
+//                             </p>
+//                         </div>
+//                         <button data-i18n="ADJUST_BUTTON_TEXT" 
+//                                 data-date="${record.date}" 
+//                                 data-reason="${record.reason}" 
+//                                 class="adjust-btn text-sm font-semibold 
+//                                        text-indigo-600 dark:text-indigo-400 
+//                                        hover:text-indigo-800 dark:hover:text-indigo-300">
+//                             補打卡
+//                         </button>
+//                     `;
+//                     abnormalList.appendChild(li);
+//                     renderTranslations(li);
+//                 });
+                
+//             } else {
+//                 abnormalRecordsSection.style.display = 'block';
+//                 recordsEmpty.style.display = 'block';
+//                 abnormalList.innerHTML = '';
+//             }
+//         } else {
+//             console.error("Failed to fetch abnormal records:", res.msg);
+//             showNotification(t("ERROR_FETCH_RECORDS"), "error");
+//         }
+//     } catch (err) {
+//         console.error(err);
+//         if (recordsLoading) {
+//             recordsLoading.style.display = 'none';
+//         }
+//     }
+// }
 // 渲染日曆的函式
 async function renderCalendar(date) {
     const monthTitle = document.getElementById('month-title');
