@@ -1944,6 +1944,9 @@ function displayTodayShift(res) {
 /**
  * 載入本週排班
  */
+/**
+ * 載入未來 7 天排班（今天到未來 7 天）
+ */
 async function loadWeekShift() {
     const loadingEl = document.getElementById('week-shift-loading');
     const emptyEl = document.getElementById('week-shift-empty');
@@ -1962,26 +1965,21 @@ async function loadWeekShift() {
         
         const userId = localStorage.getItem('sessionUserId');
         
-        // ✅ 修正：計算「今天到本週日」的範圍
+        // ✅ 修正：計算「今天到未來 7 天」的範圍
         const now = new Date();
         const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
         
-        // 計算本週日（週日是一週的最後一天）
-        const currentDay = now.getDay(); // 0 (日) ~ 6 (六)
-        const daysUntilSunday = currentDay === 0 ? 0 : 7 - currentDay;
-        
-        const endOfWeek = new Date(today);
-        endOfWeek.setDate(today.getDate() + daysUntilSunday);
-        
-        // 開始日期就是今天
+        // 開始日期 = 今天
         const startOfWeek = today;
         
-        console.log('📅 本週範圍:', {
+        // 結束日期 = 今天 + 7 天
+        const endOfWeek = new Date(today);
+        endOfWeek.setDate(today.getDate() + 7);
+        
+        console.log('📅 未來排班範圍:', {
             today: today.toISOString().split('T')[0],
             startOfWeek: startOfWeek.toISOString().split('T')[0],
-            endOfWeek: endOfWeek.toISOString().split('T')[0],
-            currentDay: currentDay,
-            daysUntilSunday: daysUntilSunday
+            endOfWeek: endOfWeek.toISOString().split('T')[0]
         });
         
         const filters = {
@@ -1999,7 +1997,7 @@ async function loadWeekShift() {
         displayWeekShift(res);
         
     } catch (error) {
-        console.error('載入本週排班失敗:', error);
+        console.error('載入未來排班失敗:', error);
         loadingEl.style.display = 'none';
         emptyEl.style.display = 'block';
     }
