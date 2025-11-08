@@ -1952,9 +1952,32 @@ async function loadWeekShift() {
     const emptyEl = document.getElementById('week-shift-empty');
     const listEl = document.getElementById('week-shift-list');
     
-    // 如果有快取，直接使用
-    if (weekShiftCache !== null) {
-        displayWeekShift(weekShiftCache);
+    // ✅ 計算「今天到未來 7 天」的範圍
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    // 開始日期 = 今天
+    const startOfWeek = today;
+    
+    // 結束日期 = 今天 + 7 天
+    const endOfWeek = new Date(today);
+    endOfWeek.setDate(today.getDate() + 7);
+    
+    const startDateStr = startOfWeek.toISOString().split('T')[0];
+    const endDateStr = endOfWeek.toISOString().split('T')[0];
+    
+    console.log('📅 未來排班範圍:', {
+        today: today.toISOString().split('T')[0],
+        startOfWeek: startDateStr,
+        endOfWeek: endDateStr
+    });
+    
+    // ✅ 檢查快取是否過期
+    const cacheKey = `${startDateStr}_${endDateStr}`;
+    
+    if (weekShiftCache !== null && weekShiftCache.cacheKey === cacheKey) {
+        console.log('✅ 使用有效快取');
+        displayWeekShift(weekShiftCache.data);
         return;
     }
     
@@ -1965,35 +1988,23 @@ async function loadWeekShift() {
         
         const userId = localStorage.getItem('sessionUserId');
         
-        // ✅ 修正：計算「今天到未來 7 天」的範圍
-        const now = new Date();
-        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        
-        // 開始日期 = 今天
-        const startOfWeek = today;
-        
-        // 結束日期 = 今天 + 7 天
-        const endOfWeek = new Date(today);
-        endOfWeek.setDate(today.getDate() + 7);
-        
-        console.log('📅 未來排班範圍:', {
-            today: today.toISOString().split('T')[0],
-            startOfWeek: startOfWeek.toISOString().split('T')[0],
-            endOfWeek: endOfWeek.toISOString().split('T')[0]
-        });
-        
         const filters = {
             employeeId: userId,
-            startDate: startOfWeek.toISOString().split('T')[0],
-            endDate: endOfWeek.toISOString().split('T')[0]
+            startDate: startDateStr,
+            endDate: endDateStr
         };
         
         const res = await callApifetch(`getShifts&filters=${encodeURIComponent(JSON.stringify(filters))}`);
         
         loadingEl.style.display = 'none';
         
-        // 快取結果
-        weekShiftCache = res;
+        // ✅ 快取結果（帶上 cacheKey）
+        weekShiftCache = {
+            cacheKey: cacheKey,
+            data: res,
+            timestamp: Date.now()
+        };
+        
         displayWeekShift(res);
         
     } catch (error) {
@@ -2009,9 +2020,16 @@ function displayWeekShift(res) {
     const emptyEl = document.getElementById('week-shift-empty');
     const listEl = document.getElementById('week-shift-list');
     
+    console.log('📋 displayWeekShift 收到的資料:', res);
+    
     if (res.ok && res.data && res.data.length > 0) {
         listEl.innerHTML = '';
-        res.data.forEach(shift => {
+        
+        console.log('✅ 開始渲染', res.data.length, '筆排班');
+        
+        res.data.forEach((shift, index) => {
+            console.log(`   ${index + 1}. ${shift.date} - ${shift.shiftType}`);
+            
             const item = document.createElement('div');
             item.className = 'flex justify-between items-center text-sm bg-white dark:bg-gray-800 p-2 rounded-md';
             item.innerHTML = `
@@ -2029,8 +2047,12 @@ function displayWeekShift(res) {
             `;
             listEl.appendChild(item);
         });
+        
+        emptyEl.style.display = 'none';
     } else {
+        console.log('⚠️ 沒有排班資料或資料格式錯誤');
         emptyEl.style.display = 'block';
+        listEl.innerHTML = '';
     }
 }
 
