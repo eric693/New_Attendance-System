@@ -1942,24 +1942,18 @@ function displayTodayShift(res) {
 // }
 
 /**
- * 載入本週排班
- */
-/**
- * 載入未來 7 天排班（今天到未來 7 天）
+ * ✅ 載入未來 7 天排班（完全修正版 - 強制清除舊快取）
  */
 async function loadWeekShift() {
     const loadingEl = document.getElementById('week-shift-loading');
     const emptyEl = document.getElementById('week-shift-empty');
     const listEl = document.getElementById('week-shift-list');
     
-    // ✅ 計算「今天到未來 7 天」的範圍
+    // ✅ 步驟 1: 計算「今天到未來 7 天」的範圍
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     
-    // 開始日期 = 今天
     const startOfWeek = today;
-    
-    // 結束日期 = 今天 + 7 天
     const endOfWeek = new Date(today);
     endOfWeek.setDate(today.getDate() + 7);
     
@@ -1972,14 +1966,23 @@ async function loadWeekShift() {
         endOfWeek: endDateStr
     });
     
-    // ✅ 檢查快取是否過期
+    // ✅ 步驟 2: 生成快取鍵值
     const cacheKey = `${startDateStr}_${endDateStr}`;
     
-    if (weekShiftCache !== null && weekShiftCache.cacheKey === cacheKey) {
-        console.log('✅ 使用有效快取');
+    // ✅ 步驟 3: 檢查快取（但只有在「分頁初次載入」時才使用）
+    // 如果快取存在且日期範圍相同，才使用快取
+    if (weekShiftCache !== null && 
+        weekShiftCache.cacheKey === cacheKey &&
+        Date.now() - weekShiftCache.timestamp < 60000) { // 快取 1 分鐘有效
+        
+        console.log('✅ 使用有效快取（1 分鐘內）');
         displayWeekShift(weekShiftCache.data);
         return;
     }
+    
+    // ✅ 步驟 4: 清除舊快取，強制重新載入
+    console.log('🗑️ 清除舊快取，重新載入');
+    weekShiftCache = null;
     
     try {
         loadingEl.style.display = 'block';
@@ -1994,21 +1997,28 @@ async function loadWeekShift() {
             endDate: endDateStr
         };
         
+        console.log('📡 呼叫 API，篩選條件:', filters);
+        
         const res = await callApifetch(`getShifts&filters=${encodeURIComponent(JSON.stringify(filters))}`);
+        
+        console.log('📤 API 回應:', res);
         
         loadingEl.style.display = 'none';
         
-        // ✅ 快取結果（帶上 cacheKey）
+        // ✅ 步驟 5: 快取新資料
         weekShiftCache = {
             cacheKey: cacheKey,
             data: res,
             timestamp: Date.now()
         };
         
+        console.log('💾 已快取新資料:', weekShiftCache);
+        
+        // ✅ 步驟 6: 顯示資料
         displayWeekShift(res);
         
     } catch (error) {
-        console.error('載入未來排班失敗:', error);
+        console.error('❌ 載入未來排班失敗:', error);
         loadingEl.style.display = 'none';
         emptyEl.style.display = 'block';
     }
