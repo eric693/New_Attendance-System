@@ -470,16 +470,16 @@
                                 <select id="leave-type" 
                                         class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm dark:bg-gray-700 dark:text-white focus:ring-indigo-500 focus:border-indigo-500">
                                     <option value="">請選擇請假類型</option>
-                                    <option value="事假" data-i18n-option="LEAVE_TYPE_PERSONAL">事假</option>
-                                    <option value="病假" data-i18n-option="LEAVE_TYPE_SICK">病假</option>
-                                    <option value="特休" data-i18n-option="LEAVE_TYPE_ANNUAL">特休</option>
-                                    <option value="婚假" data-i18n-option="LEAVE_TYPE_MARRIAGE">婚假</option>
-                                    <option value="喪假" data-i18n-option="LEAVE_TYPE_BEREAVEMENT">喪假</option>
-                                    <option value="產假" data-i18n-option="LEAVE_TYPE_MATERNITY">產假</option>
-                                    <option value="陪產假" data-i18n-option="LEAVE_TYPE_PATERNITY">陪產假</option>
+                                    <!-- 👇 修正：使用英文代碼 -->
+                                    <option value="PERSONAL_LEAVE" data-i18n-option="LEAVE_TYPE_PERSONAL">事假</option>
+                                    <option value="SICK_LEAVE" data-i18n-option="LEAVE_TYPE_SICK">病假</option>
+                                    <option value="ANNUAL_LEAVE" data-i18n-option="LEAVE_TYPE_ANNUAL">特休</option>
+                                    <option value="MARRIAGE_LEAVE" data-i18n-option="LEAVE_TYPE_MARRIAGE">婚假</option>
+                                    <option value="BEREAVEMENT_LEAVE" data-i18n-option="LEAVE_TYPE_BEREAVEMENT">喪假</option>
+                                    <option value="MATERNITY_LEAVE" data-i18n-option="LEAVE_TYPE_MATERNITY">產假</option>
+                                    <option value="PATERNITY_LEAVE" data-i18n-option="LEAVE_TYPE_PATERNITY">陪產假</option>
                                 </select>
                             </div>
-                            
                             <!-- 開始日期與結束日期 -->
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
