@@ -171,46 +171,82 @@ function renderLeaveBalance(balance) {
 /**
  * ✅ 載入請假記錄（修正版 - 加強 debug）
  */
-async function loadLeaveRecords() {
-    console.log('🔍 開始載入請假記錄...');
+// async function loadLeaveRecords() {
+//     console.log('🔍 開始載入請假記錄...');
     
+//     const loadingEl = document.getElementById('leave-records-loading');
+//     const emptyEl = document.getElementById('leave-records-empty');
+//     const listEl = document.getElementById('leave-records-list');
+    
+//     if (loadingEl) loadingEl.style.display = 'block';
+//     if (emptyEl) emptyEl.style.display = 'none';
+//     if (listEl) listEl.innerHTML = '';
+    
+//     try {
+//         console.log('📡 呼叫 API: getEmployeeLeaveRecords');
+//         const res = await callApifetch('getEmployeeLeaveRecords');
+        
+//         console.log('📤 API 回應:', res);
+//         console.log('   ok:', res.ok);
+//         console.log('   records:', res.records);
+//         console.log('   records 數量:', res.records ? res.records.length : 'undefined');
+        
+//         // ⭐ 修正：檢查多種可能的成功狀態
+//         if (res.ok || res.success) {
+//             console.log('✅ API 成功');
+            
+//             if (res.records && res.records.length > 0) {
+//                 console.log('✅ 有記錄，開始渲染');
+//                 renderLeaveRecords(res.records);
+//             } else {
+//                 console.log('⚠️ 沒有記錄');
+//                 if (emptyEl) emptyEl.style.display = 'block';
+//             }
+//         } else {
+//             console.error('❌ API 失敗:', res.code || res.msg);
+//             showNotification(t(res.code || 'ERROR_FETCH_RECORDS'), 'error');
+//         }
+//     } catch (err) {
+//         console.error('❌ 載入請假記錄失敗:', err);
+//         showNotification(t('NETWORK_ERROR'), 'error');
+//     } finally {
+//         if (loadingEl) loadingEl.style.display = 'none';
+//     }
+// }
+
+async function loadLeaveRecords() {
+    const userId = localStorage.getItem('sessionUserId');
     const loadingEl = document.getElementById('leave-records-loading');
     const emptyEl = document.getElementById('leave-records-empty');
     const listEl = document.getElementById('leave-records-list');
     
-    if (loadingEl) loadingEl.style.display = 'block';
-    if (emptyEl) emptyEl.style.display = 'none';
-    if (listEl) listEl.innerHTML = '';
-    
     try {
-        console.log('📡 呼叫 API: getEmployeeLeaveRecords');
-        const res = await callApifetch('getEmployeeLeaveRecords');
+        loadingEl.style.display = 'block';
+        emptyEl.style.display = 'none';
+        listEl.innerHTML = '';
         
-        console.log('📤 API 回應:', res);
-        console.log('   ok:', res.ok);
-        console.log('   records:', res.records);
-        console.log('   records 數量:', res.records ? res.records.length : 'undefined');
+        const res = await callApifetch(`getEmployeeLeaveRecords&employeeId=${userId}`);
         
-        // ⭐ 修正：檢查多種可能的成功狀態
-        if (res.ok || res.success) {
-            console.log('✅ API 成功');
-            
-            if (res.records && res.records.length > 0) {
-                console.log('✅ 有記錄，開始渲染');
-                renderLeaveRecords(res.records);
-            } else {
-                console.log('⚠️ 沒有記錄');
-                if (emptyEl) emptyEl.style.display = 'block';
-            }
+        console.log('API 回應:', res);
+        console.log('ok:', res.ok);
+        console.log('records:', res.records);
+        console.log('records 數量:', res.records?.length);
+        
+        loadingEl.style.display = 'none';
+        
+        // ✅ 修正：根據實際 API 回應格式判斷
+        if (res.success && res.data && res.data.length > 0) {
+            emptyEl.style.display = 'none';
+            renderLeaveRecords(res.data);  // 使用 res.data 而非 res.records
         } else {
-            console.error('❌ API 失敗:', res.code || res.msg);
-            showNotification(t(res.code || 'ERROR_FETCH_RECORDS'), 'error');
+            console.log('沒有記錄');
+            emptyEl.style.display = 'block';
         }
-    } catch (err) {
-        console.error('❌ 載入請假記錄失敗:', err);
-        showNotification(t('NETWORK_ERROR'), 'error');
-    } finally {
-        if (loadingEl) loadingEl.style.display = 'none';
+        
+    } catch (error) {
+        console.error('載入請假記錄失敗:', error);
+        loadingEl.style.display = 'none';
+        emptyEl.style.display = 'block';
     }
 }
 /**
