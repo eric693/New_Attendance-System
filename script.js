@@ -890,38 +890,41 @@ async function renderDailyRecords(dateKey) {
     
     // ✅ 新增：顯示補打卡按鈕的函數
     function showAdjustmentButtons(date, reason) {
+        const adjustTitle = t("ADJUST_BUTTON_TEXT") || "補打卡";
+        const dateTimeLabel = t("SELECT_DATETIME_LABEL") || "選擇日期與時間：";
+        const btnAdjustIn = t("BTN_ADJUST_IN") || "補上班打卡";
+        const btnAdjustOut = t("BTN_ADJUST_OUT") || "補下班打卡";
+        
         const formHtml = `
             <div class="p-4 border-t border-gray-200 dark:border-gray-600 fade-in">
-                <p data-i18n="ADJUST_BUTTON_TEXT" class="font-semibold mb-2 dark:text-white">
-                    補打卡：<span class="text-indigo-600 dark:text-indigo-400">${date}</span>
+                <p class="font-semibold mb-2 dark:text-white">
+                    ${adjustTitle}：<span class="text-indigo-600 dark:text-indigo-400">${date}</span>
                 </p>
                 <div class="form-group mb-3">
-                    <label for="daily-adjustDateTime" data-i18n="SELECT_DATETIME_LABEL" 
-                           class="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">
-                        選擇日期與時間：
+                    <label for="daily-adjustDateTime" 
+                        class="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">
+                        ${dateTimeLabel}
                     </label>
                     <input id="daily-adjustDateTime" 
-                           type="datetime-local" 
-                           class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm 
-                                  dark:bg-gray-700 dark:text-white focus:ring-indigo-500 focus:border-indigo-500">
+                        type="datetime-local" 
+                        class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm 
+                                dark:bg-gray-700 dark:text-white focus:ring-indigo-500 focus:border-indigo-500">
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    <button data-type="in" data-i18n="BTN_ADJUST_IN" 
+                    <button data-type="in" 
                             class="daily-submit-adjust-btn w-full py-2 px-4 rounded-lg font-bold btn-secondary">
-                        補上班卡
+                        ${btnAdjustIn}
                     </button>
-                    <button data-type="out" data-i18n="BTN_ADJUST_OUT" 
+                    <button data-type="out" 
                             class="daily-submit-adjust-btn w-full py-2 px-4 rounded-lg font-bold btn-secondary">
-                        補下班卡
+                        ${btnAdjustOut}
                     </button>
                 </div>
             </div>
         `;
         
         adjustmentFormContainer.innerHTML = formHtml;
-        renderTranslations(adjustmentFormContainer);
         
-        // 設定預設時間
         const adjustDateTimeInput = document.getElementById("daily-adjustDateTime");
         let defaultTime = reason.includes("下班") ? "18:00" : "09:00";
         adjustDateTimeInput.value = `${date}T${defaultTime}`;
@@ -1689,32 +1692,45 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (e.target.classList.contains('adjust-btn')) {
             const date = e.target.dataset.date;
             const reason = e.target.dataset.reason;
+            
+            // ⭐ 先取得翻譯
+            const adjustTitle = t("ADJUST_BUTTON_TEXT") || "補打卡";
+            const dateTimeLabel = t("SELECT_DATETIME_LABEL") || "選擇日期與時間：";
+            const btnAdjustIn = t("BTN_ADJUST_IN") || "補上班打卡";
+            const btnAdjustOut = t("BTN_ADJUST_OUT") || "補下班打卡";
+            
             const formHtml = `
                 <div class="p-4 border-t border-gray-200 dark:border-gray-600 fade-in ">
-                    <p data-i18n="ADJUST_BUTTON_TEXT" class="font-semibold mb-2 dark:text-white">補打卡：<span class="text-indigo-600 dark:text-indigo-400">${date}</span></p>
+                    <p class="font-semibold mb-2 dark:text-white">
+                        ${adjustTitle}：<span class="text-indigo-600 dark:text-indigo-400">${date}</span>
+                    </p>
                     <div class="form-group mb-3">
-                        <label for="adjustDateTime" data-i18n="SELECT_DATETIME_LABEL" class="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">選擇日期與時間：</label>
-            <input id="adjustDateTime" 
-                   type="datetime-local" 
-                   class="w-full p-2 
-                          border border-gray-300 dark:border-gray-600 
-                          rounded-md shadow-sm 
-                          dark:bg-gray-700 dark:text-white
-                          focus:ring-indigo-500 focus:border-indigo-500">
+                        <label for="adjustDateTime" 
+                               class="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">
+                            ${dateTimeLabel}
+                        </label>
+                        <input id="adjustDateTime" 
+                               type="datetime-local" 
+                               class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm 
+                                      dark:bg-gray-700 dark:text-white focus:ring-indigo-500 focus:border-indigo-500">
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        <button data-type="in" data-i18n="BTN_ADJUST_IN" class="submit-adjust-btn w-full py-2 px-4 rounded-lg font-bold btn-secondary">補上班卡</button>
-                        <button data-type="out" data-i18n="BTN_ADJUST_OUT" class="submit-adjust-btn w-full py-2 px-4 rounded-lg font-bold btn-secondary">補下班卡</button>
+                        <button data-type="in" 
+                                class="submit-adjust-btn w-full py-2 px-4 rounded-lg font-bold btn-secondary">
+                            ${btnAdjustIn}
+                        </button>
+                        <button data-type="out" 
+                                class="submit-adjust-btn w-full py-2 px-4 rounded-lg font-bold btn-secondary">
+                            ${btnAdjustOut}
+                        </button>
                     </div>
                 </div>
             `;
+            
             adjustmentFormContainer.innerHTML = formHtml;
-            renderTranslations(adjustmentFormContainer);
+            
             const adjustDateTimeInput = document.getElementById("adjustDateTime");
-            let defaultTime = "09:00"; // 預設為上班時間
-            if (reason.includes("下班")) {
-                defaultTime = "18:00";
-            }
+            let defaultTime = reason.includes("下班") ? "18:00" : "09:00";
             adjustDateTimeInput.value = `${date}T${defaultTime}`;
         }
     });
