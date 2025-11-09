@@ -1,4 +1,4 @@
-// leave.js - 請假系統前端邏輯（完整修正版）
+// leave.js - 請假系統前端邏輯（完整修正版 v2.0）
 
 /**
  * 🆕 格式化日期函數
@@ -44,7 +44,12 @@ function bindLeaveEventListeners() {
     if (submitBtn) {
         // 移除舊的監聽器，避免重複綁定
         submitBtn.replaceWith(submitBtn.cloneNode(true));
-        document.getElementById('submit-leave-btn').addEventListener('click', handleSubmitLeave);
+        
+        // ⭐ 修正：使用表單提交事件而不是按鈕點擊
+        const form = document.getElementById('leave-form');
+        if (form) {
+            form.addEventListener('submit', handleSubmitLeave);
+        }
     }
     
     // 請假類型改變時的處理
@@ -77,6 +82,8 @@ async function loadLeaveBalance() {
     
     try {
         const res = await callApifetch('getLeaveBalance');
+        
+        console.log('📊 假期餘額 API 回應:', res);
         
         if (res.ok) {
             renderLeaveBalance(res.balance);
@@ -137,92 +144,74 @@ function renderLeaveBalance(balance) {
 }
 
 /**
- * 載入請假記錄
- */
-// async function loadLeaveRecords() {
-//     const loadingEl = document.getElementById('leave-records-loading');
-//     const emptyEl = document.getElementById('leave-records-empty');
-//     const listEl = document.getElementById('leave-records-list');
-    
-//     if (loadingEl) loadingEl.style.display = 'block';
-//     if (emptyEl) emptyEl.style.display = 'none';
-//     if (listEl) listEl.innerHTML = '';
-    
-//     try {
-//         const res = await callApifetch('getEmployeeLeaveRecords');
-        
-//         if (res.ok) {
-//             if (res.records && res.records.length > 0) {
-//                 renderLeaveRecords(res.records);
-//             } else {
-//                 if (emptyEl) emptyEl.style.display = 'block';
-//             }
-//         } else {
-//             showNotification(t(res.code || 'ERROR_FETCH_RECORDS'), 'error');
-//         }
-//     } catch (err) {
-//         console.error('載入請假記錄失敗:', err);
-//         showNotification(t('NETWORK_ERROR'), 'error');
-//     } finally {
-//         if (loadingEl) loadingEl.style.display = 'none';
-//     }
-// }
-
-/**
- * ✅ 載入請假記錄（修正版 - 加強 debug）
+ * ✅ 載入請假記錄（完全修正版）
  */
 async function loadLeaveRecords() {
-    console.log('🔍 開始載入請假記錄...');
-    
     const loadingEl = document.getElementById('leave-records-loading');
     const emptyEl = document.getElementById('leave-records-empty');
     const listEl = document.getElementById('leave-records-list');
+    
+    console.log('🔍 開始載入請假記錄...');
     
     if (loadingEl) loadingEl.style.display = 'block';
     if (emptyEl) emptyEl.style.display = 'none';
     if (listEl) listEl.innerHTML = '';
     
     try {
-        console.log('📡 呼叫 API: getEmployeeLeaveRecords');
         const res = await callApifetch('getEmployeeLeaveRecords');
         
-        console.log('📤 API 回應:', res);
-        console.log('   ok:', res.ok);
-        console.log('   records:', res.records);
-        console.log('   records 數量:', res.records ? res.records.length : 'undefined');
+        // ⭐⭐⭐ 關鍵修正：詳細記錄 API 回應
+        console.log('📤 請假記錄 API 完整回應:', res);
+        console.log('   - ok:', res.ok);
+        console.log('   - records 型別:', typeof res.records);
+        console.log('   - records 是陣列:', Array.isArray(res.records));
+        console.log('   - records 長度:', res.records ? res.records.length : 'undefined');
         
-        // ⭐ 修正：檢查多種可能的成功狀態
-        if (res.ok || res.success) {
-            console.log('✅ API 成功');
-            
-            if (res.records && res.records.length > 0) {
-                console.log('✅ 有記錄，開始渲染');
-                renderLeaveRecords(res.records);
+        if (res.ok) {
+            // ⭐ 修正：檢查 records 是否存在且為陣列
+            if (res.records && Array.isArray(res.records)) {
+                console.log('✅ records 是有效的陣列');
+                
+                if (res.records.length > 0) {
+                    console.log(`📋 找到 ${res.records.length} 筆記錄，準備渲染`);
+                    renderLeaveRecords(res.records);
+                } else {
+                    console.log('⚠️ records 陣列是空的');
+                    if (emptyEl) emptyEl.style.display = 'block';
+                }
             } else {
-                console.log('⚠️ 沒有記錄');
+                console.error('❌ records 不是有效的陣列:', res.records);
                 if (emptyEl) emptyEl.style.display = 'block';
             }
         } else {
-            console.error('❌ API 失敗:', res.code || res.msg);
+            console.error('❌ API 回傳 ok: false');
             showNotification(t(res.code || 'ERROR_FETCH_RECORDS'), 'error');
         }
     } catch (err) {
-        console.error('❌ 載入請假記錄失敗:', err);
+        console.error('❌ 載入請假記錄時發生錯誤:', err);
         showNotification(t('NETWORK_ERROR'), 'error');
     } finally {
         if (loadingEl) loadingEl.style.display = 'none';
     }
 }
+
 /**
  * 渲染請假記錄（修正版）
  */
 function renderLeaveRecords(records) {
     const listEl = document.getElementById('leave-records-list');
-    if (!listEl) return;
+    if (!listEl) {
+        console.error('❌ 找不到 leave-records-list 元素');
+        return;
+    }
+    
+    console.log(`🎨 開始渲染 ${records.length} 筆請假記錄`);
     
     listEl.innerHTML = '';
     
-    records.forEach(record => {
+    records.forEach((record, index) => {
+        console.log(`   渲染記錄 ${index + 1}:`, record);
+        
         const li = document.createElement('li');
         li.className = 'p-4 bg-gray-50 dark:bg-gray-700 rounded-lg';
         
@@ -268,6 +257,8 @@ function renderLeaveRecords(records) {
         listEl.appendChild(li);
         renderTranslations(li);
     });
+    
+    console.log('✅ 請假記錄渲染完成');
 }
 
 /**
@@ -318,9 +309,11 @@ function calculateLeaveDays() {
 }
 
 /**
- * 提交請假申請（修正版）
+ * ✅ 提交請假申請（修正版 - 使用表單事件）
  */
-async function handleSubmitLeave() {
+async function handleSubmitLeave(e) {
+    e.preventDefault();  // ⭐ 防止表單預設提交行為
+    
     const button = document.getElementById('submit-leave-btn');
     const loadingText = t('LOADING') || '處理中...';
     
@@ -330,6 +323,8 @@ async function handleSubmitLeave() {
     const endDate = document.getElementById('leave-end-date').value;
     const days = document.getElementById('leave-days').value;
     const reason = document.getElementById('leave-reason').value;
+    
+    console.log('📝 準備提交請假申請:', { leaveType, startDate, endDate, days, reason });
     
     // 驗證
     if (!leaveType || !startDate || !endDate || !days) {
@@ -357,6 +352,8 @@ async function handleSubmitLeave() {
             `&days=${encodeURIComponent(days)}` +
             `&reason=${encodeURIComponent(reason)}`
         );
+        
+        console.log('📤 提交請假 API 回應:', res);
         
         if (res.ok) {
             showNotification(t(res.code || 'LEAVE_SUBMIT_SUCCESS'), 'success');
