@@ -792,7 +792,6 @@ async function renderDailyRecords(dateKey) {
     const dailyRecordsList = document.getElementById('daily-records-list');
     const dailyRecordsEmpty = document.getElementById('daily-records-empty');
     const recordsLoading = document.getElementById("daily-records-loading");
-    const adjustmentFormContainer = document.getElementById('daily-adjustment-form-container'); // ✅ 新增
     
     dailyRecordsTitle.textContent = t("DAILY_RECORDS_TITLE", {
         dateKey: dateKey
@@ -800,7 +799,6 @@ async function renderDailyRecords(dateKey) {
     
     dailyRecordsList.innerHTML = '';
     dailyRecordsEmpty.style.display = 'none';
-    if (adjustmentFormContainer) adjustmentFormContainer.innerHTML = ''; // ✅ 清空補打卡表單
     
     if (recordsLoading) {
         recordsLoading.style.display = 'block';
@@ -865,121 +863,14 @@ async function renderDailyRecords(dateKey) {
                 renderTranslations(li);
             });
             
-            // ✅ 新增：檢查是否需要顯示補打卡按鈕
-            const firstRecord = dailyRecords[0];
-            const hasAbnormal = [
-                "STATUS_NO_RECORD",
-                "STATUS_PUNCH_IN_MISSING",
-                "STATUS_PUNCH_OUT_MISSING"
-            ].includes(firstRecord.reason);
-            
-            if (hasAbnormal && adjustmentFormContainer) {
-                showAdjustmentButtons(dateKey, firstRecord.reason);
-            }
-            
         } else {
             dailyRecordsEmpty.style.display = 'block';
-            
-            // ✅ 新增：沒有記錄也顯示補打卡按鈕
-            if (adjustmentFormContainer) {
-                showAdjustmentButtons(dateKey, "STATUS_NO_RECORD");
-            }
         }
+        
         dailyRecordsCard.style.display = 'block';
-    }
-    
-    // ✅ 新增：顯示補打卡按鈕的函數
-    function showAdjustmentButtons(date, reason) {
-        const adjustTitle = t("ADJUST_BUTTON_TEXT") || "補打卡";
-        const dateTimeLabel = t("SELECT_DATETIME_LABEL") || "選擇日期與時間：";
-        const btnAdjustIn = t("BTN_ADJUST_IN") || "補上班打卡";
-        const btnAdjustOut = t("BTN_ADJUST_OUT") || "補下班打卡";
-        
-        const formHtml = `
-            <div class="p-4 border-t border-gray-200 dark:border-gray-600 fade-in">
-                <p class="font-semibold mb-2 dark:text-white">
-                    ${adjustTitle}：<span class="text-indigo-600 dark:text-indigo-400">${date}</span>
-                </p>
-                <div class="form-group mb-3">
-                    <label for="daily-adjustDateTime" 
-                        class="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">
-                        ${dateTimeLabel}
-                    </label>
-                    <input id="daily-adjustDateTime" 
-                        type="datetime-local" 
-                        class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm 
-                                dark:bg-gray-700 dark:text-white focus:ring-indigo-500 focus:border-indigo-500">
-                </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    <button data-type="in" 
-                            class="daily-submit-adjust-btn w-full py-2 px-4 rounded-lg font-bold btn-secondary">
-                        ${btnAdjustIn}
-                    </button>
-                    <button data-type="out" 
-                            class="daily-submit-adjust-btn w-full py-2 px-4 rounded-lg font-bold btn-secondary">
-                        ${btnAdjustOut}
-                    </button>
-                </div>
-            </div>
-        `;
-        
-        adjustmentFormContainer.innerHTML = formHtml;
-        
-        const adjustDateTimeInput = document.getElementById("daily-adjustDateTime");
-        let defaultTime = reason.includes("下班") ? "18:00" : "09:00";
-        adjustDateTimeInput.value = `${date}T${defaultTime}`;
     }
 }
 
-// ✅ 新增：處理每日記錄的補打卡按鈕點擊
-document.addEventListener('click', async (e) => {
-    const button = e.target.closest('.daily-submit-adjust-btn');
-    
-    if (button) {
-        const loadingText = t('LOADING') || '處理中...';
-        const datetime = document.getElementById("daily-adjustDateTime").value;
-        const type = button.dataset.type;
-
-        if (!datetime) {
-            showNotification("請選擇補打卡日期時間", "error");
-            return;
-        }
-        
-        if (!validateAdjustTime(datetime)) return;
-
-        generalButtonState(button, 'processing', loadingText);
-        
-        const dateObj = new Date(datetime);
-        const lat = 0;
-        const lng = 0;
-        const action = `adjustPunch&type=${type === 'in' ? "上班" : "下班"}&lat=${lat}&lng=${lng}&datetime=${dateObj.toISOString()}&note=${encodeURIComponent(navigator.userAgent)}`;
-        
-        try {
-            const res = await callApifetch(action, "loadingMsg");
-            const msg = t(res.code || "UNKNOWN_ERROR", res.params || {});
-            showNotification(msg, res.ok ? "success" : "error");
-
-            if (res.ok) {
-                document.getElementById('daily-adjustment-form-container').innerHTML = '';
-                checkAbnormal();
-                
-                // ✅ 重新載入該日期的記錄
-                const dateKey = datetime.split('T')[0];
-                renderDailyRecords(dateKey);
-            }
-
-        } catch (err) {
-            console.error(err);
-            showNotification(t('NETWORK_ERROR') || '網路錯誤', 'error');
-            
-        } finally {
-            const container = document.getElementById('daily-adjustment-form-container');
-            if (container && container.innerHTML !== '') {
-                generalButtonState(button, 'idle');
-            }
-        }
-    }
-});
 document.addEventListener('DOMContentLoaded', async () => {
     
     const loginBtn = document.getElementById('login-btn');
