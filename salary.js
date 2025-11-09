@@ -750,26 +750,6 @@ function getBankName(code) {
 }
 
 /**
- * ✅ 顯示通知訊息
- */
-function showNotification(message, type = 'info') {
-    if (typeof window.showNotification === 'function') {
-        window.showNotification(message, type);
-        return;
-    }
-    
-    if (type === 'error') {
-        alert('❌ ' + message);
-    } else if (type === 'success') {
-        alert('✅ ' + message);
-    } else {
-        console.log('ℹ️ ' + message);
-    }
-}
-
-// 🔍 前端診斷工具 - 請在瀏覽器 Console 執行
-
-/**
  * 診斷薪資查詢問題
  */
 async function diagnoseSalaryIssue() {
