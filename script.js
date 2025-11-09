@@ -499,7 +499,13 @@ async function checkAbnormal() {
                             reasonClass = 'text-green-600 dark:text-green-400';
                             buttonDisabled = 'disabled';
                             buttonClass = 'text-sm font-semibold text-gray-400 dark:text-gray-500 cursor-not-allowed';
-                            buttonText = '已通過';
+                            
+                            // ✅ 新增：顯示打卡類型
+                            if (record.punchTypes) {
+                                buttonText = `已通過 (${record.punchTypes})`;
+                            } else {
+                                buttonText = '已通過';
+                            }
                             break;
                             
                         case 'STATUS_NO_RECORD':
@@ -519,6 +525,7 @@ async function checkAbnormal() {
                             <p class="font-medium text-gray-800 dark:text-white">${record.date}</p>
                             <p class="text-sm ${reasonClass}">
                                 ${t(record.reason)}
+                                ${record.punchTypes ? ` (${record.punchTypes})` : ''}
                             </p>
                         </div>
                         <button data-date="${record.date}" 
