@@ -202,7 +202,9 @@
                 </main>
                 
                 <!-- Monthly View -->
+                <!-- Monthly View -->
                 <section id="monthly-view" class="space-y-6" style="display: none;">
+                    <!-- 日曆卡片 -->
                     <div class="card p-6">
                         <div class="flex justify-between items-center mb-4">
                             <button id="prev-month" class="text-gray-600 dark:text-gray-400 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">&lt;</button>
@@ -228,6 +230,36 @@
                             <span data-i18n="WEEK_SATURDAY">六</span>
                         </div>
                         <div id="calendar-grid" class="grid grid-cols-7 gap-1"></div>
+                    </div>
+                    
+                    <!-- ✅ 新增：每日記錄卡片 -->
+                    <div id="daily-records-card" class="card p-6" style="display: none;">
+                        <h3 id="daily-records-title" 
+                            class="text-lg font-bold text-gray-800 dark:text-white mb-4">
+                        </h3>
+                        
+                        <!-- 載入狀態 -->
+                        <div id="daily-records-loading" 
+                            data-i18n="RECORDS_LOADING" 
+                            class="text-center text-gray-500 dark:text-gray-400 py-4" 
+                            style="display: none;">
+                            正在載入記錄...
+                        </div>
+                        
+                        <!-- 無記錄提示 -->
+                        <div id="daily-records-empty" 
+                            class="text-center text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 p-4 rounded-lg" 
+                            style="display: none;">
+                            <p data-i18n="DAILY_RECORDS_EMPTY" class="font-semibold">
+                                當日無打卡記錄
+                            </p>
+                        </div>
+                        
+                        <!-- 記錄列表 -->
+                        <ul id="daily-records-list" class="space-y-3 mb-4"></ul>
+                        
+                        <!-- ✅ 補打卡表單容器 -->
+                        <div id="daily-adjustment-form-container"></div>
                     </div>
                 </section>
                 

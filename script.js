@@ -787,25 +787,47 @@ function renderCalendarWithData(year, month, today, records, calendarGrid, month
 }
 
 async function renderDailyRecords(dateKey) {
+    // 1. 取得所有需要的 DOM 元素
     const dailyRecordsCard = document.getElementById('daily-records-card');
     const dailyRecordsTitle = document.getElementById('daily-records-title');
     const dailyRecordsList = document.getElementById('daily-records-list');
     const dailyRecordsEmpty = document.getElementById('daily-records-empty');
     const recordsLoading = document.getElementById("daily-records-loading");
-    const adjustmentFormContainer = document.getElementById('daily-adjustment-form-container'); // ✅ 新增
+    const adjustmentFormContainer = document.getElementById('daily-adjustment-form-container');
     
+    // 2. ✅ 檢查必要元素是否存在
+    if (!dailyRecordsCard || !dailyRecordsTitle || !dailyRecordsList || !dailyRecordsEmpty) {
+        console.error('❌ renderDailyRecords: 找不到必要的 DOM 元素');
+        console.log('元素檢查結果:', {
+            'daily-records-card': !!dailyRecordsCard,
+            'daily-records-title': !!dailyRecordsTitle,
+            'daily-records-list': !!dailyRecordsList,
+            'daily-records-empty': !!dailyRecordsEmpty,
+            'daily-records-loading': !!recordsLoading,
+            'daily-adjustment-form-container': !!adjustmentFormContainer
+        });
+        
+        showNotification('介面元素載入失敗，請重新整理頁面', 'error');
+        return;
+    }
+    
+    // 3. 安全地設置內容
     dailyRecordsTitle.textContent = t("DAILY_RECORDS_TITLE", {
         dateKey: dateKey
     });
     
     dailyRecordsList.innerHTML = '';
     dailyRecordsEmpty.style.display = 'none';
-    if (adjustmentFormContainer) adjustmentFormContainer.innerHTML = ''; // ✅ 清空補打卡表單
+    
+    if (adjustmentFormContainer) {
+        adjustmentFormContainer.innerHTML = '';
+    }
     
     if (recordsLoading) {
         recordsLoading.style.display = 'block';
     }
     
+    // 4. 繼續原有邏輯
     const dateObject = new Date(dateKey);
     const month = dateObject.getFullYear() + "-" + String(dateObject.getMonth() + 1).padStart(2, "0");
     const userId = localStorage.getItem("sessionUserId");
@@ -836,6 +858,7 @@ async function renderDailyRecords(dateKey) {
         }
     }
     
+    // 5. renderRecords 函數（保持不變）
     function renderRecords(records) {
         const dailyRecords = records.filter(record => record.date === dateKey);
         
@@ -865,7 +888,7 @@ async function renderDailyRecords(dateKey) {
                 renderTranslations(li);
             });
             
-            // ✅ 新增：檢查是否需要顯示補打卡按鈕
+            // 檢查是否需要顯示補打卡按鈕
             const firstRecord = dailyRecords[0];
             const hasAbnormal = [
                 "STATUS_NO_RECORD",
@@ -880,15 +903,16 @@ async function renderDailyRecords(dateKey) {
         } else {
             dailyRecordsEmpty.style.display = 'block';
             
-            // ✅ 新增：沒有記錄也顯示補打卡按鈕
+            // 沒有記錄也顯示補打卡按鈕
             if (adjustmentFormContainer) {
                 showAdjustmentButtons(dateKey, "STATUS_NO_RECORD");
             }
         }
+        
         dailyRecordsCard.style.display = 'block';
     }
     
-    // ✅ 新增：顯示補打卡按鈕的函數
+    // 6. showAdjustmentButtons 函數（保持不變）
     function showAdjustmentButtons(date, reason) {
         const formHtml = `
             <div class="p-4 border-t border-gray-200 dark:border-gray-600 fade-in">
