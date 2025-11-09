@@ -122,42 +122,45 @@ async function callApifetch(action, loadingId = "loading") {
     const token = localStorage.getItem("sessionToken");
     const url = `${API_CONFIG.apiUrl}?action=${action}&token=${token}`;
     
-    // 顯示指定的 loading 元素
     const loadingEl = document.getElementById(loadingId);
     if (loadingEl) loadingEl.style.display = "block";
     
     try {
-        // 使用 fetch API 發送請求
         const response = await fetch(url);
         
-        // 檢查 HTTP 狀態碼
         if (!response.ok) {
             throw new Error(`HTTP 錯誤: ${response.status}`);
         }
         
-        // 解析 JSON 回應
         const data = await response.json();
         
-        // ✅ 新增：統一 API 回應格式
-        // 如果後端回傳 success，轉換為 ok
+        // ✅✅✅ 雙向格式統一（關鍵修正）
+        // 1. 如果後端回傳 success，轉換為 ok
         if (data.success !== undefined && data.ok === undefined) {
             data.ok = data.success;
         }
         
-        // 如果後端回傳 data，轉換為 records
+        // 2. 如果後端回傳 ok，轉換為 success
+        if (data.ok !== undefined && data.success === undefined) {
+            data.success = data.ok;
+        }
+        
+        // 3. 如果後端回傳 data，轉換為 records
         if (data.data !== undefined && data.records === undefined) {
             data.records = data.data;
         }
         
+        // 4. 如果後端回傳 records，轉換為 data
+        if (data.records !== undefined && data.data === undefined) {
+            data.data = data.records;
+        }
+        
         return data;
     } catch (error) {
-        // 處理網路或其他錯誤
         showNotification(t("CONNECTION_FAILED"), "error");
         console.error("API 呼叫失敗:", error);
-        // 拋出錯誤以便外部捕獲
         throw error;
     } finally {
-        // 不論成功或失敗，都隱藏 loading 元素
         if (loadingEl) loadingEl.style.display = "none";
     }
 }
