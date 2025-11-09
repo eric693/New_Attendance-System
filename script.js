@@ -86,6 +86,38 @@ function renderTranslations(container = document) {
  * @param {string} [loadingId="loading"] - 顯示 loading 狀態的 DOM 元素 ID。
  * @returns {Promise<object>} - 回傳一個包含 API 回應資料的 Promise。
  */
+// async function callApifetch(action, loadingId = "loading") {
+//     const token = localStorage.getItem("sessionToken");
+//     const url = `${API_CONFIG.apiUrl}?action=${action}&token=${token}`;
+    
+//     // 顯示指定的 loading 元素
+//     const loadingEl = document.getElementById(loadingId);
+//     if (loadingEl) loadingEl.style.display = "block";
+    
+//     try {
+//         // 使用 fetch API 發送請求
+//         const response = await fetch(url);
+        
+//         // 檢查 HTTP 狀態碼
+//         if (!response.ok) {
+//             throw new Error(`HTTP 錯誤: ${response.status}`);
+//         }
+        
+//         // 解析 JSON 回應
+//         const data = await response.json();
+//         return data;
+//     } catch (error) {
+//         // 處理網路或其他錯誤
+//         showNotification(t("CONNECTION_FAILED"), "error");
+//         console.error("API 呼叫失敗:", error);
+//         // 拋出錯誤以便外部捕獲
+//         throw error;
+//     } finally {
+//         // 不論成功或失敗，都隱藏 loading 元素
+//         if (loadingEl) loadingEl.style.display = "none";
+//     }
+// }
+
 async function callApifetch(action, loadingId = "loading") {
     const token = localStorage.getItem("sessionToken");
     const url = `${API_CONFIG.apiUrl}?action=${action}&token=${token}`;
@@ -105,6 +137,18 @@ async function callApifetch(action, loadingId = "loading") {
         
         // 解析 JSON 回應
         const data = await response.json();
+        
+        // ✅ 新增：統一 API 回應格式
+        // 如果後端回傳 success，轉換為 ok
+        if (data.success !== undefined && data.ok === undefined) {
+            data.ok = data.success;
+        }
+        
+        // 如果後端回傳 data，轉換為 records
+        if (data.data !== undefined && data.records === undefined) {
+            data.records = data.data;
+        }
+        
         return data;
     } catch (error) {
         // 處理網路或其他錯誤
