@@ -842,9 +842,3 @@ async function diagnoseSalaryIssue() {
 function getToken() {
     return sessionStorage.getItem('token') || localStorage.getItem('token') || '';
 }
-
-// 執行診斷
-console.log('💡 執行以下指令開始診斷：');
-console.log('   diagnoseSalaryIssue()');
-
-console.log('✅ salary.js 已完整載入 - 完整版（800+行）');
