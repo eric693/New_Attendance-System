@@ -8,7 +8,7 @@ const API_CONFIG = {
   redirectUrl: "https://eric693.github.io/New_Attendance-System/"
   // 你也可以在這裡加入其他設定，例如：
   // timeout: 5000,
-  // version: 'v4.0.7'
+  // version: 'v4.0.8'
 };
 // 👇 新增：為了兼容性，同時定義全域變數 apiUrl
 const apiUrl = API_CONFIG.apiUrl;

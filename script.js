@@ -499,9 +499,8 @@ async function checkAbnormal() {
     try {
         const res = await callApifetch(`getAbnormalRecords&month=${month}&userId=${userId}`);
         
-        console.log('📤 API 回傳完整結果:', JSON.stringify(res, null, 2));
-        console.log('   ok:', res.ok);
-        console.log('   records 長度:', res.records?.length || 0);
+        console.log('📤 API 回傳結果:', res);
+        console.log('   記錄數量:', res.records?.length || 0);
         
         if (recordsLoading) {
             recordsLoading.style.display = 'none';
@@ -517,58 +516,59 @@ async function checkAbnormal() {
                 return;
             }
             
-            // ✅ 修正：確保顯示所有記錄（包含審核中和已通過的）
             if (res.records && res.records.length > 0) {
-                console.log('✅ 開始渲染 ' + res.records.length + ' 筆記錄');
+                console.log('✅ 有異常記錄，開始渲染');
                 
                 abnormalRecordsSection.style.display = 'block';
                 recordsEmpty.style.display = 'none';
                 abnormalList.innerHTML = '';
                 
-                // ✅ 按日期排序（由近到遠）
+                // ✅ 按日期排序（由新到舊）
                 const sortedRecords = res.records.sort((a, b) => {
                     return new Date(b.date) - new Date(a.date);
                 });
                 
                 sortedRecords.forEach((record, index) => {
-                    console.log(`   第 ${index + 1} 筆: ${record.date} - ${record.reason}`);
+                    console.log(`   渲染第 ${index + 1} 筆: ${record.date} - ${record.reason} ${record.punchTypes || ''}`);
                     
-                    // ✅ 根據狀態設定樣式
+                    // ✅ 根據狀態設定樣式和行為
                     let reasonClass = 'text-red-600 dark:text-red-400';
                     let buttonDisabled = '';
                     let buttonClass = 'adjust-btn text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors';
                     let buttonText = t('ADJUST_BUTTON_TEXT') || '補打卡';
+                    let displayReason = t(record.reason) || record.reason;
                     
-                    switch(record.reason) {
-                        case 'STATUS_REPAIR_PENDING':
-                        case '有補卡(審核中)':
+                    // ✅ 根據補打卡類型顯示不同狀態
+                    if (record.punchTypes) {
+                        if (record.punchTypes.includes("審核中")) {
+                            // 審核中 - 黃色，按鈕禁用
                             reasonClass = 'text-yellow-600 dark:text-yellow-400';
                             buttonDisabled = 'disabled';
                             buttonClass = 'text-sm font-semibold text-gray-400 dark:text-gray-500 cursor-not-allowed';
-                            buttonText = t('REVIEW_PENDING') || '審核中';
-                            break;
-                            
-                        case 'STATUS_REPAIR_APPROVED':
-                        case '補卡通過':
+                            buttonText = record.punchTypes; // 直接顯示「補上班審核中」或「補下班審核中」
+                            displayReason = record.punchTypes;
+                        } else if (record.punchTypes.includes("通過")) {
+                            // 已通過 - 綠色，按鈕禁用
                             reasonClass = 'text-green-600 dark:text-green-400';
                             buttonDisabled = 'disabled';
-                            buttonClass = 'text-sm font-semibold text-gray-400 dark:text-gray-500 cursor-not-allowed';
-                            buttonText = t('APPROVED') || '已通過';
-                            if (record.punchTypes) {
-                                buttonText += ` (${record.punchTypes})`;
-                            }
-                            break;
-                            
-                        case 'STATUS_NO_RECORD':
-                        case 'STATUS_PUNCH_IN_MISSING':
-                        case 'STATUS_PUNCH_OUT_MISSING':
-                        case '未打上班卡':
-                        case '未打下班卡':
-                        case '未打上班卡, 未打下班卡':
-                        default:
-                            reasonClass = 'text-red-600 dark:text-red-400';
-                            buttonDisabled = '';
-                            break;
+                            buttonClass = 'text-sm font-semibold text-green-600 dark:text-green-400 cursor-not-allowed';
+                            buttonText = '✓ ' + record.punchTypes; // 顯示「✓ 補上班通過」
+                            displayReason = record.punchTypes;
+                        }
+                    } else {
+                        // 一般異常 - 紅色，可以補打卡
+                        switch(record.reason) {
+                            case 'STATUS_NO_RECORD':
+                                displayReason = '未打上班卡, 未打下班卡';
+                                break;
+                            case 'STATUS_PUNCH_IN_MISSING':
+                                displayReason = '未打上班卡';
+                                break;
+                            case 'STATUS_PUNCH_OUT_MISSING':
+                                displayReason = '未打下班卡';
+                                break;
+                        }
+                        reasonClass = 'text-red-600 dark:text-red-400';
                     }
                     
                     const li = document.createElement('li');
@@ -578,8 +578,7 @@ async function checkAbnormal() {
                         <div>
                             <p class="font-medium text-gray-800 dark:text-white">${record.date}</p>
                             <p class="text-sm ${reasonClass}">
-                                ${t(record.reason) || record.reason}
-                                ${record.punchTypes ? ` (${record.punchTypes})` : ''}
+                                ${displayReason}
                             </p>
                         </div>
                         <button data-date="${record.date}" 
