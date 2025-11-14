@@ -481,9 +481,8 @@ async function ensureLogin() {
     });
 }
 
-//檢查本月打卡異常
 /**
- * ✅ 檢查本月打卡異常（完全修正版 - 分離上下班按鈕）
+ * ✅ 檢查本月打卡異常（最終版 - 單筆單列顯示）
  */
 async function checkAbnormal() {
     const now = new Date();
@@ -491,8 +490,6 @@ async function checkAbnormal() {
     const userId = localStorage.getItem("sessionUserId");
     
     console.log('🔍 開始檢查異常記錄');
-    console.log('   month:', month);
-    console.log('   userId:', userId);
     
     const recordsLoading = document.getElementById("abnormal-records-loading");
     const abnormalRecordsSection = document.getElementById("abnormal-records-section");
@@ -524,6 +521,7 @@ async function checkAbnormal() {
                 recordsEmpty.style.display = 'none';
                 abnormalList.innerHTML = '';
                 
+                // ✅ 按日期排序（由新到舊）
                 const sortedRecords = res.records.sort((a, b) => {
                     return new Date(b.date) - new Date(a.date);
                 });
@@ -535,6 +533,7 @@ async function checkAbnormal() {
                     
                     switch(record.reason) {
                         case 'STATUS_REPAIR_PENDING':
+                            // 審核中 - 黃色，按鈕禁用
                             reasonClass = 'text-yellow-600 dark:text-yellow-400';
                             displayReason = record.punchTypes || '補打卡審核中';
                             buttonHtml = `
@@ -545,6 +544,7 @@ async function checkAbnormal() {
                             break;
                             
                         case 'STATUS_REPAIR_APPROVED':
+                            // 已通過 - 綠色，按鈕禁用
                             reasonClass = 'text-green-600 dark:text-green-400';
                             displayReason = record.punchTypes || '補打卡已通過';
                             buttonHtml = `
@@ -554,45 +554,27 @@ async function checkAbnormal() {
                             `;
                             break;
                             
-                        case 'STATUS_NO_RECORD':
-                            // ⭐⭐⭐ 關鍵：兩個獨立按鈕
-                            reasonClass = 'text-red-600 dark:text-red-400';
-                            displayReason = '未打上班卡, 未打下班卡';
-                            buttonHtml = `
-                                <div class="flex flex-col gap-2">
-                                    <button data-date="${record.date}" 
-                                            data-type="上班"
-                                            class="quick-adjust-btn px-3 py-1 text-xs font-semibold text-white bg-indigo-600 dark:bg-indigo-500 rounded-md hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors">
-                                        補上班
-                                    </button>
-                                    <button data-date="${record.date}" 
-                                            data-type="下班"
-                                            class="quick-adjust-btn px-3 py-1 text-xs font-semibold text-white bg-purple-600 dark:bg-purple-500 rounded-md hover:bg-purple-700 dark:hover:bg-purple-600 transition-colors">
-                                        補下班
-                                    </button>
-                                </div>
-                            `;
-                            break;
-                            
                         case 'STATUS_PUNCH_IN_MISSING':
+                            // 缺上班卡 - 紅色，可補打卡
                             reasonClass = 'text-red-600 dark:text-red-400';
                             displayReason = '未打上班卡';
                             buttonHtml = `
                                 <button data-date="${record.date}" 
                                         data-type="上班"
-                                        class="quick-adjust-btn px-4 py-2 text-sm font-semibold text-white bg-indigo-600 dark:bg-indigo-500 rounded-md hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors">
+                                        class="adjust-btn px-4 py-2 text-sm font-semibold text-white bg-indigo-600 dark:bg-indigo-500 rounded-md hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors">
                                     補上班
                                 </button>
                             `;
                             break;
                             
                         case 'STATUS_PUNCH_OUT_MISSING':
+                            // 缺下班卡 - 紅色，可補打卡
                             reasonClass = 'text-red-600 dark:text-red-400';
                             displayReason = '未打下班卡';
                             buttonHtml = `
                                 <button data-date="${record.date}" 
                                         data-type="下班"
-                                        class="quick-adjust-btn px-4 py-2 text-sm font-semibold text-white bg-purple-600 dark:bg-purple-500 rounded-md hover:bg-purple-700 dark:hover:bg-purple-600 transition-colors">
+                                        class="adjust-btn px-4 py-2 text-sm font-semibold text-white bg-purple-600 dark:bg-purple-500 rounded-md hover:bg-purple-700 dark:hover:bg-purple-600 transition-colors">
                                     補下班
                                 </button>
                             `;
@@ -601,12 +583,7 @@ async function checkAbnormal() {
                         default:
                             reasonClass = 'text-gray-600 dark:text-gray-400';
                             displayReason = t(record.reason) || record.reason;
-                            buttonHtml = `
-                                <button data-date="${record.date}" 
-                                        class="adjust-btn text-sm font-semibold text-indigo-600 dark:text-indigo-400">
-                                    補打卡
-                                </button>
-                            `;
+                            buttonHtml = '';
                     }
                     
                     const li = document.createElement('li');
@@ -1680,109 +1657,52 @@ document.addEventListener('DOMContentLoaded', async () => {
     abnormalList.addEventListener('click', (e) => {
         if (e.target.classList.contains('adjust-btn')) {
             const date = e.target.dataset.date;
-            const reason = e.target.dataset.reason;
+            const type = e.target.dataset.type;
+            
+            console.log(`點擊補打卡: ${date} - ${type}`);
+            
             const formHtml = `
-                <div class="p-4 border-t border-gray-200 dark:border-gray-600 fade-in ">
-                    <p data-i18n="ADJUST_BUTTON_TEXT" class="font-semibold mb-2 dark:text-white">補打卡：<span class="text-indigo-600 dark:text-indigo-400">${date}</span></p>
+                <div class="p-4 border-t border-gray-200 dark:border-gray-600 fade-in">
+                    <p class="font-semibold mb-2 dark:text-white">
+                        補打卡：<span class="text-indigo-600 dark:text-indigo-400">${date}</span>
+                        <span class="ml-2 text-sm ${type === '上班' ? 'text-indigo-600' : 'text-purple-600'}">
+                            (${type})
+                        </span>
+                    </p>
                     <div class="form-group mb-3">
-                        <label for="adjustDateTime" data-i18n="SELECT_DATETIME_LABEL" class="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">選擇日期與時間：</label>
-            <input id="adjustDateTime" 
-                   type="datetime-local" 
-                   class="w-full p-2 
-                          border border-gray-300 dark:border-gray-600 
-                          rounded-md shadow-sm 
-                          dark:bg-gray-700 dark:text-white
-                          focus:ring-indigo-500 focus:border-indigo-500">
+                        <label for="adjustDateTime" class="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">
+                            選擇${type}時間：
+                        </label>
+                        <input id="adjustDateTime" 
+                               type="datetime-local" 
+                               class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm dark:bg-gray-700 dark:text-white focus:ring-indigo-500 focus:border-indigo-500">
                     </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        <button data-type="in" data-i18n="BTN_ADJUST_IN" class="submit-adjust-btn w-full py-2 px-4 rounded-lg font-bold btn-secondary">補上班卡</button>
-                        <button data-type="out" data-i18n="BTN_ADJUST_OUT" class="submit-adjust-btn w-full py-2 px-4 rounded-lg font-bold btn-secondary">補下班卡</button>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button id="cancel-adjust-btn" 
+                                class="py-2 px-4 rounded-lg font-bold bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-400 dark:hover:bg-gray-500">
+                            取消
+                        </button>
+                        <button id="submit-adjust-btn" 
+                                data-type="${type}"
+                                class="py-2 px-4 rounded-lg font-bold btn-primary">
+                            提交補${type}卡
+                        </button>
                     </div>
                 </div>
             `;
+            
             adjustmentFormContainer.innerHTML = formHtml;
-            renderTranslations(adjustmentFormContainer);
+            
             const adjustDateTimeInput = document.getElementById("adjustDateTime");
-            let defaultTime = "09:00"; // 預設為上班時間
-            if (reason.includes("下班")) {
-                defaultTime = "18:00";
-            }
+            const defaultTime = type === '上班' ? '09:00' : '18:00';
             adjustDateTimeInput.value = `${date}T${defaultTime}`;
+            
+            document.getElementById('cancel-adjust-btn').addEventListener('click', () => {
+                adjustmentFormContainer.innerHTML = '';
+            });
         }
     });
     
-    abnormalList.addEventListener('click', async (e) => {
-        // 檢查是否點擊了快速補打卡按鈕
-        const button = e.target.closest('.quick-adjust-btn');
-        
-        if (button) {
-            const date = button.dataset.date;
-            const type = button.dataset.type;
-            
-            console.log(`🎯 快速補打卡: ${date} - ${type}`);
-            
-            // 確認對話框
-            const confirmed = confirm(`確定要補打 ${date} 的${type}卡嗎？\n\n時間將設定為 ${type === '上班' ? '09:00' : '18:00'}`);
-            
-            if (!confirmed) {
-                return;
-            }
-            
-            // 顯示處理中狀態
-            const loadingText = t('LOADING') || '處理中...';
-            generalButtonState(button, 'processing', loadingText);
-            
-            try {
-                // 取得當前位置
-                const position = await new Promise((resolve, reject) => {
-                    navigator.geolocation.getCurrentPosition(resolve, reject);
-                });
-                
-                const lat = position.coords.latitude;
-                const lng = position.coords.longitude;
-                
-                // 設定預設時間
-                const defaultTime = type === '上班' ? '09:00:00' : '18:00:00';
-                const datetime = `${date}T${defaultTime}`;
-                
-                // 呼叫補打卡 API
-                const sessionToken = localStorage.getItem("sessionToken");
-                const params = new URLSearchParams({
-                    token: sessionToken,
-                    type: type,
-                    lat: lat,
-                    lng: lng,
-                    datetime: datetime,
-                    note: `快速補打卡 - ${type}`
-                });
-                
-                const res = await callApifetch(`adjustPunch&${params.toString()}`);
-                
-                if (res.ok) {
-                    showNotification(`${type}補打卡申請成功！等待管理員審核`, "success");
-                    
-                    // 重新載入異常記錄
-                    await checkAbnormal();
-                    
-                } else {
-                    showNotification(t(res.code) || "補打卡失敗", "error");
-                    generalButtonState(button, 'idle');
-                }
-                
-            } catch (err) {
-                console.error('補打卡錯誤:', err);
-                
-                if (err.code === 1) {
-                    // 使用者拒絕定位
-                    showNotification("需要定位權限才能補打卡", "error");
-                } else {
-                    showNotification("補打卡失敗", "error");
-                }
-                
-                generalButtonState(button, 'idle');
-            }
-        }
-    });
     function validateAdjustTime(value) {
         const selected = new Date(value);
         const now = new Date();
