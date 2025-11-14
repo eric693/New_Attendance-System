@@ -482,6 +482,9 @@ async function ensureLogin() {
 }
 
 //檢查本月打卡異常
+/**
+ * ✅ 檢查本月打卡異常（完全修正版 - 分離上下班按鈕）
+ */
 async function checkAbnormal() {
     const now = new Date();
     const month = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0");
@@ -492,9 +495,17 @@ async function checkAbnormal() {
     console.log('   userId:', userId);
     
     const recordsLoading = document.getElementById("abnormal-records-loading");
-    if (recordsLoading) {
-        recordsLoading.style.display = 'block';
+    const abnormalRecordsSection = document.getElementById("abnormal-records-section");
+    const abnormalList = document.getElementById("abnormal-list");
+    const recordsEmpty = document.getElementById("abnormal-records-empty");
+    
+    if (!recordsLoading || !abnormalRecordsSection || !abnormalList || !recordsEmpty) {
+        console.error('❌ 找不到必要的 DOM 元素');
+        return;
     }
+    
+    recordsLoading.style.display = 'block';
+    abnormalRecordsSection.style.display = 'none';
     
     try {
         const res = await callApifetch(`getAbnormalRecords&month=${month}&userId=${userId}`);
@@ -502,73 +513,100 @@ async function checkAbnormal() {
         console.log('📤 API 回傳結果:', res);
         console.log('   記錄數量:', res.records?.length || 0);
         
-        if (recordsLoading) {
-            recordsLoading.style.display = 'none';
-        }
+        recordsLoading.style.display = 'none';
         
         if (res.ok) {
-            const abnormalRecordsSection = document.getElementById("abnormal-records-section");
-            const abnormalList = document.getElementById("abnormal-list");
-            const recordsEmpty = document.getElementById("abnormal-records-empty");
-            
-            if (!abnormalRecordsSection || !abnormalList || !recordsEmpty) {
-                console.error('❌ 找不到必要的 DOM 元素');
-                return;
-            }
+            abnormalRecordsSection.style.display = 'block';
             
             if (res.records && res.records.length > 0) {
                 console.log('✅ 有異常記錄，開始渲染');
                 
-                abnormalRecordsSection.style.display = 'block';
                 recordsEmpty.style.display = 'none';
                 abnormalList.innerHTML = '';
                 
-                // ✅ 按日期排序（由新到舊）
                 const sortedRecords = res.records.sort((a, b) => {
                     return new Date(b.date) - new Date(a.date);
                 });
                 
                 sortedRecords.forEach((record, index) => {
-                    console.log(`   渲染第 ${index + 1} 筆: ${record.date} - ${record.reason} ${record.punchTypes || ''}`);
+                    console.log(`   渲染第 ${index + 1} 筆: ${record.date} - ${record.reason}`);
                     
-                    // ✅ 根據狀態設定樣式和行為
-                    let reasonClass = 'text-red-600 dark:text-red-400';
-                    let buttonDisabled = '';
-                    let buttonClass = 'adjust-btn text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors';
-                    let buttonText = t('ADJUST_BUTTON_TEXT') || '補打卡';
-                    let displayReason = t(record.reason) || record.reason;
+                    let reasonClass, displayReason, buttonHtml;
                     
-                    // ✅ 根據補打卡類型顯示不同狀態
-                    if (record.punchTypes) {
-                        if (record.punchTypes.includes("審核中")) {
-                            // 審核中 - 黃色，按鈕禁用
+                    switch(record.reason) {
+                        case 'STATUS_REPAIR_PENDING':
                             reasonClass = 'text-yellow-600 dark:text-yellow-400';
-                            buttonDisabled = 'disabled';
-                            buttonClass = 'text-sm font-semibold text-gray-400 dark:text-gray-500 cursor-not-allowed';
-                            buttonText = record.punchTypes; // 直接顯示「補上班審核中」或「補下班審核中」
-                            displayReason = record.punchTypes;
-                        } else if (record.punchTypes.includes("通過")) {
-                            // 已通過 - 綠色，按鈕禁用
+                            displayReason = record.punchTypes || '補打卡審核中';
+                            buttonHtml = `
+                                <span class="text-sm font-semibold text-yellow-600 dark:text-yellow-400">
+                                    ⏳ ${record.punchTypes || '審核中'}
+                                </span>
+                            `;
+                            break;
+                            
+                        case 'STATUS_REPAIR_APPROVED':
                             reasonClass = 'text-green-600 dark:text-green-400';
-                            buttonDisabled = 'disabled';
-                            buttonClass = 'text-sm font-semibold text-green-600 dark:text-green-400 cursor-not-allowed';
-                            buttonText = '✓ ' + record.punchTypes; // 顯示「✓ 補上班通過」
-                            displayReason = record.punchTypes;
-                        }
-                    } else {
-                        // 一般異常 - 紅色，可以補打卡
-                        switch(record.reason) {
-                            case 'STATUS_NO_RECORD':
-                                displayReason = '未打上班卡, 未打下班卡';
-                                break;
-                            case 'STATUS_PUNCH_IN_MISSING':
-                                displayReason = '未打上班卡';
-                                break;
-                            case 'STATUS_PUNCH_OUT_MISSING':
-                                displayReason = '未打下班卡';
-                                break;
-                        }
-                        reasonClass = 'text-red-600 dark:text-red-400';
+                            displayReason = record.punchTypes || '補打卡已通過';
+                            buttonHtml = `
+                                <span class="text-sm font-semibold text-green-600 dark:text-green-400">
+                                    ✓ ${record.punchTypes || '已通過'}
+                                </span>
+                            `;
+                            break;
+                            
+                        case 'STATUS_NO_RECORD':
+                            // ⭐⭐⭐ 關鍵：兩個獨立按鈕
+                            reasonClass = 'text-red-600 dark:text-red-400';
+                            displayReason = '未打上班卡, 未打下班卡';
+                            buttonHtml = `
+                                <div class="flex flex-col gap-2">
+                                    <button data-date="${record.date}" 
+                                            data-type="上班"
+                                            class="quick-adjust-btn px-3 py-1 text-xs font-semibold text-white bg-indigo-600 dark:bg-indigo-500 rounded-md hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors">
+                                        補上班
+                                    </button>
+                                    <button data-date="${record.date}" 
+                                            data-type="下班"
+                                            class="quick-adjust-btn px-3 py-1 text-xs font-semibold text-white bg-purple-600 dark:bg-purple-500 rounded-md hover:bg-purple-700 dark:hover:bg-purple-600 transition-colors">
+                                        補下班
+                                    </button>
+                                </div>
+                            `;
+                            break;
+                            
+                        case 'STATUS_PUNCH_IN_MISSING':
+                            reasonClass = 'text-red-600 dark:text-red-400';
+                            displayReason = '未打上班卡';
+                            buttonHtml = `
+                                <button data-date="${record.date}" 
+                                        data-type="上班"
+                                        class="quick-adjust-btn px-4 py-2 text-sm font-semibold text-white bg-indigo-600 dark:bg-indigo-500 rounded-md hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors">
+                                    補上班
+                                </button>
+                            `;
+                            break;
+                            
+                        case 'STATUS_PUNCH_OUT_MISSING':
+                            reasonClass = 'text-red-600 dark:text-red-400';
+                            displayReason = '未打下班卡';
+                            buttonHtml = `
+                                <button data-date="${record.date}" 
+                                        data-type="下班"
+                                        class="quick-adjust-btn px-4 py-2 text-sm font-semibold text-white bg-purple-600 dark:bg-purple-500 rounded-md hover:bg-purple-700 dark:hover:bg-purple-600 transition-colors">
+                                    補下班
+                                </button>
+                            `;
+                            break;
+                            
+                        default:
+                            reasonClass = 'text-gray-600 dark:text-gray-400';
+                            displayReason = t(record.reason) || record.reason;
+                            buttonHtml = `
+                                <button data-date="${record.date}" 
+                                        class="adjust-btn text-sm font-semibold text-indigo-600 dark:text-indigo-400">
+                                    補打卡
+                                </button>
+                            `;
                     }
                     
                     const li = document.createElement('li');
@@ -581,13 +619,9 @@ async function checkAbnormal() {
                                 ${displayReason}
                             </p>
                         </div>
-                        <button data-date="${record.date}" 
-                                data-reason="${record.reason}" 
-                                class="${buttonClass}"
-                                ${buttonDisabled}>
-                            ${buttonText}
-                        </button>
+                        ${buttonHtml}
                     `;
+                    
                     abnormalList.appendChild(li);
                 });
                 
@@ -595,7 +629,6 @@ async function checkAbnormal() {
                 
             } else {
                 console.log('ℹ️  沒有異常記錄');
-                abnormalRecordsSection.style.display = 'block';
                 recordsEmpty.style.display = 'block';
                 abnormalList.innerHTML = '';
             }
@@ -605,209 +638,10 @@ async function checkAbnormal() {
         }
     } catch (err) {
         console.error('❌ 發生錯誤:', err);
-        if (recordsLoading) {
-            recordsLoading.style.display = 'none';
-        }
+        recordsLoading.style.display = 'none';
         showNotification(t("ERROR_FETCH_RECORDS") || "無法取得記錄", "error");
     }
 }
-// async function checkAbnormal() {
-//     const now = new Date();
-//     const month = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0");
-//     const userId = localStorage.getItem("sessionUserId");
-    
-//     console.log('🔍 開始檢查異常記錄');
-//     console.log('   month:', month);
-//     console.log('   userId:', userId);
-    
-//     const recordsLoading = document.getElementById("abnormal-records-loading");
-//     if (recordsLoading) {
-//         recordsLoading.style.display = 'block';
-//     }
-    
-//     try {
-//         const res = await callApifetch(`getAbnormalRecords&month=${month}&userId=${userId}`);
-        
-//         console.log('📤 API 回傳結果:', res);
-//         console.log('   記錄數量:', res.records?.length || 0);
-        
-//         if (recordsLoading) {
-//             recordsLoading.style.display = 'none';
-//         }
-        
-//         if (res.ok) {
-//             const abnormalRecordsSection = document.getElementById("abnormal-records-section");
-//             const abnormalList = document.getElementById("abnormal-list");
-//             const recordsEmpty = document.getElementById("abnormal-records-empty");
-            
-//             if (!abnormalRecordsSection || !abnormalList || !recordsEmpty) {
-//                 console.error('❌ 找不到必要的 DOM 元素');
-//                 return;
-//             }
-            
-//             if (res.records && res.records.length > 0) {
-//                 console.log('✅ 有異常記錄，開始渲染');
-                
-//                 abnormalRecordsSection.style.display = 'block';
-//                 recordsEmpty.style.display = 'none';
-//                 abnormalList.innerHTML = '';
-                
-//                 res.records.forEach((record, index) => {
-//                     console.log(`   渲染第 ${index + 1} 筆: ${record.date} - ${record.reason}`);
-                    
-//                     // ⭐⭐⭐ 根據狀態設定樣式和行為
-//                     let reasonClass = 'text-red-600 dark:text-red-400';
-//                     let buttonDisabled = '';
-//                     let buttonClass = 'adjust-btn text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors';
-//                     let buttonText = t('ADJUST_BUTTON_TEXT');
-                    
-//                     switch(record.reason) {
-//                         case 'STATUS_REPAIR_PENDING':
-//                             // 審核中 - 黃色，按鈕禁用
-//                             reasonClass = 'text-yellow-600 dark:text-yellow-400';
-//                             buttonDisabled = 'disabled';
-//                             buttonClass = 'text-sm font-semibold text-gray-400 dark:text-gray-500 cursor-not-allowed';
-//                             buttonText = '審核中';
-//                             break;
-                            
-//                         case 'STATUS_REPAIR_APPROVED':
-//                             // 已通過 - 綠色，按鈕禁用
-//                             reasonClass = 'text-green-600 dark:text-green-400';
-//                             buttonDisabled = 'disabled';
-//                             buttonClass = 'text-sm font-semibold text-gray-400 dark:text-gray-500 cursor-not-allowed';
-                            
-//                             // ✅ 新增：顯示打卡類型
-//                             if (record.punchTypes) {
-//                                 buttonText = `已通過 (${record.punchTypes})`;
-//                             } else {
-//                                 buttonText = '已通過';
-//                             }
-//                             break;
-                            
-//                         case 'STATUS_NO_RECORD':
-//                         case 'STATUS_PUNCH_IN_MISSING':
-//                         case 'STATUS_PUNCH_OUT_MISSING':
-//                         default:
-//                             // 異常 - 紅色，可以補打卡
-//                             reasonClass = 'text-red-600 dark:text-red-400';
-//                             break;
-//                     }
-                    
-//                     const li = document.createElement('li');
-//                     li.className = 'p-3 bg-gray-50 rounded-lg flex justify-between items-center dark:bg-gray-700';
-                    
-//                     li.innerHTML = `
-//                         <div>
-//                             <p class="font-medium text-gray-800 dark:text-white">${record.date}</p>
-//                             <p class="text-sm ${reasonClass}">
-//                                 ${t(record.reason)}
-//                                 ${record.punchTypes ? ` (${record.punchTypes})` : ''}
-//                             </p>
-//                         </div>
-//                         <button data-date="${record.date}" 
-//                                 data-reason="${record.reason}" 
-//                                 class="${buttonClass}"
-//                                 ${buttonDisabled}>
-//                             ${buttonText}
-//                         </button>
-//                     `;
-//                     abnormalList.appendChild(li);
-//                 });
-                
-//                 console.log('✅ 渲染完成');
-                
-//             } else {
-//                 console.log('ℹ️  沒有異常記錄');
-//                 abnormalRecordsSection.style.display = 'block';
-//                 recordsEmpty.style.display = 'block';
-//                 abnormalList.innerHTML = '';
-//             }
-//         } else {
-//             console.error("❌ API 返回失敗:", res.msg || res.code);
-//             showNotification(t("ERROR_FETCH_RECORDS") || "無法取得記錄", "error");
-//         }
-//     } catch (err) {
-//         console.error('❌ 發生錯誤:', err);
-//         if (recordsLoading) {
-//             recordsLoading.style.display = 'none';
-//         }
-//         showNotification(t("ERROR_FETCH_RECORDS") || "無法取得記錄", "error");
-//     }
-// }
-// async function checkAbnormal() {
-//     const now = new Date();
-//     const month = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0");
-//     const userId = localStorage.getItem("sessionUserId");
-    
-//     // ✅ 修正：確保元素存在才操作
-//     const recordsLoading = document.getElementById("abnormal-records-loading");
-//     if (recordsLoading) {
-//         recordsLoading.style.display = 'block';
-//     }
-    
-//     try {
-//         const res = await callApifetch(`getAbnormalRecords&month=${month}&userId=${userId}`);
-        
-//         // ✅ 修正：確保元素存在才隱藏
-//         if (recordsLoading) {
-//             recordsLoading.style.display = 'none';
-//         }
-        
-//         if (res.ok) {
-//             const abnormalRecordsSection = document.getElementById("abnormal-records-section");
-//             const abnormalList = document.getElementById("abnormal-list");
-//             const recordsEmpty = document.getElementById("abnormal-records-empty"); // ✅
-            
-//             // ✅ 修正：確保所有元素都存在
-//             if (!abnormalRecordsSection || !abnormalList || !recordsEmpty) {
-//                 console.error('❌ 找不到必要的 DOM 元素');
-//                 return;
-//             }
-            
-//             if (res.records.length > 0) {
-//                 abnormalRecordsSection.style.display = 'block';
-//                 recordsEmpty.style.display = 'none';
-//                 abnormalList.innerHTML = '';
-//                 res.records.forEach(record => {
-//                     const li = document.createElement('li');
-//                     li.className = 'p-3 bg-gray-50 rounded-lg flex justify-between items-center dark:bg-gray-700';
-//                     li.innerHTML = `
-//                         <div>
-//                             <p class="font-medium text-gray-800 dark:text-white">${record.date}</p>
-//                             <p class="text-sm text-red-600 dark:text-red-400"
-//                                data-i18n-dynamic="true"
-//                                data-i18n-key="${record.reason}">
-//                             </p>
-//                         </div>
-//                         <button data-i18n="ADJUST_BUTTON_TEXT" 
-//                                 data-date="${record.date}" 
-//                                 data-reason="${record.reason}" 
-//                                 class="adjust-btn text-sm font-semibold 
-//                                        text-indigo-600 dark:text-indigo-400 
-//                                        hover:text-indigo-800 dark:hover:text-indigo-300">
-//                             補打卡
-//                         </button>
-//                     `;
-//                     abnormalList.appendChild(li);
-//                     renderTranslations(li);
-//                 });
-                
-//             } else {
-//                 abnormalRecordsSection.style.display = 'block';
-//                 recordsEmpty.style.display = 'block';
-//                 abnormalList.innerHTML = '';
-//             }
-//         } else {
-//             console.error("Failed to fetch abnormal records:", res.msg);
-//             showNotification(t("ERROR_FETCH_RECORDS"), "error");
-//         }
-//     } catch (err) {
-//         console.error(err);
-//         if (recordsLoading) {
-//             recordsLoading.style.display = 'none';
-//         }
-//     }
-// }
 // 渲染日曆的函式
 async function renderCalendar(date) {
     const monthTitle = document.getElementById('month-title');
@@ -1877,6 +1711,78 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
     
+    abnormalList.addEventListener('click', async (e) => {
+        // 檢查是否點擊了快速補打卡按鈕
+        const button = e.target.closest('.quick-adjust-btn');
+        
+        if (button) {
+            const date = button.dataset.date;
+            const type = button.dataset.type;
+            
+            console.log(`🎯 快速補打卡: ${date} - ${type}`);
+            
+            // 確認對話框
+            const confirmed = confirm(`確定要補打 ${date} 的${type}卡嗎？\n\n時間將設定為 ${type === '上班' ? '09:00' : '18:00'}`);
+            
+            if (!confirmed) {
+                return;
+            }
+            
+            // 顯示處理中狀態
+            const loadingText = t('LOADING') || '處理中...';
+            generalButtonState(button, 'processing', loadingText);
+            
+            try {
+                // 取得當前位置
+                const position = await new Promise((resolve, reject) => {
+                    navigator.geolocation.getCurrentPosition(resolve, reject);
+                });
+                
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                
+                // 設定預設時間
+                const defaultTime = type === '上班' ? '09:00:00' : '18:00:00';
+                const datetime = `${date}T${defaultTime}`;
+                
+                // 呼叫補打卡 API
+                const sessionToken = localStorage.getItem("sessionToken");
+                const params = new URLSearchParams({
+                    token: sessionToken,
+                    type: type,
+                    lat: lat,
+                    lng: lng,
+                    datetime: datetime,
+                    note: `快速補打卡 - ${type}`
+                });
+                
+                const res = await callApifetch(`adjustPunch&${params.toString()}`);
+                
+                if (res.ok) {
+                    showNotification(`${type}補打卡申請成功！等待管理員審核`, "success");
+                    
+                    // 重新載入異常記錄
+                    await checkAbnormal();
+                    
+                } else {
+                    showNotification(t(res.code) || "補打卡失敗", "error");
+                    generalButtonState(button, 'idle');
+                }
+                
+            } catch (err) {
+                console.error('補打卡錯誤:', err);
+                
+                if (err.code === 1) {
+                    // 使用者拒絕定位
+                    showNotification("需要定位權限才能補打卡", "error");
+                } else {
+                    showNotification("補打卡失敗", "error");
+                }
+                
+                generalButtonState(button, 'idle');
+            }
+        }
+    });
     function validateAdjustTime(value) {
         const selected = new Date(value);
         const now = new Date();
