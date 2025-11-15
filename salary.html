@@ -754,12 +754,20 @@
                         <h3 class="text-lg font-semibold mb-4">基本資訊</h3>
                         <div class="form-grid">
                             <div class="form-group">
-                                <label class="form-label required">員工ID</label>
-                                <input type="text" id="config-employee-id" class="form-input" placeholder="請輸入員工ID" required>
+                                <label class="form-label required">員工</label>
+                                <select id="config-employee-select" class="form-select" required onchange="onEmployeeSelect()">
+                                    <option value="">請選擇員工</option>
+                                    <!-- 動態載入員工列表 -->
+                                </select>
+                                <span class="form-hint">選擇員工後會自動填入ID和姓名</span>
                             </div>
                             <div class="form-group">
-                                <label class="form-label required">員工姓名</label>
-                                <input type="text" id="config-employee-name" class="form-input" placeholder="請輸入員工姓名" required>
+                                <label class="form-label">員工ID</label>
+                                <input type="text" id="config-employee-id" class="form-input" placeholder="自動填入" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">員工姓名</label>
+                                <input type="text" id="config-employee-name" class="form-input" placeholder="自動填入" readonly>
                             </div>
                             <div class="form-group">
                                 <label class="form-label">身分證字號</label>
@@ -1157,7 +1165,7 @@
             console.log('✅ 薪資管理頁面載入完成（完整版 v2.0）');
             
             await checkUserPermission();
-            
+            await loadEmployeeList();
             const now = new Date();
             const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
             
@@ -1725,7 +1733,173 @@
             
             return banks[code] || "未知銀行";
         }
+        /**
+         * ⭐ 載入員工列表到下拉選單
+         */
+        async function loadEmployeeList() {
+            try {
+                console.log('📋 載入員工列表...');
+                
+                const selectEl = document.getElementById('config-employee-select');
+                if (!selectEl) {
+                    console.warn('找不到員工選擇下拉選單');
+                    return;
+                }
+                
+                // 顯示載入中
+                selectEl.innerHTML = '<option value="">載入中...</option>';
+                
+                const res = await callApifetch('getAllUsers');
+                
+                if (res.ok && res.users && res.users.length > 0) {
+                    // 清空並重建選項
+                    selectEl.innerHTML = '<option value="">請選擇員工</option>';
+                    
+                    res.users.forEach(user => {
+                        const option = document.createElement('option');
+                        option.value = JSON.stringify({
+                            userId: user.userId,
+                            name: user.name,
+                            email: user.email,
+                            dept: user.dept
+                        });
+                        option.textContent = `${user.name} (${user.dept || '未分配部門'})`;
+                        selectEl.appendChild(option);
+                    });
+                    
+                    console.log(`✅ 成功載入 ${res.users.length} 位員工`);
+                } else {
+                    selectEl.innerHTML = '<option value="">無可用員工</option>';
+                    console.warn('沒有員工資料或載入失敗');
+                }
+                
+            } catch (error) {
+                console.error('❌ 載入員工列表失敗:', error);
+                const selectEl = document.getElementById('config-employee-select');
+                if (selectEl) {
+                    selectEl.innerHTML = '<option value="">載入失敗</option>';
+                }
+            }
+        }
 
+        /**
+         * ⭐ 員工選擇變更事件
+         */
+        function onEmployeeSelect() {
+            const selectEl = document.getElementById('config-employee-select');
+            const employeeIdEl = document.getElementById('config-employee-id');
+            const employeeNameEl = document.getElementById('config-employee-name');
+            
+            if (!selectEl || !employeeIdEl || !employeeNameEl) return;
+            
+            const selectedValue = selectEl.value;
+            
+            if (selectedValue) {
+                try {
+                    const employee = JSON.parse(selectedValue);
+                    
+                    // 自動填入員工ID和姓名
+                    employeeIdEl.value = employee.userId;
+                    employeeNameEl.value = employee.name;
+                    
+                    console.log(`✅ 選擇員工: ${employee.name} (${employee.userId})`);
+                    
+                    // ⭐ 可選：自動載入該員工的現有薪資設定
+                    loadExistingSalaryConfig(employee.userId);
+                    
+                } catch (error) {
+                    console.error('解析員工資料失敗:', error);
+                    employeeIdEl.value = '';
+                    employeeNameEl.value = '';
+                }
+            } else {
+                // 清空欄位
+                employeeIdEl.value = '';
+                employeeNameEl.value = '';
+            }
+        }
+
+        /**
+         * ⭐ 載入員工現有薪資設定（可選功能）
+         */
+        async function loadExistingSalaryConfig(employeeId) {
+            try {
+                console.log(`📥 檢查員工 ${employeeId} 的現有薪資設定...`);
+                
+                const res = await callApifetch(`getEmployeeSalaryTW&employeeId=${encodeURIComponent(employeeId)}`);
+                
+                if (res.ok && res.data) {
+                    console.log('✅ 找到現有薪資設定，自動填入表單');
+                    
+                    // 自動填入現有設定
+                    const data = res.data;
+                    
+                    // 基本資訊
+                    const idNumberEl = document.getElementById('config-id-number');
+                    const employeeTypeEl = document.getElementById('config-employee-type');
+                    const salaryTypeEl = document.getElementById('config-salary-type');
+                    const baseSalaryEl = document.getElementById('config-base-salary');
+                    
+                    if (idNumberEl) idNumberEl.value = data.idNumber || '';
+                    if (employeeTypeEl) employeeTypeEl.value = data.employeeType || '正職';
+                    if (salaryTypeEl) salaryTypeEl.value = data.salaryType || '月薪';
+                    if (baseSalaryEl) baseSalaryEl.value = data.baseSalary || '';
+                    
+                    // 津貼
+                    const positionAllowanceEl = document.getElementById('config-position-allowance');
+                    const mealAllowanceEl = document.getElementById('config-meal-allowance');
+                    const transportAllowanceEl = document.getElementById('config-transport-allowance');
+                    const attendanceBonusEl = document.getElementById('config-attendance-bonus');
+                    const performanceBonusEl = document.getElementById('config-performance-bonus');
+                    const otherAllowancesEl = document.getElementById('config-other-allowances');
+                    
+                    if (positionAllowanceEl) positionAllowanceEl.value = data.positionAllowance || 0;
+                    if (mealAllowanceEl) mealAllowanceEl.value = data.mealAllowance || 0;
+                    if (transportAllowanceEl) transportAllowanceEl.value = data.transportAllowance || 0;
+                    if (attendanceBonusEl) attendanceBonusEl.value = data.attendanceBonus || 0;
+                    if (performanceBonusEl) performanceBonusEl.value = data.performanceBonus || 0;
+                    if (otherAllowancesEl) otherAllowancesEl.value = data.otherAllowances || 0;
+                    
+                    // 銀行資訊
+                    const bankCodeEl = document.getElementById('config-bank-code');
+                    const bankAccountEl = document.getElementById('config-bank-account');
+                    const hireDateEl = document.getElementById('config-hire-date');
+                    const paymentDayEl = document.getElementById('config-payment-day');
+                    
+                    if (bankCodeEl) bankCodeEl.value = data.bankCode || '';
+                    if (bankAccountEl) bankAccountEl.value = data.bankAccount || '';
+                    if (paymentDayEl) paymentDayEl.value = data.paymentDay || '5';
+                    
+                    // 扣款
+                    const pensionRateEl = document.getElementById('config-pension-rate');
+                    const welfareFeeEl = document.getElementById('config-welfare-fee');
+                    const dormitoryFeeEl = document.getElementById('config-dormitory-fee');
+                    const groupInsuranceEl = document.getElementById('config-group-insurance');
+                    const otherDeductionsEl = document.getElementById('config-other-deductions');
+                    
+                    if (pensionRateEl) pensionRateEl.value = data.pensionSelfRate || 0;
+                    if (welfareFeeEl) welfareFeeEl.value = data.welfareFee || 0;
+                    if (dormitoryFeeEl) dormitoryFeeEl.value = data.dormitoryFee || 0;
+                    if (groupInsuranceEl) groupInsuranceEl.value = data.groupInsurance || 0;
+                    if (otherDeductionsEl) otherDeductionsEl.value = data.otherDeductions || 0;
+                    
+                    // 備註
+                    const noteEl = document.getElementById('config-note');
+                    if (noteEl) noteEl.value = data.note || '';
+                    
+                    // 觸發自動計算
+                    autoCalculateDeductions();
+                    
+                    showNotification('✅ 已載入該員工的現有薪資設定', 'info');
+                    
+                } else {
+                    console.log('ℹ️ 該員工尚無薪資設定，使用空白表單');
+                }
+                
+            } catch (error) {
+                console.error('載入現有薪資設定失敗:', error);
+            }
+        }
         console.log('✅ 薪資管理系統（完整版 v2.0）已載入');
         console.log('📋 包含：基本薪資 + 6項津貼 + 10項扣款');
     </script>
