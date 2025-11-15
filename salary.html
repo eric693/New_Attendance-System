@@ -1056,10 +1056,13 @@
 
                 <div class="form-grid" style="max-width: 800px; margin-bottom: 1.5rem;">
                     <div class="form-group">
-                        <label class="form-label required">員工ID</label>
-                        <input type="text" id="calc-employee-id" class="form-input" placeholder="請輸入員工ID">
+                        <label class="form-label required">員工</label>
+                        <select id="calc-employee-select" class="form-select" required onchange="onCalcEmployeeSelect()">
+                            <option value="">請選擇員工</option>
+                        </select>
+                        <input type="hidden" id="calc-employee-id">
                     </div>
-
+                
                     <div class="form-group">
                         <label class="form-label required">計算年月</label>
                         <input type="month" id="calc-year-month" class="form-input">
@@ -1084,8 +1087,11 @@
 
                 <div class="form-grid" style="max-width: 1000px;">
                     <div class="form-group">
-                        <label class="form-label required">員工ID</label>
-                        <input type="text" id="hourly-employee-id" class="form-input" placeholder="請輸入員工ID">
+                        <label class="form-label required">員工</label>
+                        <select id="hourly-employee-select" class="form-select" required onchange="onHourlyEmployeeSelect()">
+                            <option value="">請選擇員工</option>
+                        </select>
+                        <input type="hidden" id="hourly-employee-id">
                     </div>
 
                     <div class="form-group">
@@ -1500,7 +1506,7 @@
             const yearMonth = document.getElementById('hourly-year-month').value;
             
             if (!employeeId || !yearMonth) {
-                showNotification('❌ 請輸入員工ID和計算年月', 'error');
+                showNotification('❌ 請選擇員工和計算年月', 'error');
                 return;
             }
             
@@ -1736,49 +1742,62 @@
         /**
          * ⭐ 載入員工列表到下拉選單
          */
+        /**
+         * ⭐ 載入員工列表到所有下拉選單
+         */
         async function loadEmployeeList() {
             try {
                 console.log('📋 載入員工列表...');
                 
-                const selectEl = document.getElementById('config-employee-select');
-                if (!selectEl) {
-                    console.warn('找不到員工選擇下拉選單');
-                    return;
-                }
-                
-                // 顯示載入中
-                selectEl.innerHTML = '<option value="">載入中...</option>';
-                
                 const res = await callApifetch('getAllUsers');
                 
                 if (res.ok && res.users && res.users.length > 0) {
-                    // 清空並重建選項
-                    selectEl.innerHTML = '<option value="">請選擇員工</option>';
+                    // 所有需要員工下拉選單的元素ID
+                    const selectIds = [
+                        'config-employee-select',
+                        'calc-employee-select',
+                        'hourly-employee-select'
+                    ];
                     
-                    res.users.forEach(user => {
-                        const option = document.createElement('option');
-                        option.value = JSON.stringify({
-                            userId: user.userId,
-                            name: user.name,
-                            email: user.email,
-                            dept: user.dept
+                    selectIds.forEach(selectId => {
+                        const selectEl = document.getElementById(selectId);
+                        if (!selectEl) {
+                            console.warn(`找不到 ${selectId}`);
+                            return;
+                        }
+                        
+                        // 清空並重建選項
+                        selectEl.innerHTML = '<option value="">請選擇員工</option>';
+                        
+                        res.users.forEach(user => {
+                            const option = document.createElement('option');
+                            option.value = JSON.stringify({
+                                userId: user.userId,
+                                name: user.name,
+                                email: user.email,
+                                dept: user.dept
+                            });
+                            option.textContent = `${user.name} (${user.dept || '未分配部門'})`;
+                            selectEl.appendChild(option);
                         });
-                        option.textContent = `${user.name} (${user.dept || '未分配部門'})`;
-                        selectEl.appendChild(option);
                     });
-                    
-                    console.log(`✅ 成功載入 ${res.users.length} 位員工`);
+                
+                    console.log(`✅ 成功載入 ${res.users.length} 位員工到所有下拉選單`);
                 } else {
-                    selectEl.innerHTML = '<option value="">無可用員工</option>';
+                    // 所有下拉選單顯示無可用員工
+                    ['config-employee-select', 'calc-employee-select', 'hourly-employee-select'].forEach(id => {
+                        const el = document.getElementById(id);
+                        if (el) el.innerHTML = '<option value="">無可用員工</option>';
+                    });
                     console.warn('沒有員工資料或載入失敗');
                 }
                 
             } catch (error) {
                 console.error('❌ 載入員工列表失敗:', error);
-                const selectEl = document.getElementById('config-employee-select');
-                if (selectEl) {
-                    selectEl.innerHTML = '<option value="">載入失敗</option>';
-                }
+                ['config-employee-select', 'calc-employee-select', 'hourly-employee-select'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.innerHTML = '<option value="">載入失敗</option>';
+                });
             }
         }
 
@@ -1898,6 +1917,54 @@
                 
             } catch (error) {
                 console.error('載入現有薪資設定失敗:', error);
+            }
+        }
+        /**
+         * ⭐ 月薪計算 - 員工選擇變更事件
+         */
+        function onCalcEmployeeSelect() {
+            const selectEl = document.getElementById('calc-employee-select');
+            const employeeIdEl = document.getElementById('calc-employee-id');
+            
+            if (!selectEl || !employeeIdEl) return;
+            
+            const selectedValue = selectEl.value;
+            
+            if (selectedValue) {
+                try {
+                    const employee = JSON.parse(selectedValue);
+                    employeeIdEl.value = employee.userId;
+                    console.log(`✅ 月薪計算選擇員工: ${employee.name} (${employee.userId})`);
+                } catch (error) {
+                    console.error('解析員工資料失敗:', error);
+                    employeeIdEl.value = '';
+                }
+            } else {
+                employeeIdEl.value = '';
+            }
+        }
+        /**
+         * ⭐ 時薪計算 - 員工選擇變更事件
+         */
+        function onHourlyEmployeeSelect() {
+            const selectEl = document.getElementById('hourly-employee-select');
+            const employeeIdEl = document.getElementById('hourly-employee-id');
+            
+            if (!selectEl || !employeeIdEl) return;
+            
+            const selectedValue = selectEl.value;
+            
+            if (selectedValue) {
+                try {
+                    const employee = JSON.parse(selectedValue);
+                    employeeIdEl.value = employee.userId;
+                    console.log(`✅ 時薪計算選擇員工: ${employee.name} (${employee.userId})`);
+                } catch (error) {
+                    console.error('解析員工資料失敗:', error);
+                    employeeIdEl.value = '';
+                }
+            } else {
+                employeeIdEl.value = '';
             }
         }
         console.log('✅ 薪資管理系統（完整版 v2.0）已載入');
