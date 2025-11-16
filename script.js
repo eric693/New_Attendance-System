@@ -395,59 +395,206 @@ const showNotification = (message, type = 'success') => {
 };
 
 // 確保登入
+// script.js - 完整替換 ensureLogin 函數
+
+/**
+ * ⭐ 確保登入（優化版 - 使用合併 API）
+ */
 async function ensureLogin() {
     return new Promise(async (resolve) => {
         if (localStorage.getItem("sessionToken")) {
             document.getElementById("status").textContent = t("CHECKING_LOGIN");
+            
             try {
-                const res = await callApifetch("checkSession");
-                res.msg = t(res.code);
+                // ⭐⭐⭐ 關鍵修改：改用合併的 initApp API
+                const res = await callApifetch("initApp");
+                
                 if (res.ok) {
-                    if(res.user.dept==="管理員")
-                    {
-                        console.log(res.user.dept);
+                    console.log('✅ initApp 成功', res);
+                    
+                    // 檢查是否為管理員
+                    if (res.user.dept === "管理員") {
+                        console.log('👑 管理員身份:', res.user.dept);
                         document.getElementById('tab-admin-btn').style.display = 'block';
                     }
+                    
+                    // 設定使用者資訊
                     document.getElementById("user-name").textContent = res.user.name;
                     document.getElementById("profile-img").src = res.user.picture || res.user.rate;
                     
+                    // 儲存使用者 ID
                     localStorage.setItem("sessionUserId", res.user.userId);
+                    
+                    // 顯示成功訊息
                     showNotification(t("LOGIN_SUCCESS"));
                     
+                    // 切換介面
                     document.getElementById('login-section').style.display = 'none';
                     document.getElementById('user-header').style.display = 'flex';
                     document.getElementById('main-app').style.display = 'block';
                     
-                    // 檢查異常打卡
-                    checkAbnormal();
+                    // ⭐⭐⭐ 直接渲染異常記錄，不需要再呼叫 checkAbnormal()
+                    renderAbnormalRecords(res.abnormalRecords);
+                    
                     resolve(true);
+                    
                 } else {
+                    // 登入失敗
+                    console.error('❌ initApp 失敗:', res);
+                    
                     const errorMsg = t(res.code || "UNKNOWN_ERROR");
                     showNotification(`❌ ${errorMsg}`, "error");
+                    
                     document.getElementById("status").textContent = t("PLEASE_RELOGIN");
                     document.getElementById('login-btn').style.display = 'block';
                     document.getElementById('user-header').style.display = 'none';
                     document.getElementById('main-app').style.display = 'none';
+                    
                     resolve(false);
                 }
+                
             } catch (err) {
-                console.error(err);
+                console.error('❌ ensureLogin 錯誤:', err);
+                
                 document.getElementById('login-btn').style.display = 'block';
                 document.getElementById('user-header').style.display = 'none';
                 document.getElementById('main-app').style.display = 'none';
                 document.getElementById("status").textContent = t("PLEASE_RELOGIN");
+                
                 resolve(false);
             }
+            
         } else {
+            // 未登入
             document.getElementById('login-btn').style.display = 'block';
             document.getElementById('user-header').style.display = 'none';
             document.getElementById('main-app').style.display = 'none';
             document.getElementById("status").textContent = t("SUBTITLE_LOGIN");
+            
             resolve(false);
         }
     });
 }
+// script.js - 在 checkAbnormal 函數附近加入
 
+/**
+ * ⭐ 渲染異常記錄（從 initApp 返回的資料）
+ */
+function renderAbnormalRecords(records) {
+    console.log('📋 renderAbnormalRecords 開始', records);
+    
+    const recordsLoading = document.getElementById("abnormal-records-loading");
+    const abnormalRecordsSection = document.getElementById("abnormal-records-section");
+    const abnormalList = document.getElementById("abnormal-list");
+    const recordsEmpty = document.getElementById("abnormal-records-empty");
+    
+    // 檢查元素是否存在
+    if (!recordsLoading || !abnormalRecordsSection || !abnormalList || !recordsEmpty) {
+        console.error('❌ 找不到必要的 DOM 元素');
+        return;
+    }
+    
+    // 隱藏載入訊息，顯示區塊
+    recordsLoading.style.display = 'none';
+    abnormalRecordsSection.style.display = 'block';
+    
+    // 檢查是否有異常記錄
+    if (records && records.length > 0) {
+        console.log(`✅ 有 ${records.length} 筆異常記錄`);
+        
+        recordsEmpty.style.display = 'none';
+        abnormalList.innerHTML = '';
+        
+        // 按日期排序（由新到舊）
+        const sortedRecords = records.sort((a, b) => {
+            return new Date(b.date) - new Date(a.date);
+        });
+        
+        // 渲染每一筆記錄
+        sortedRecords.forEach((record, index) => {
+            console.log(`   ${index + 1}. ${record.date} - ${record.reason}`);
+            
+            let reasonClass, displayReason, buttonHtml;
+            
+            switch(record.reason) {
+                case 'STATUS_REPAIR_PENDING':
+                    // 審核中 - 黃色，按鈕禁用
+                    reasonClass = 'text-yellow-600 dark:text-yellow-400';
+                    displayReason = record.punchTypes || '補打卡審核中';
+                    buttonHtml = `
+                        <span class="text-sm font-semibold text-yellow-600 dark:text-yellow-400">
+                            ⏳ ${record.punchTypes || '審核中'}
+                        </span>
+                    `;
+                    break;
+                    
+                case 'STATUS_REPAIR_APPROVED':
+                    // 已通過 - 綠色，按鈕禁用
+                    reasonClass = 'text-green-600 dark:text-green-400';
+                    displayReason = record.punchTypes || '補打卡已通過';
+                    buttonHtml = `
+                        <span class="text-sm font-semibold text-green-600 dark:text-green-400">
+                            ✓ ${record.punchTypes || '已通過'}
+                        </span>
+                    `;
+                    break;
+                    
+                case 'STATUS_PUNCH_IN_MISSING':
+                    // 缺上班卡 - 紅色，可補打卡
+                    reasonClass = 'text-red-600 dark:text-red-400';
+                    displayReason = '未打上班卡';
+                    buttonHtml = `
+                        <button data-date="${record.date}" 
+                                data-type="上班"
+                                class="adjust-btn px-4 py-2 text-sm font-semibold text-white bg-indigo-600 dark:bg-indigo-500 rounded-md hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors">
+                            補上班
+                        </button>
+                    `;
+                    break;
+                    
+                case 'STATUS_PUNCH_OUT_MISSING':
+                    // 缺下班卡 - 紅色，可補打卡
+                    reasonClass = 'text-red-600 dark:text-red-400';
+                    displayReason = '未打下班卡';
+                    buttonHtml = `
+                        <button data-date="${record.date}" 
+                                data-type="下班"
+                                class="adjust-btn px-4 py-2 text-sm font-semibold text-white bg-purple-600 dark:bg-purple-500 rounded-md hover:bg-purple-700 dark:hover:bg-purple-600 transition-colors">
+                            補下班
+                        </button>
+                    `;
+                    break;
+                    
+                default:
+                    reasonClass = 'text-gray-600 dark:text-gray-400';
+                    displayReason = t(record.reason) || record.reason;
+                    buttonHtml = '';
+            }
+            
+            const li = document.createElement('li');
+            li.className = 'p-3 bg-gray-50 rounded-lg flex justify-between items-center dark:bg-gray-700';
+            
+            li.innerHTML = `
+                <div>
+                    <p class="font-medium text-gray-800 dark:text-white">${record.date}</p>
+                    <p class="text-sm ${reasonClass}">
+                        ${displayReason}
+                    </p>
+                </div>
+                ${buttonHtml}
+            `;
+            
+            abnormalList.appendChild(li);
+        });
+        
+        console.log('✅ 渲染完成');
+        
+    } else {
+        console.log('ℹ️  沒有異常記錄');
+        recordsEmpty.style.display = 'block';
+        abnormalList.innerHTML = '';
+    }
+}
 /**
  * ✅ 檢查本月打卡異常（最終版 - 單筆單列顯示）
  */
