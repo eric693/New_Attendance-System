@@ -5,7 +5,6 @@ let currentLang = localStorage.getItem("lang");
 let currentMonthDate = new Date();
 let translations = {};
 let monthDataCache = {}; // 新增：用於快取月份打卡資料
-let isApiCalled = false; // 新增：用於追蹤 API 呼叫狀態，避免重複呼叫
 let userId = localStorage.getItem("sessionUserId");
 let todayShiftCache = null; // 快取今日排班
 let weekShiftCache = null;  // 快取本週排班
@@ -86,38 +85,6 @@ function renderTranslations(container = document) {
  * @param {string} [loadingId="loading"] - 顯示 loading 狀態的 DOM 元素 ID。
  * @returns {Promise<object>} - 回傳一個包含 API 回應資料的 Promise。
  */
-// async function callApifetch(action, loadingId = "loading") {
-//     const token = localStorage.getItem("sessionToken");
-//     const url = `${API_CONFIG.apiUrl}?action=${action}&token=${token}`;
-    
-//     // 顯示指定的 loading 元素
-//     const loadingEl = document.getElementById(loadingId);
-//     if (loadingEl) loadingEl.style.display = "block";
-    
-//     try {
-//         // 使用 fetch API 發送請求
-//         const response = await fetch(url);
-        
-//         // 檢查 HTTP 狀態碼
-//         if (!response.ok) {
-//             throw new Error(`HTTP 錯誤: ${response.status}`);
-//         }
-        
-//         // 解析 JSON 回應
-//         const data = await response.json();
-//         return data;
-//     } catch (error) {
-//         // 處理網路或其他錯誤
-//         showNotification(t("CONNECTION_FAILED"), "error");
-//         console.error("API 呼叫失敗:", error);
-//         // 拋出錯誤以便外部捕獲
-//         throw error;
-//     } finally {
-//         // 不論成功或失敗，都隱藏 loading 元素
-//         if (loadingEl) loadingEl.style.display = "none";
-//     }
-// }
-
 async function callApifetch(action, loadingId = "loading") {
     const token = localStorage.getItem("sessionToken");
     const url = `${API_CONFIG.apiUrl}?action=${action}&token=${token}`;
@@ -883,67 +850,13 @@ async function renderDailyRecords(dateKey) {
             });
             
             // 檢查是否需要顯示補打卡按鈕
-            // const firstRecord = dailyRecords[0];
-            // const hasAbnormal = [
-            //     "STATUS_NO_RECORD",
-            //     "STATUS_PUNCH_IN_MISSING",
-            //     "STATUS_PUNCH_OUT_MISSING"
-            // ].includes(firstRecord.reason);
-            
-            // if (hasAbnormal && adjustmentFormContainer) {
-            //     showAdjustmentButtons(dateKey, firstRecord.reason);
-            // }
             
         } else {
             dailyRecordsEmpty.style.display = 'block';
-            
-            // 沒有記錄也顯示補打卡按鈕
-            // if (adjustmentFormContainer) {
-            //     showAdjustmentButtons(dateKey, "STATUS_NO_RECORD");
-            // }
         }
         
         dailyRecordsCard.style.display = 'block';
     }
-    
-    // 6. showAdjustmentButtons 函數（保持不變）
-    // function showAdjustmentButtons(date, reason) {
-    //     const formHtml = `
-    //         <div class="p-4 border-t border-gray-200 dark:border-gray-600 fade-in">
-    //             <p data-i18n="ADJUST_BUTTON_TEXT" class="font-semibold mb-2 dark:text-white">
-    //                 補打卡：<span class="text-indigo-600 dark:text-indigo-400">${date}</span>
-    //             </p>
-    //             <div class="form-group mb-3">
-    //                 <label for="daily-adjustDateTime" data-i18n="SELECT_DATETIME_LABEL" 
-    //                        class="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">
-    //                     選擇日期與時間：
-    //                 </label>
-    //                 <input id="daily-adjustDateTime" 
-    //                        type="datetime-local" 
-    //                        class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm 
-    //                               dark:bg-gray-700 dark:text-white focus:ring-indigo-500 focus:border-indigo-500">
-    //             </div>
-    //             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-    //                 <button data-type="in" data-i18n="BTN_ADJUST_IN" 
-    //                         class="daily-submit-adjust-btn w-full py-2 px-4 rounded-lg font-bold btn-secondary">
-    //                     補上班卡
-    //                 </button>
-    //                 <button data-type="out" data-i18n="BTN_ADJUST_OUT" 
-    //                         class="daily-submit-adjust-btn w-full py-2 px-4 rounded-lg font-bold btn-secondary">
-    //                     補下班卡
-    //                 </button>
-    //             </div>
-    //         </div>
-    //     `;
-        
-    //     adjustmentFormContainer.innerHTML = formHtml;
-    //     renderTranslations(adjustmentFormContainer);
-        
-    //     // 設定預設時間
-    //     const adjustDateTimeInput = document.getElementById("daily-adjustDateTime");
-    //     let defaultTime = reason.includes("下班") ? "18:00" : "09:00";
-    //     adjustDateTimeInput.value = `${date}T${defaultTime}`;
-    // }
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -1455,22 +1368,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
     
     /* ===== 打卡功能 ===== */
-    function punchButtonState(buttonId, state) {
-        const button = document.getElementById(buttonId);
-        if (!button) return;
-        
-        if (state === 'processing') {
-            button.disabled = true;
-            button.textContent = t('LOADING');
-        } else {
-            button.disabled = false;
-            if (buttonId === 'punch-in-btn') {
-                button.textContent = t('PUNCH_IN_LABEL');
-            } else if (buttonId === 'punch-out-btn') {
-                button.textContent = t('PUNCH_OUT_LABEL');
-            }
-        }
-    }
     function generalButtonState(button, state, loadingText = '處理中...') {
         if (!button) return;
         const loadingClasses = 'opacity-50 cursor-not-allowed';
@@ -1530,14 +1427,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         return minutes1 - minutes2;
     }
 
-    /**
-     * 清除排班快取
-     * 在打卡成功或排班有更新時呼叫
-     */
-    function clearShiftCache() {
-        todayShiftCache = null;
-        weekShiftCache = null;
-    }
     async function doPunch(type) {
         const punchButtonId = type === '上班' ? 'punch-in-btn' : 'punch-out-btn';
         
