@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>出勤管家 - LINE 版</title>
+    <script src="https://static.line-scdn.net/liff/edge/2.1/sdk.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans TC', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 1rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .punch-btn {
+            width: 100%;
+            padding: 1rem;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 1.125rem;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .punch-btn:active {
+            transform: scale(0.98);
+        }
+
+        .punch-in {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .punch-out {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .status-normal {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-late {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- 載入中 -->
+    <div id="loading" class="loading">
+        <div class="loading-spinner"></div>
+        <p style="color: white;">載入中...</p>
+    </div>
+
+    <!-- 主要內容 -->
+    <div id="main-content" style="display: none;">
+        <!-- 使用者資訊卡片 -->
+        <div class="card">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <img id="user-picture" src="" alt="頭像" 
+                     style="width: 60px; height: 60px; border-radius: 50%;">
+                <div>
+                    <h2 id="user-name" style="font-size: 1.25rem; font-weight: bold; margin: 0;">載入中...</h2>
+                    <p id="company-name" style="color: #6b7280; margin: 0.25rem 0 0 0;">公司名稱</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 今日狀態卡片 -->
+        <div class="card">
+            <h3 style="font-weight: bold; margin-bottom: 1rem;">📅 今日狀態</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div>
+                    <p style="color: #6b7280; font-size: 0.875rem;">上班打卡</p>
+                    <p id="today-punch-in" style="font-weight: bold; font-size: 1.25rem; color: #10b981;">--:--</p>
+                </div>
+                <div>
+                    <p style="color: #6b7280; font-size: 0.875rem;">下班打卡</p>
+                    <p id="today-punch-out" style="font-weight: bold; font-size: 1.25rem; color: #ef4444;">--:--</p>
+                </div>
+            </div>
+            <div style="margin-top: 1rem;">
+                <p style="color: #6b7280; font-size: 0.875rem;">工作時數</p>
+                <p id="work-hours" style="font-weight: bold; font-size: 1.5rem;">-- 小時</p>
+            </div>
+        </div>
+
+        <!-- 打卡按鈕 -->
+        <div class="card">
+            <h3 style="font-weight: bold; margin-bottom: 1rem;">⏰ 快速打卡</h3>
+            
+            <!-- 人臉辨識打卡按鈕 -->
+            <button id="face-punch-btn" class="punch-btn" 
+                    style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); margin-bottom: 1rem;">
+                📸 人臉辨識打卡
+            </button>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <button id="punch-in-btn" class="punch-btn punch-in">
+                    🌅 上班打卡
+                </button>
+                <button id="punch-out-btn" class="punch-btn punch-out">
+                    🌆 下班打卡
+                </button>
+            </div>
+        </div>
+
+        <!-- 本週打卡記錄 -->
+        <div class="card">
+            <h3 style="font-weight: bold; margin-bottom: 1rem;">📋 本週記錄</h3>
+            <div id="week-records">
+                <p style="color: #6b7280; text-align: center;">載入中...</p>
+            </div>
+        </div>
+
+        <!-- 快捷功能 -->
+        <div class="card">
+            <h3 style="font-weight: bold; margin-bottom: 1rem;">⚡ 快捷功能</h3>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem;">
+                <button onclick="openSalary()" 
+                        style="padding: 1rem; background: #f3f4f6; border-radius: 12px; border: none; font-weight: 600;">
+                    💰 薪資查詢
+                </button>
+                <button onclick="openLeave()" 
+                        style="padding: 1rem; background: #f3f4f6; border-radius: 12px; border: none; font-weight: 600;">
+                    📝 請假申請
+                </button>
+                <button onclick="openOvertime()" 
+                        style="padding: 1rem; background: #f3f4f6; border-radius: 12px; border: none; font-weight: 600;">
+                    ⏰ 加班申請
+                </button>
+                <button onclick="openWeb()" 
+                        style="padding: 1rem; background: #f3f4f6; border-radius: 12px; border: none; font-weight: 600;">
+                    🌐 完整版網頁
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 人臉辨識模組（隱藏） -->
+    <input type="file" id="face-image-input" accept="image/*" capture="user" style="display: none;">
+
+    <script src="config.js"></script>
+    <script>
+        let liffId = '2008234086-3mrZl8yk'; // 替換成你的 LIFF ID
+        let userProfile = null;
+        let sessionToken = null;
+
+        // ==================== LIFF 初始化 ====================
+        
+        async function initializeLIFF() {
+            try {
+                document.getElementById('loading').style.display = 'block';
+                
+                await liff.init({ liffId: liffId });
+                
+                if (!liff.isLoggedIn()) {
+                    liff.login();
+                    return;
+                }
+                
+                // 取得使用者資訊
+                userProfile = await liff.getProfile();
+                
+                console.log('👤 使用者資訊:', userProfile);
+                
+                // 顯示使用者資訊
+                document.getElementById('user-name').textContent = userProfile.displayName;
+                document.getElementById('user-picture').src = userProfile.pictureUrl;
+                
+                // 取得 Session Token
+                await getSessionToken();
+                
+                // 載入今日狀態
+                await loadTodayStatus();
+                
+                // 載入本週記錄
+                await loadWeekRecords();
+                
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('main-content').style.display = 'block';
+                
+            } catch (error) {
+                console.error('❌ LIFF 初始化失敗:', error);
+                alert('初始化失敗，請重新開啟');
+            }
+        }
+
+        // ==================== API 呼叫 ====================
+        
+        async function getSessionToken() {
+            try {
+                const idToken = liff.getIDToken();
+                
+                const response = await fetch(`${API_CONFIG.apiUrl}?action=liffLogin`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        idToken: idToken,
+                        userId: userProfile.userId,
+                        displayName: userProfile.displayName,
+                        pictureUrl: userProfile.pictureUrl
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.ok && data.token) {
+                    sessionToken = data.token;
+                    
+                    // 取得公司資訊
+                    if (data.companyName) {
+                        document.getElementById('company-name').textContent = data.companyName;
+                    }
+                    
+                    console.log('✅ Session Token 已取得');
+                } else {
+                    throw new Error('無法取得 Session Token');
+                }
+                
+            } catch (error) {
+                console.error('❌ 取得 Token 失敗:', error);
+                alert('登入失敗，請重新開啟');
+            }
+        }
+
+        async function callAPI(action, extraParams = {}) {
+            const response = await fetch(`${API_CONFIG.apiUrl}?action=${action}&token=${sessionToken}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(extraParams)
+            });
+            
+            return await response.json();
+        }
+
+        // ==================== 打卡功能 ====================
+        
+        async function doPunch(type) {
+            try {
+                if (!navigator.geolocation) {
+                    alert('您的裝置不支援定位功能');
+                    return;
+                }
+                
+                const button = type === '上班' 
+                    ? document.getElementById('punch-in-btn')
+                    : document.getElementById('punch-out-btn');
+                
+                button.disabled = true;
+                button.textContent = '打卡中...';
+                
+                // 取得位置
+                const position = await new Promise((resolve, reject) => {
+                    navigator.geolocation.getCurrentPosition(resolve, reject);
+                });
+                
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                
+                // 呼叫打卡 API
+                const result = await callAPI('punch', {
+                    type: type,
+                    lat: lat,
+                    lng: lng,
+                    datetime: new Date().toISOString()
+                });
+                
+                if (result.ok) {
+                    // 顯示成功訊息
+                    liff.sendMessages([{
+                        type: 'text',
+                        text: `✅ ${type}打卡成功！\n時間：${new Date().toLocaleString('zh-TW')}`
+                    }]);
+                    
+                    // 重新載入今日狀態
+                    await loadTodayStatus();
+                    
+                    alert(`${type}打卡成功！`);
+                } else {
+                    alert(`打卡失敗：${result.message || '未知錯誤'}`);
+                }
+                
+            } catch (error) {
+                console.error('❌ 打卡失敗:', error);
+                alert('打卡失敗，請稍後再試');
+            } finally {
+                const button = type === '上班' 
+                    ? document.getElementById('punch-in-btn')
+                    : document.getElementById('punch-out-btn');
+                
+                button.disabled = false;
+                button.textContent = type === '上班' ? '🌅 上班打卡' : '🌆 下班打卡';
+            }
+        }
+
+        // ==================== 人臉辨識打卡 ====================
+        
+        async function doFacePunch() {
+            try {
+                // 觸發相機拍照
+                document.getElementById('face-image-input').click();
+                
+            } catch (error) {
+                console.error('❌ 人臉辨識打卡失敗:', error);
+                alert('人臉辨識失敗，請稍後再試');
+            }
+        }
+
+        // 處理拍照後的圖片
+        document.getElementById('face-image-input').addEventListener('change', async (e) => {
+            try {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                document.getElementById('face-punch-btn').disabled = true;
+                document.getElementById('face-punch-btn').textContent = '🔍 辨識中...';
+                
+                // 轉換成 Base64
+                const base64Image = await fileToBase64(file);
+                
+                // 取得位置
+                const position = await new Promise((resolve, reject) => {
+                    navigator.geolocation.getCurrentPosition(resolve, reject);
+                });
+                
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                
+                // 呼叫人臉辨識打卡 API
+                const result = await callAPI('facePunch', {
+                    image: base64Image,
+                    lat: lat,
+                    lng: lng,
+                    datetime: new Date().toISOString()
+                });
+                
+                if (result.ok) {
+                    liff.sendMessages([{
+                        type: 'text',
+                        text: `✅ 人臉辨識打卡成功！\n${result.punchType}打卡\n時間：${new Date().toLocaleString('zh-TW')}\n信心度：${(result.confidence * 100).toFixed(1)}%`
+                    }]);
+                    
+                    await loadTodayStatus();
+                    alert(`人臉辨識成功！\n${result.punchType}打卡完成`);
+                } else {
+                    alert(`辨識失敗：${result.message || '未知錯誤'}`);
+                }
+                
+            } catch (error) {
+                console.error('❌ 人臉辨識失敗:', error);
+                alert('辨識失敗，請稍後再試');
+            } finally {
+                document.getElementById('face-punch-btn').disabled = false;
+                document.getElementById('face-punch-btn').textContent = '📸 人臉辨識打卡';
+            }
+        });
+
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result.split(',')[1]);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // ==================== 載入資料 ====================
+        
+        async function loadTodayStatus() {
+            try {
+                const today = new Date();
+                const dateStr = today.toISOString().split('T')[0];
+                
+                const result = await callAPI('getTodayPunch', {
+                    date: dateStr
+                });
+                
+                if (result.ok && result.data) {
+                    const punchIn = result.data.find(r => r.type === '上班');
+                    const punchOut = result.data.find(r => r.type === '下班');
+                    
+                    document.getElementById('today-punch-in').textContent = 
+                        punchIn ? punchIn.time : '--:--';
+                    
+                    document.getElementById('today-punch-out').textContent = 
+                        punchOut ? punchOut.time : '--:--';
+                    
+                    // 計算工作時數
+                    if (punchIn && punchOut) {
+                        const inTime = new Date(`${dateStr} ${punchIn.time}`);
+                        const outTime = new Date(`${dateStr} ${punchOut.time}`);
+                        const hours = ((outTime - inTime) / (1000 * 60 * 60)).toFixed(1);
+                        document.getElementById('work-hours').textContent = `${hours} 小時`;
+                    }
+                }
+                
+            } catch (error) {
+                console.error('❌ 載入今日狀態失敗:', error);
+            }
+        }
+
+        async function loadWeekRecords() {
+            try {
+                const result = await callAPI('getWeekRecords');
+                
+                const container = document.getElementById('week-records');
+                container.innerHTML = '';
+                
+                if (result.ok && result.data && result.data.length > 0) {
+                    result.data.forEach(record => {
+                        const item = document.createElement('div');
+                        item.className = 'history-item';
+                        
+                        const statusClass = record.status === '正常' ? 'status-normal' : 'status-late';
+                        
+                        item.innerHTML = `
+                            <div>
+                                <div style="font-weight: 600;">${record.date}</div>
+                                <div style="font-size: 0.875rem; color: #6b7280;">
+                                    ${record.punchIn || '--:--'} - ${record.punchOut || '--:--'}
+                                </div>
+                            </div>
+                            <div>
+                                <span class="status-badge ${statusClass}">${record.status}</span>
+                            </div>
+                        `;
+                        
+                        container.appendChild(item);
+                    });
+                } else {
+                    container.innerHTML = '<p style="color: #6b7280; text-align: center;">本週無打卡記錄</p>';
+                }
+                
+            } catch (error) {
+                console.error('❌ 載入本週記錄失敗:', error);
+            }
+        }
+
+        // ==================== 快捷功能 ====================
+        
+        function openSalary() {
+            liff.openWindow({
+                url: 'https://eric693.github.io/New_Attendance-System/salary.html',
+                external: false
+            });
+        }
+
+        function openLeave() {
+            liff.openWindow({
+                url: 'https://eric693.github.io/New_Attendance-System/leave.html',
+                external: false
+            });
+        }
+
+        function openOvertime() {
+            liff.openWindow({
+                url: 'https://eric693.github.io/New_Attendance-System/overtime.html',
+                external: false
+            });
+        }
+
+        function openWeb() {
+            liff.openWindow({
+                url: 'https://eric693.github.io/New_Attendance-System/index.html',
+                external: true
+            });
+        }
+
+        // ==================== 事件綁定 ====================
+        
+        document.getElementById('punch-in-btn').addEventListener('click', () => doPunch('上班'));
+        document.getElementById('punch-out-btn').addEventListener('click', () => doPunch('下班'));
+        document.getElementById('face-punch-btn').addEventListener('click', doFacePunch);
+
+        // ==================== 初始化 ====================
+        
+        window.addEventListener('load', initializeLIFF);
+    </script>
+</body>
+</html>
