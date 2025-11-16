@@ -1469,6 +1469,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             currentLang = "id";
         } else if (browserLang.startsWith("ko")) {
             currentLang = "ko";
+        } else if (browserLang.startsWith("th")) {
+            currentLang = "th";
         } else {
             currentLang = "en-US";
         }
