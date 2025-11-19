@@ -512,25 +512,7 @@ function renderAbnormalRecords(records) {
             let reasonClass, displayReason, buttonHtml;
             
             switch(record.reason) {
-                case 'STATUS_NO_RECORD':
-                    // ✅ 完全沒有記錄 - 同時顯示補上班和補下班
-                    reasonClass = 'text-red-600 dark:text-red-400';
-                    displayReason = '未打卡';
-                    buttonHtml = `
-                        <div class="flex gap-2">
-                            <button data-date="${record.date}" 
-                                    data-type="上班"
-                                    class="adjust-btn px-3 py-2 text-sm font-semibold text-white bg-indigo-600 dark:bg-indigo-500 rounded-md hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors">
-                                補上班
-                            </button>
-                            <button data-date="${record.date}" 
-                                    data-type="下班"
-                                    class="adjust-btn px-3 py-2 text-sm font-semibold text-white bg-purple-600 dark:bg-purple-500 rounded-md hover:bg-purple-700 dark:hover:bg-purple-600 transition-colors">
-                                補下班
-                            </button>
-                        </div>
-                    `;
-                    break;
+
                     
                 case 'STATUS_REPAIR_PENDING':
                     reasonClass = 'text-yellow-600 dark:text-yellow-400';
