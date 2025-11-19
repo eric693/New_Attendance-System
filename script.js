@@ -619,7 +619,8 @@ function renderAbnormalRecords(records) {
     }
 }
 /**
- * ✅ 檢查本月打卡異常（最終版 - 單筆單列顯示）
+/**
+ * ✅ 檢查本月打卡異常（完整修正版 - 支援多語言）
  */
 async function checkAbnormal() {
     const now = new Date();
@@ -640,6 +641,22 @@ async function checkAbnormal() {
     
     recordsLoading.style.display = 'block';
     abnormalRecordsSection.style.display = 'none';
+    
+    // ⭐⭐⭐ 翻譯映射函數
+    function translatePunchTypes(punchTypes) {
+        if (!punchTypes) return '';
+        
+        const translations = {
+            '補上班審核中': t('STATUS_REPAIR_PENDING_IN') || 'Punch In Review Pending',
+            '補下班審核中': t('STATUS_REPAIR_PENDING_OUT') || 'Punch Out Review Pending',
+            '補上班通過': t('STATUS_REPAIR_APPROVED_IN') || 'Punch In Approved',
+            '補下班通過': t('STATUS_REPAIR_APPROVED_OUT') || 'Punch Out Approved',
+            '補上班被拒絕': t('STATUS_REPAIR_REJECTED_IN') || 'Punch In Rejected',
+            '補下班被拒絕': t('STATUS_REPAIR_REJECTED_OUT') || 'Punch Out Rejected'
+        };
+        
+        return translations[punchTypes] || punchTypes;
+    }
     
     try {
         const res = await callApifetch(`getAbnormalRecords&month=${month}&userId=${userId}`);
@@ -672,10 +689,10 @@ async function checkAbnormal() {
                         case 'STATUS_REPAIR_PENDING':
                             // 審核中 - 黃色，按鈕禁用
                             reasonClass = 'text-yellow-600 dark:text-yellow-400';
-                            displayReason = record.punchTypes || '補打卡審核中';
+                            displayReason = translatePunchTypes(record.punchTypes);
                             buttonHtml = `
                                 <span class="text-sm font-semibold text-yellow-600 dark:text-yellow-400">
-                                    ⏳ ${record.punchTypes || '審核中'}
+                                    ⏳ ${translatePunchTypes(record.punchTypes)}
                                 </span>
                             `;
                             break;
@@ -683,10 +700,10 @@ async function checkAbnormal() {
                         case 'STATUS_REPAIR_APPROVED':
                             // 已通過 - 綠色，按鈕禁用
                             reasonClass = 'text-green-600 dark:text-green-400';
-                            displayReason = record.punchTypes || '補打卡已通過';
+                            displayReason = translatePunchTypes(record.punchTypes);
                             buttonHtml = `
                                 <span class="text-sm font-semibold text-green-600 dark:text-green-400">
-                                    ✓ ${record.punchTypes || '已通過'}
+                                    ✓ ${translatePunchTypes(record.punchTypes)}
                                 </span>
                             `;
                             break;
@@ -694,12 +711,12 @@ async function checkAbnormal() {
                         case 'STATUS_PUNCH_IN_MISSING':
                             // 缺上班卡 - 紅色，可補打卡
                             reasonClass = 'text-red-600 dark:text-red-400';
-                            displayReason = '未打上班卡';
+                            displayReason = t('STATUS_PUNCH_IN_MISSING');
                             buttonHtml = `
                                 <button data-date="${record.date}" 
                                         data-type="上班"
                                         class="adjust-btn px-4 py-2 text-sm font-semibold text-white bg-indigo-600 dark:bg-indigo-500 rounded-md hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors">
-                                    補上班
+                                    ${t('BTN_ADJUST_IN')}
                                 </button>
                             `;
                             break;
@@ -707,12 +724,12 @@ async function checkAbnormal() {
                         case 'STATUS_PUNCH_OUT_MISSING':
                             // 缺下班卡 - 紅色，可補打卡
                             reasonClass = 'text-red-600 dark:text-red-400';
-                            displayReason = '未打下班卡';
+                            displayReason = t('STATUS_PUNCH_OUT_MISSING');
                             buttonHtml = `
                                 <button data-date="${record.date}" 
                                         data-type="下班"
                                         class="adjust-btn px-4 py-2 text-sm font-semibold text-white bg-purple-600 dark:bg-purple-500 rounded-md hover:bg-purple-700 dark:hover:bg-purple-600 transition-colors">
-                                    補下班
+                                    ${t('BTN_ADJUST_OUT')}
                                 </button>
                             `;
                             break;
@@ -720,12 +737,17 @@ async function checkAbnormal() {
                         case 'STATUS_REPAIR_REJECTED':
                             // ❌ 被拒絕 - 橘色，可重新申請
                             reasonClass = 'text-orange-600 dark:text-orange-400';
-                            displayReason = record.punchTypes || '補打卡被拒絕';
+                            displayReason = translatePunchTypes(record.punchTypes);
+                            
+                            // ⭐ 判斷是上班還是下班
+                            const isIn = record.punchTypes && record.punchTypes.includes('上班');
+                            const punchType = isIn ? '上班' : '下班';
+                            
                             buttonHtml = `
                                 <button data-date="${record.date}" 
-                                        data-type="${record.punchTypes.includes('上班') ? '上班' : '下班'}"
+                                        data-type="${punchType}"
                                         class="adjust-btn px-4 py-2 text-sm font-semibold text-white bg-orange-600 dark:bg-orange-500 rounded-md hover:bg-orange-700 dark:hover:bg-orange-600 transition-colors">
-                                    重新申請
+                                    ${t('REAPPLY') || 'Reapply'}
                                 </button>
                             `;
                             break;
