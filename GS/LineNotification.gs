@@ -1273,13 +1273,29 @@ function notifyOvertimeReview(userId, employeeName, date, hours, reviewer, isApp
 // ==================== 定時檢查忘記打卡 ====================
 
 /**
- * 每日早上檢查昨天忘記下班打卡（改為檢查昨天）
+ * 檢查是否為平日（週一到週五）
+ * @param {Date} date - 要檢查的日期
+ * @returns {boolean} - true 表示是平日，false 表示是週末
+ */
+function isWeekday(date) {
+  const day = date.getDay();
+  return day >= 1 && day <= 5; // 1=週一, 5=週五
+}
+
+/**
+ * 每日早上檢查昨天忘記下班打卡（只檢查平日）
  * 設定觸發器：每天早上 9:00 執行
  */
 function checkForgotPunchDaily() {
-  // 👉 改為檢查昨天，而不是今天
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
+  
+  // ✅ 新增：檢查昨天是否為平日
+  if (!isWeekday(yesterday)) {
+    Logger.log(`⏭️ ${Utilities.formatDate(yesterday, "GMT+8", "yyyy-MM-dd")} 是週末，跳過檢查`);
+    return;
+  }
+  
   const dateStr = Utilities.formatDate(yesterday, "GMT+8", "yyyy-MM-dd");
   
   const attendanceSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_ATTENDANCE);
@@ -1294,7 +1310,7 @@ function checkForgotPunchDaily() {
   const attendances = attendanceSheet.getDataRange().getValues();
   const headers = attendances[0];
   
-  Logger.log(`📅 開始檢查 ${dateStr} 的下班打卡`);
+  Logger.log(`📅 開始檢查 ${dateStr} (平日) 的下班打卡`);
   
   // 遍歷所有員工
   for (let i = 1; i < employees.length; i++) {
@@ -1333,12 +1349,19 @@ function checkForgotPunchDaily() {
 }
 
 /**
- * 每日早上檢查昨天忘記上班打卡
+ * 每日早上檢查昨天忘記上班打卡（只檢查平日）
  * 設定觸發器：每天早上 9:00 執行
  */
 function checkForgotPunchInMorning() {
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
+  
+  // ✅ 新增：檢查昨天是否為平日
+  if (!isWeekday(yesterday)) {
+    Logger.log(`⏭️ ${Utilities.formatDate(yesterday, "GMT+8", "yyyy-MM-dd")} 是週末，跳過檢查`);
+    return;
+  }
+  
   const dateStr = Utilities.formatDate(yesterday, "GMT+8", "yyyy-MM-dd");
   
   const attendanceSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_ATTENDANCE);
@@ -1352,7 +1375,7 @@ function checkForgotPunchInMorning() {
   const employees = employeeSheet.getDataRange().getValues();
   const attendances = attendanceSheet.getDataRange().getValues();
   
-  Logger.log(`📅 開始檢查 ${dateStr} 的上班打卡`);
+  Logger.log(`📅 開始檢查 ${dateStr} (平日) 的上班打卡`);
   
   for (let i = 1; i < employees.length; i++) {
     const userId = employees[i][EMPLOYEE_COL.USER_ID];

@@ -1039,3 +1039,309 @@ function testHandleGetMySalary() {
     Logger.log('   原因: ' + result.msg);
   }
 }
+
+// DailySalaryHandlers.gs - 日薪系統 Handler 函數
+
+/**
+ * ✅ 處理設定日薪員工
+ */
+function handleSetDailyEmployee(params) {
+  try {
+    if (!params.token || !validateSession(params.token)) {
+      return { ok: false, msg: "未授權或 session 已過期" };
+    }
+    
+    const employeeData = {
+      employeeId: params.employeeId,
+      employeeName: params.employeeName,
+      bloodType: params.bloodType,
+      phone: params.phone,
+      birthDate: params.birthDate,
+      emergencyContact: params.emergencyContact,
+      emergencyPhone: params.emergencyPhone,
+      address: params.address,
+      dailySalary: parseFloat(params.dailySalary) || 0,
+      overtimeHourlyRate: parseFloat(params.overtimeHourlyRate) || 0,
+      mealAllowancePerDay: parseFloat(params.mealAllowancePerDay) || 0,
+      drivingAllowance: parseFloat(params.drivingAllowance) || 0,
+      positionAllowance: parseFloat(params.positionAllowance) || 0,
+      housingAllowance: parseFloat(params.housingAllowance) || 0,
+      laborFee: parseFloat(params.laborFee) || 0,
+      healthFee: parseFloat(params.healthFee) || 0,
+      dependentHealthFee: parseFloat(params.dependentHealthFee) || 0,
+      bankCode: params.bankCode,
+      bankAccount: params.bankAccount,
+      note: params.note
+    };
+    
+    if (!employeeData.employeeId || !employeeData.employeeName) {
+      return { ok: false, msg: "必填欄位不完整" };
+    }
+    
+    const result = setDailyEmployee(employeeData);
+    return { 
+      ok: result.success, 
+      msg: result.message,
+      data: result 
+    };
+    
+  } catch (error) {
+    Logger.log('❌ handleSetDailyEmployee 錯誤: ' + error);
+    return { ok: false, msg: error.message };
+  }
+}
+
+/**
+ * ✅ 處理取得日薪員工資料
+ */
+function handleGetDailyEmployee(params) {
+  try {
+    if (!params.token || !validateSession(params.token)) {
+      return { ok: false, msg: "未授權" };
+    }
+    
+    if (!params.employeeId) {
+      return { ok: false, msg: "缺少員工ID" };
+    }
+    
+    const result = getDailyEmployee(params.employeeId);
+    return { ok: result.success, data: result.data, msg: result.message };
+    
+  } catch (error) {
+    return { ok: false, msg: error.message };
+  }
+}
+
+
+function handleCalculateDailySalary(params) {
+  try {
+    if (!params.token || !validateSession(params.token)) {
+      return { ok: false, msg: "未授權或 session 已過期" };
+    }
+    
+    if (!params.employeeId || !params.yearMonth) {
+      return { ok: false, msg: "缺少必要參數" };
+    }
+    
+    Logger.log('💰 處理日薪計算請求');
+    Logger.log('   員工ID: ' + params.employeeId);
+    Logger.log('   年月: ' + params.yearMonth);
+    
+    // ✅ 關鍵修正：組裝手動輸入的參數
+    const manualInputs = {
+      workDays: parseFloat(params.workDays) || 0,
+      overtimeHours: parseFloat(params.overtimeHours) || 0,
+      leaveDeduction: parseFloat(params.leaveDeduction) || 0,
+      advancePayment: parseFloat(params.advancePayment) || 0,
+      agencyDeduction: parseFloat(params.agencyDeduction) || 0,
+      otherDeduction: parseFloat(params.otherDeduction) || 0,
+      fineDeduction: parseFloat(params.fineDeduction) || 0
+    };
+    
+    Logger.log('📝 手動輸入參數:');
+    Logger.log('   上班天數: ' + manualInputs.workDays);
+    Logger.log('   加班時數: ' + manualInputs.overtimeHours);
+    Logger.log('   請假扣款: ' + manualInputs.leaveDeduction);
+    
+    // ✅ 傳遞第三個參數給核心函數
+    const result = calculateDailySalary(
+      params.employeeId, 
+      params.yearMonth,
+      manualInputs  // ⭐ 傳遞手動輸入
+    );
+    
+    Logger.log('📤 計算結果: ' + result.success);
+    
+    return { 
+      ok: result.success, 
+      data: result.data, 
+      msg: result.message 
+    };
+    
+  } catch (error) {
+    Logger.log('❌ handleCalculateDailySalary 錯誤: ' + error);
+    return { ok: false, msg: error.message };
+  }
+}
+
+/**
+ * ✅ 處理設定日薪員工（保持不變）
+ */
+function handleSetDailyEmployee(params) {
+  try {
+    if (!params.token || !validateSession(params.token)) {
+      return { ok: false, msg: "未授權或 session 已過期" };
+    }
+    
+    const employeeData = {
+      employeeId: params.employeeId,
+      employeeName: params.employeeName,
+      bloodType: params.bloodType,
+      phone: params.phone,
+      birthDate: params.birthDate,
+      emergencyContact: params.emergencyContact,
+      emergencyPhone: params.emergencyPhone,
+      address: params.address,
+      dailySalary: parseFloat(params.dailySalary) || 0,
+      overtimeHourlyRate: parseFloat(params.overtimeHourlyRate) || 0,
+      mealAllowancePerDay: parseFloat(params.mealAllowancePerDay) || 0,
+      drivingAllowance: parseFloat(params.drivingAllowance) || 0,
+      positionAllowance: parseFloat(params.positionAllowance) || 0,
+      housingAllowance: parseFloat(params.housingAllowance) || 0,
+      laborFee: parseFloat(params.laborFee) || 0,
+      healthFee: parseFloat(params.healthFee) || 0,
+      dependentHealthFee: parseFloat(params.dependentHealthFee) || 0,
+      bankCode: params.bankCode,
+      bankAccount: params.bankAccount,
+      note: params.note
+    };
+    
+    if (!employeeData.employeeId || !employeeData.employeeName) {
+      return { ok: false, msg: "必填欄位不完整" };
+    }
+    
+    const result = setDailyEmployee(employeeData);
+    return { 
+      ok: result.success, 
+      msg: result.message,
+      data: result 
+    };
+    
+  } catch (error) {
+    Logger.log('❌ handleSetDailyEmployee 錯誤: ' + error);
+    return { ok: false, msg: error.message };
+  }
+}
+
+/**
+ * ✅ 處理取得日薪員工資料（保持不變）
+ */
+function handleGetDailyEmployee(params) {
+  try {
+    if (!params.token || !validateSession(params.token)) {
+      return { ok: false, msg: "未授權" };
+    }
+    
+    if (!params.employeeId) {
+      return { ok: false, msg: "缺少員工ID" };
+    }
+    
+    const result = getDailyEmployee(params.employeeId);
+    return { ok: result.success, data: result.data, msg: result.message };
+    
+  } catch (error) {
+    return { ok: false, msg: error.message };
+  }
+}
+
+/**
+ * ✅ 處理儲存日薪記錄（保持不變）
+ */
+function handleSaveDailySalaryRecord(params) {
+  try {
+    if (!params.token || !validateSession(params.token)) {
+      return { ok: false, msg: "未授權或 session 已過期" };
+    }
+    
+    let salaryData;
+    if (params.data) {
+      if (typeof params.data === 'string') {
+        try {
+          salaryData = JSON.parse(decodeURIComponent(params.data));
+        } catch (e) {
+          return { ok: false, msg: "資料格式錯誤" };
+        }
+      } else {
+        salaryData = params.data;
+      }
+    } else {
+      return { ok: false, msg: "缺少薪資資料" };
+    }
+    
+    const result = saveDailySalaryRecord(salaryData);
+    return { 
+      ok: result.success, 
+      msg: result.message,
+      calculationId: result.calculationId
+    };
+    
+  } catch (error) {
+    Logger.log('❌ handleSaveDailySalaryRecord 錯誤: ' + error);
+    return { ok: false, msg: error.message };
+  }
+}
+
+/**
+ * ✅ 處理取得所有日薪員工（保持不變）
+ */
+function handleGetAllDailyEmployees(params) {
+  try {
+    if (!params.token || !validateSession(params.token)) {
+      return { ok: false, msg: "未授權" };
+    }
+    
+    const result = getAllDailyEmployees();
+    return { ok: result.success, data: result.data, total: result.total, msg: result.message };
+    
+  } catch (error) {
+    return { ok: false, msg: error.message };
+  }
+}
+
+/**
+ * ✅ 處理取得日薪計算記錄（保持不變）
+ */
+function handleGetDailySalaryRecords(params) {
+  try {
+    if (!params.token || !validateSession(params.token)) {
+      return { ok: false, msg: "未授權" };
+    }
+    
+    const result = getDailySalaryRecords(params.yearMonth);
+    return { ok: result.success, data: result.data, total: result.total, msg: result.message };
+    
+  } catch (error) {
+    return { ok: false, msg: error.message };
+  }
+}
+
+/**
+ * ✅ 處理 initApp（合併 checkSession 和 getAbnormalRecords）
+ */
+function handleInitApp(params) {
+  try {
+    const sessionToken = params.token;
+    
+    if (!sessionToken) {
+      return { ok: false, code: "MISSING_SESSION_TOKEN" };
+    }
+    
+    // 1. 檢查 Session
+    const session = checkSession_(sessionToken);
+    
+    if (!session.ok) {
+      return { ok: false, code: session.code };
+    }
+    
+    // 2. 取得異常記錄
+    const now = new Date();
+    const month = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0");
+    const userId = session.user.userId;
+    
+    const records = getAttendanceRecords(month, userId);
+    const abnormalResults = checkAttendanceAbnormal(records);
+    
+    // 3. 返回合併結果
+    return {
+      ok: true,
+      user: session.user,
+      code: session.code,
+      params: session.params,
+      abnormalRecords: abnormalResults
+    };
+    
+  } catch (error) {
+    Logger.log('❌ handleInitApp 錯誤: ' + error);
+    return { ok: false, code: "INTERNAL_ERROR", msg: error.message };
+  }
+}

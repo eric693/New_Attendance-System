@@ -116,8 +116,23 @@ function doGet(e) {
       case "saveMonthlySalary":
         return respond1(handleSaveMonthlySalary(e.parameter));
       case "getAllMonthlySalary":
-    return respond1(handleGetAllMonthlySalary(e.parameter));
+        return respond1(handleGetAllMonthlySalary(e.parameter));
+       // ==================== 日薪系統 ====================
+      case "setDailyEmployee":
+        return respond1(handleSetDailyEmployee(e.parameter));
+      case "getDailyEmployee":
+        return respond1(handleGetDailyEmployee(e.parameter));
+      case "calculateDailySalary":
+        return respond1(handleCalculateDailySalary(e.parameter));
+      case "saveDailySalaryRecord":
+        return respond1(handleSaveDailySalaryRecord(e.parameter));
+      case "getAllDailyEmployees":
+        return respond1(handleGetAllDailyEmployees(e.parameter));
+      case "getDailySalaryRecords":
+        return respond1(handleGetDailySalaryRecords(e.parameter));
       // ==================== 測試端點 ====================
+      case "initApp":
+        return respond1(handleInitApp(e.parameter));
       case "testEndpoint":
         return respond1({ ok: true, msg: "CORS 測試成功!" });
       

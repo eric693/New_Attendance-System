@@ -1711,55 +1711,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     punchOutBtn.addEventListener('click', () => doPunch("下班"));
 
     // 處理補打卡表單
-    // abnormalList.addEventListener('click', (e) => {
-    //     if (e.target.classList.contains('adjust-btn')) {
-    //         const date = e.target.dataset.date;
-    //         const type = e.target.dataset.type;
-            
-    //         console.log(`點擊補打卡: ${date} - ${type}`);
-            
-    //         const formHtml = `
-    //             <div class="p-4 border-t border-gray-200 dark:border-gray-600 fade-in">
-    //                 <p class="font-semibold mb-2 dark:text-white">
-    //                     補打卡：<span class="text-indigo-600 dark:text-indigo-400">${date}</span>
-    //                     <span class="ml-2 text-sm ${type === '上班' ? 'text-indigo-600' : 'text-purple-600'}">
-    //                         (${type})
-    //                     </span>
-    //                 </p>
-    //                 <div class="form-group mb-3">
-    //                     <label for="adjustDateTime" class="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">
-    //                         選擇${type}時間：
-    //                     </label>
-    //                     <input id="adjustDateTime" 
-    //                            type="datetime-local" 
-    //                            class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm dark:bg-gray-700 dark:text-white focus:ring-indigo-500 focus:border-indigo-500">
-    //                 </div>
-    //                 <div class="grid grid-cols-2 gap-2">
-    //                     <button id="cancel-adjust-btn" 
-    //                             class="py-2 px-4 rounded-lg font-bold bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-400 dark:hover:bg-gray-500">
-    //                         取消
-    //                     </button>
-    //                     <button id="submit-adjust-btn" 
-    //                             data-type="${type}"
-    //                             class="py-2 px-4 rounded-lg font-bold btn-primary">
-    //                         提交補${type}卡
-    //                     </button>
-    //                 </div>
-    //             </div>
-    //         `;
-            
-    //         adjustmentFormContainer.innerHTML = formHtml;
-            
-    //         const adjustDateTimeInput = document.getElementById("adjustDateTime");
-    //         const defaultTime = type === '上班' ? '09:00' : '18:00';
-    //         adjustDateTimeInput.value = `${date}T${defaultTime}`;
-            
-    //         document.getElementById('cancel-adjust-btn').addEventListener('click', () => {
-    //             adjustmentFormContainer.innerHTML = '';
-    //         });
-    //     }
-    // });
-
     // ✅ 修正：使用事件委派處理補打卡按鈕
     abnormalList.addEventListener('click', (e) => {
         // ⭐ 關鍵：使用 closest 找到被點擊的按鈕

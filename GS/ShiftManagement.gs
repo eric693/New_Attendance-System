@@ -263,7 +263,7 @@ function batchAddShifts(shiftsArray) {
 }
 
 /**
- * ✅ 查詢排班（完全修正版 - 確保日期過濾正確）
+ * 查詢排班 (⭐ 已修正 - 格式化回傳資料)
  */
 function getShifts(filters) {
   try {
@@ -272,124 +272,45 @@ function getShifts(filters) {
     const headers = data[0];
     const shifts = [];
     
-    Logger.log('═══════════════════════════════════════');
-    Logger.log('🔍 getShifts 開始');
-    Logger.log('═══════════════════════════════════════');
-    Logger.log('📥 原始篩選條件:', JSON.stringify(filters, null, 2));
-    Logger.log('');
-    
-    // ✅ 格式化篩選日期（確保格式一致）
-    let filterStartDate = null;
-    let filterEndDate = null;
-    
-    if (filters && filters.startDate) {
-      filterStartDate = formatDateOnly(filters.startDate);
-      Logger.log('📅 篩選開始日期:', filterStartDate);
-    }
-    
-    if (filters && filters.endDate) {
-      filterEndDate = formatDateOnly(filters.endDate);
-      Logger.log('📅 篩選結束日期:', filterEndDate);
-    }
-    
-    Logger.log('');
-    Logger.log('📋 開始檢查每一筆排班...');
-    Logger.log('');
-    
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
       
       // 跳過已刪除的記錄
-      if (row[13] === '已刪除') {
-        continue;
-      }
+      if (row[13] === '已刪除') continue;
       
-      // ✅ 格式化排班日期（確保格式一致）
+      // 格式化日期用於比較
       const shiftDate = formatDateOnly(row[3]);
       
-      // 如果日期無效，跳過
-      if (!shiftDate) {
-        Logger.log(`   ⚠️  第 ${i} 筆: 日期無效，跳過`);
-        continue;
+      // 應用篩選條件
+      if (filters) {
+        if (filters.employeeId && row[1] !== filters.employeeId) continue;
+        if (filters.startDate && shiftDate < formatDateOnly(filters.startDate)) continue;
+        if (filters.endDate && shiftDate > formatDateOnly(filters.endDate)) continue;
+        if (filters.shiftType && row[4] !== filters.shiftType) continue;
+        if (filters.location && row[7] !== filters.location) continue;
       }
       
-      // ✅ 應用篩選條件
-      let passFilter = true;
-      
-      // 員工ID篩選
-      if (filters && filters.employeeId && row[1] !== filters.employeeId) {
-        passFilter = false;
-      }
-      
-      // ✅ 日期範圍篩選（使用字串比較）
-      if (passFilter && filterStartDate && shiftDate < filterStartDate) {
-        Logger.log(`   ⏭️  第 ${i} 筆: ${shiftDate} < ${filterStartDate}（太早），跳過`);
-        passFilter = false;
-      }
-      
-      if (passFilter && filterEndDate && shiftDate > filterEndDate) {
-        Logger.log(`   ⏭️  第 ${i} 筆: ${shiftDate} > ${filterEndDate}（太晚），跳過`);
-        passFilter = false;
-      }
-      
-      // 班別篩選
-      if (passFilter && filters && filters.shiftType && row[4] !== filters.shiftType) {
-        passFilter = false;
-      }
-      
-      // 地點篩選
-      if (passFilter && filters && filters.location && row[7] !== filters.location) {
-        passFilter = false;
-      }
-      
-      // ✅ 通過所有篩選
-      if (passFilter) {
-        Logger.log(`   ✅ 第 ${i} 筆: ${shiftDate} - ${row[2]}（${row[4]}）符合條件`);
-        
-        shifts.push({
-          shiftId: row[0],
-          employeeId: row[1],
-          employeeName: row[2],
-          date: shiftDate,
-          shiftType: row[4],
-          startTime: formatTimeOnly(row[5]),
-          endTime: formatTimeOnly(row[6]),
-          location: row[7],
-          note: row[8],
-          createdAt: row[9],
-          createdBy: row[10],
-          updatedAt: row[11],
-          updatedBy: row[12],
-          status: row[13]
-        });
-      }
-    }
-    
-    // ✅ 按日期排序（最近的在前）
-    shifts.sort((a, b) => {
-      if (a.date < b.date) return -1;
-      if (a.date > b.date) return 1;
-      return 0;
-    });
-    
-    Logger.log('');
-    Logger.log('═══════════════════════════════════════');
-    Logger.log('✅ 查詢完成');
-    Logger.log('   符合條件的排班數量:', shifts.length);
-    
-    if (shifts.length > 0) {
-      Logger.log('');
-      Logger.log('📋 結果預覽（前 5 筆）:');
-      shifts.slice(0, 5).forEach((shift, index) => {
-        Logger.log(`   ${index + 1}. ${shift.date} - ${shift.employeeName} (${shift.shiftType})`);
+      // ✅ 格式化回傳的資料
+      shifts.push({
+        shiftId: row[0],
+        employeeId: row[1],
+        employeeName: row[2],
+        date: formatDateOnly(row[3]),        // ✅ 格式化
+        shiftType: row[4],
+        startTime: formatTimeOnly(row[5]),   // ✅ 格式化
+        endTime: formatTimeOnly(row[6]),     // ✅ 格式化
+        location: row[7],
+        note: row[8],
+        createdAt: row[9],
+        createdBy: row[10],
+        updatedAt: row[11],
+        updatedBy: row[12],
+        status: row[13]
       });
-      
-      if (shifts.length > 5) {
-        Logger.log(`   ... 還有 ${shifts.length - 5} 筆`);
-      }
     }
     
-    Logger.log('═══════════════════════════════════════');
+    // 按日期排序
+    shifts.sort((a, b) => new Date(b.date) - new Date(a.date));
     
     return {
       success: true,
@@ -398,12 +319,7 @@ function getShifts(filters) {
     };
     
   } catch (error) {
-    Logger.log('');
-    Logger.log('❌❌❌ getShifts 發生錯誤');
-    Logger.log('錯誤訊息:', error.message);
-    Logger.log('錯誤堆疊:', error.stack);
-    Logger.log('═══════════════════════════════════════');
-    
+    Logger.log('查詢排班錯誤: ' + error);
     return {
       success: false,
       message: '查詢排班失敗: ' + error.message,
@@ -412,88 +328,6 @@ function getShifts(filters) {
   }
 }
 
-function testGetShiftsDateFilter() {
-  const filters = {
-    employeeId: 'Uffac21d92d99e3404b9228fd8c251e2a',
-    startDate: '2025-11-07',
-    endDate: '2025-11-14'
-  };
-  
-  const result = getShifts(filters);
-  
-  Logger.log('測試結果:');
-  Logger.log('  success:', result.success);
-  Logger.log('  count:', result.count);
-  Logger.log('  data:', result.data);
-}
-
-function testGetShiftsWithDateFilter() {
-  Logger.log('🧪 測試日期篩選');
-  Logger.log('');
-  
-  const today = new Date();
-  const startDate = Utilities.formatDate(today, 'Asia/Taipei', 'yyyy-MM-dd');
-  
-  const endDate = new Date(today);
-  endDate.setDate(endDate.getDate() + 7);
-  const endDateStr = Utilities.formatDate(endDate, 'Asia/Taipei', 'yyyy-MM-dd');
-  
-  Logger.log('📅 測試日期範圍:');
-  Logger.log('   開始:', startDate);
-  Logger.log('   結束:', endDateStr);
-  Logger.log('');
-  
-  const filters = {
-    employeeId: 'Uffac21d92d99e3404b9228fd8c251e2a', // 替換成真實的員工ID
-    startDate: startDate,
-    endDate: endDateStr
-  };
-  
-  const result = getShifts(filters);
-  
-  Logger.log('');
-  Logger.log('📊 測試結果:');
-  Logger.log('   success:', result.success);
-  Logger.log('   count:', result.count);
-  
-  if (result.data && result.data.length > 0) {
-    Logger.log('');
-    Logger.log('📋 找到的排班:');
-    result.data.forEach((shift, index) => {
-      Logger.log(`   ${index + 1}. ${shift.date} - ${shift.shiftType}`);
-    });
-  } else {
-    Logger.log('   沒有找到符合條件的排班');
-  }
-}
-function addTestShiftsForFuture() {
-  Logger.log('🧪 新增測試排班（未來 7 天）');
-  Logger.log('');
-  
-  const today = new Date();
-  const userId = 'Uffac21d92d99e3404b9228fd8c251e2a'; // 你的員工 ID
-  const userName = '測試員工'; // 你的姓名
-  
-  for (let i = 0; i < 7; i++) {
-    const shiftDate = new Date(today);
-    shiftDate.setDate(today.getDate() + i);
-    const dateStr = Utilities.formatDate(shiftDate, 'Asia/Taipei', 'yyyy-MM-dd');
-    
-    const shiftData = {
-      employeeId: userId,
-      employeeName: userName,
-      date: dateStr,
-      shiftType: '早班',
-      startTime: '09:00',
-      endTime: '18:00',
-      location: '總公司',
-      note: '測試排班'
-    };
-    
-    const result = addShift(shiftData);
-    Logger.log(`${i + 1}. ${dateStr}: ${result.success ? '✅ 成功' : '❌ 失敗'}`);
-  }
-}
 /**
  * 取得單一排班詳情 (⭐ 已修正 - 格式化回傳資料)
  */
