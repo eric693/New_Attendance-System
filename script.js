@@ -1711,10 +1711,63 @@ document.addEventListener('DOMContentLoaded', async () => {
     punchOutBtn.addEventListener('click', () => doPunch("下班"));
 
     // 處理補打卡表單
+    // abnormalList.addEventListener('click', (e) => {
+    //     if (e.target.classList.contains('adjust-btn')) {
+    //         const date = e.target.dataset.date;
+    //         const type = e.target.dataset.type;
+            
+    //         console.log(`點擊補打卡: ${date} - ${type}`);
+            
+    //         const formHtml = `
+    //             <div class="p-4 border-t border-gray-200 dark:border-gray-600 fade-in">
+    //                 <p class="font-semibold mb-2 dark:text-white">
+    //                     補打卡：<span class="text-indigo-600 dark:text-indigo-400">${date}</span>
+    //                     <span class="ml-2 text-sm ${type === '上班' ? 'text-indigo-600' : 'text-purple-600'}">
+    //                         (${type})
+    //                     </span>
+    //                 </p>
+    //                 <div class="form-group mb-3">
+    //                     <label for="adjustDateTime" class="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">
+    //                         選擇${type}時間：
+    //                     </label>
+    //                     <input id="adjustDateTime" 
+    //                            type="datetime-local" 
+    //                            class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm dark:bg-gray-700 dark:text-white focus:ring-indigo-500 focus:border-indigo-500">
+    //                 </div>
+    //                 <div class="grid grid-cols-2 gap-2">
+    //                     <button id="cancel-adjust-btn" 
+    //                             class="py-2 px-4 rounded-lg font-bold bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-400 dark:hover:bg-gray-500">
+    //                         取消
+    //                     </button>
+    //                     <button id="submit-adjust-btn" 
+    //                             data-type="${type}"
+    //                             class="py-2 px-4 rounded-lg font-bold btn-primary">
+    //                         提交補${type}卡
+    //                     </button>
+    //                 </div>
+    //             </div>
+    //         `;
+            
+    //         adjustmentFormContainer.innerHTML = formHtml;
+            
+    //         const adjustDateTimeInput = document.getElementById("adjustDateTime");
+    //         const defaultTime = type === '上班' ? '09:00' : '18:00';
+    //         adjustDateTimeInput.value = `${date}T${defaultTime}`;
+            
+    //         document.getElementById('cancel-adjust-btn').addEventListener('click', () => {
+    //             adjustmentFormContainer.innerHTML = '';
+    //         });
+    //     }
+    // });
+
+    // ✅ 修正：使用事件委派處理補打卡按鈕
     abnormalList.addEventListener('click', (e) => {
-        if (e.target.classList.contains('adjust-btn')) {
-            const date = e.target.dataset.date;
-            const type = e.target.dataset.type;
+        // ⭐ 關鍵：使用 closest 找到被點擊的按鈕
+        const button = e.target.closest('.adjust-btn');
+        
+        if (button) {
+            const date = button.dataset.date;
+            const type = button.dataset.type;
             
             console.log(`點擊補打卡: ${date} - ${type}`);
             
@@ -1731,8 +1784,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                             選擇${type}時間：
                         </label>
                         <input id="adjustDateTime" 
-                               type="datetime-local" 
-                               class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm dark:bg-gray-700 dark:text-white focus:ring-indigo-500 focus:border-indigo-500">
+                            type="datetime-local" 
+                            class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm dark:bg-gray-700 dark:text-white focus:ring-indigo-500 focus:border-indigo-500">
                     </div>
                     <div class="grid grid-cols-2 gap-2">
                         <button id="cancel-adjust-btn" 
@@ -1741,6 +1794,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         </button>
                         <button id="submit-adjust-btn" 
                                 data-type="${type}"
+                                data-date="${date}"
                                 class="py-2 px-4 rounded-lg font-bold btn-primary">
                             提交補${type}卡
                         </button>
@@ -1754,6 +1808,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const defaultTime = type === '上班' ? '09:00' : '18:00';
             adjustDateTimeInput.value = `${date}T${defaultTime}`;
             
+            // ⭐ 綁定取消按鈕
             document.getElementById('cancel-adjust-btn').addEventListener('click', () => {
                 adjustmentFormContainer.innerHTML = '';
             });
@@ -1778,54 +1833,124 @@ document.addEventListener('DOMContentLoaded', async () => {
         return true;
     }
     
-    adjustmentFormContainer.addEventListener('click', async (e) => {
+    // adjustmentFormContainer.addEventListener('click', async (e) => {
         
-        // 修正 1：在這裡使用 e.target.closest() 來尋找按鈕
-        const button = e.target.closest('.submit-adjust-btn'); // 確保 selector 前面有 '.'
+    //     // 修正 1：在這裡使用 e.target.closest() 來尋找按鈕
+    //     const button = e.target.closest('.submit-adjust-btn'); // 確保 selector 前面有 '.'
 
-        // 只有在點擊到按鈕時才繼續執行
+    //     // 只有在點擊到按鈕時才繼續執行
+    //     if (button) {
+    //         const  loadingText = t('LOADING') || '處理中...';
+
+    //         const datetime = document.getElementById("adjustDateTime").value;
+    //         const type = button.dataset.type; // 應該從找到的 button 元素上讀取 data-type
+
+    //         if (!datetime) {
+    //             showNotification("請選擇補打卡日期時間", "error");
+    //             return;
+    //         }
+    //         if (!validateAdjustTime(datetime)) return;
+
+    //         // 步驟 A: 進入處理中狀態
+    //         generalButtonState(button, 'processing', loadingText);
+            
+    //         // ------------------ API 邏輯 ------------------
+    //         const dateObj = new Date(datetime);
+    //         const lat = 0;
+    //         const lng = 0;
+    //         const action = `adjustPunch&type=${type === 'in' ? "上班" : "下班"}&lat=${lat}&lng=${lng}&datetime=${dateObj.toISOString()}&note=${encodeURIComponent(navigator.userAgent)}`;
+            
+    //         try {
+    //             const res = await callApifetch(action, "loadingMsg");
+    //             const msg = t(res.code || "UNKNOWN_ERROR", res.params || {});
+    //             showNotification(msg, res.ok ? "success" : "error");
+
+    //             if (res.ok) {
+    //                 adjustmentFormContainer.innerHTML = '';
+    //                 checkAbnormal(); // 補打卡成功後，重新檢查異常紀錄
+    //             }
+
+    //         } catch (err) {
+    //             console.error(err);
+    //             showNotification(t('NETWORK_ERROR') || '網絡錯誤', 'error');
+                
+    //         } finally {
+    //             // 修正 3：操作完成後，必須在 finally 區塊恢復按鈕狀態
+    //             // **只有在沒有成功清空表單時才恢復按鈕**
+    //             // 因為成功時您已經清空了 adjustmentFormContainer.innerHTML = '';
+    //             // 如果成功時，按鈕已經消失，則不需要復原。
+                
+    //             // 判斷：如果容器沒有清空 (即請求失敗或有錯誤)，則恢復按鈕。
+    //             if (adjustmentFormContainer.innerHTML !== '') {
+    //                 generalButtonState(button, 'idle');
+    //             }
+    //         }
+    //     }
+    // });
+
+
+    adjustmentFormContainer.addEventListener('click', async (e) => {
+        // ⭐ 使用 closest 找到提交按鈕
+        const button = e.target.closest('#submit-adjust-btn');
+        
         if (button) {
-            const  loadingText = t('LOADING') || '處理中...';
-
+            const loadingText = t('LOADING') || '處理中...';
+            
             const datetime = document.getElementById("adjustDateTime").value;
-            const type = button.dataset.type; // 應該從找到的 button 元素上讀取 data-type
-
+            const type = button.dataset.type;
+            const date = button.dataset.date; // ⭐ 從按鈕取得日期
+            
             if (!datetime) {
                 showNotification("請選擇補打卡日期時間", "error");
                 return;
             }
+            
             if (!validateAdjustTime(datetime)) return;
-
-            // 步驟 A: 進入處理中狀態
+            
+            // 進入處理中狀態
             generalButtonState(button, 'processing', loadingText);
             
-            // ------------------ API 邏輯 ------------------
-            const dateObj = new Date(datetime);
-            const lat = 0;
-            const lng = 0;
-            const action = `adjustPunch&type=${type === 'in' ? "上班" : "下班"}&lat=${lat}&lng=${lng}&datetime=${dateObj.toISOString()}&note=${encodeURIComponent(navigator.userAgent)}`;
-            
             try {
-                const res = await callApifetch(action, "loadingMsg");
-                const msg = t(res.code || "UNKNOWN_ERROR", res.params || {});
-                showNotification(msg, res.ok ? "success" : "error");
-
+                // 呼叫補打卡 API
+                const sessionToken = localStorage.getItem("sessionToken");
+                
+                // 取得當前位置
+                const position = await new Promise((resolve, reject) => {
+                    navigator.geolocation.getCurrentPosition(resolve, reject);
+                });
+                
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                
+                const params = new URLSearchParams({
+                    token: sessionToken,
+                    type: type,
+                    lat: lat,
+                    lng: lng,
+                    datetime: datetime,
+                    note: `補打卡 - ${type}`
+                });
+                
+                const res = await callApifetch(`adjustPunch&${params.toString()}`);
+                
                 if (res.ok) {
+                    showNotification("補打卡申請成功！等待管理員審核", "success");
+                    
+                    // ⭐ 重新檢查異常記錄
+                    await checkAbnormal();
+                    
+                    // 關閉表單
                     adjustmentFormContainer.innerHTML = '';
-                    checkAbnormal(); // 補打卡成功後，重新檢查異常紀錄
+                } else {
+                    showNotification(t(res.code) || "補打卡失敗", "error");
                 }
-
+                
             } catch (err) {
-                console.error(err);
-                showNotification(t('NETWORK_ERROR') || '網絡錯誤', 'error');
+                console.error('補打卡錯誤:', err);
+                showNotification("補打卡失敗", "error");
                 
             } finally {
-                // 修正 3：操作完成後，必須在 finally 區塊恢復按鈕狀態
-                // **只有在沒有成功清空表單時才恢復按鈕**
-                // 因為成功時您已經清空了 adjustmentFormContainer.innerHTML = '';
-                // 如果成功時，按鈕已經消失，則不需要復原。
-                
-                // 判斷：如果容器沒有清空 (即請求失敗或有錯誤)，則恢復按鈕。
+                // 恢復按鈕狀態（如果表單還在）
                 if (adjustmentFormContainer.innerHTML !== '') {
                     generalButtonState(button, 'idle');
                 }
