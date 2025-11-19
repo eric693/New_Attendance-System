@@ -488,37 +488,51 @@ function renderAbnormalRecords(records) {
     const abnormalList = document.getElementById("abnormal-list");
     const recordsEmpty = document.getElementById("abnormal-records-empty");
     
-    // 檢查元素是否存在
     if (!recordsLoading || !abnormalRecordsSection || !abnormalList || !recordsEmpty) {
         console.error('❌ 找不到必要的 DOM 元素');
         return;
     }
     
-    // 隱藏載入訊息，顯示區塊
     recordsLoading.style.display = 'none';
     abnormalRecordsSection.style.display = 'block';
     
-    // 檢查是否有異常記錄
     if (records && records.length > 0) {
         console.log(`✅ 有 ${records.length} 筆異常記錄`);
         
         recordsEmpty.style.display = 'none';
         abnormalList.innerHTML = '';
         
-        // 按日期排序（由新到舊）
         const sortedRecords = records.sort((a, b) => {
             return new Date(b.date) - new Date(a.date);
         });
         
-        // 渲染每一筆記錄
         sortedRecords.forEach((record, index) => {
             console.log(`   ${index + 1}. ${record.date} - ${record.reason}`);
             
             let reasonClass, displayReason, buttonHtml;
             
             switch(record.reason) {
+                case 'STATUS_NO_RECORD':
+                    // ✅ 完全沒有記錄 - 同時顯示補上班和補下班
+                    reasonClass = 'text-red-600 dark:text-red-400';
+                    displayReason = '未打卡';
+                    buttonHtml = `
+                        <div class="flex gap-2">
+                            <button data-date="${record.date}" 
+                                    data-type="上班"
+                                    class="adjust-btn px-3 py-2 text-sm font-semibold text-white bg-indigo-600 dark:bg-indigo-500 rounded-md hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors">
+                                補上班
+                            </button>
+                            <button data-date="${record.date}" 
+                                    data-type="下班"
+                                    class="adjust-btn px-3 py-2 text-sm font-semibold text-white bg-purple-600 dark:bg-purple-500 rounded-md hover:bg-purple-700 dark:hover:bg-purple-600 transition-colors">
+                                補下班
+                            </button>
+                        </div>
+                    `;
+                    break;
+                    
                 case 'STATUS_REPAIR_PENDING':
-                    // 審核中 - 黃色，按鈕禁用
                     reasonClass = 'text-yellow-600 dark:text-yellow-400';
                     displayReason = record.punchTypes || '補打卡審核中';
                     buttonHtml = `
@@ -529,7 +543,6 @@ function renderAbnormalRecords(records) {
                     break;
                     
                 case 'STATUS_REPAIR_APPROVED':
-                    // 已通過 - 綠色，按鈕禁用
                     reasonClass = 'text-green-600 dark:text-green-400';
                     displayReason = record.punchTypes || '補打卡已通過';
                     buttonHtml = `
@@ -540,10 +553,8 @@ function renderAbnormalRecords(records) {
                     break;
                 
                 case 'STATUS_REPAIR_REJECTED':
-                    // ❌ 被拒絕 - 橘色，可重新申請
                     reasonClass = 'text-orange-600 dark:text-orange-400';
                     displayReason = record.punchTypes || '補打卡被拒絕';
-                    // ✅ 判斷是上班還是下班
                     const rejectedType = record.punchTypes && record.punchTypes.includes('上班') ? '上班' : '下班';
                     buttonHtml = `
                         <button data-date="${record.date}" 
@@ -553,8 +564,8 @@ function renderAbnormalRecords(records) {
                         </button>
                     `;
                     break;
+                    
                 case 'STATUS_PUNCH_IN_MISSING':
-                    // 缺上班卡 - 紅色，可補打卡
                     reasonClass = 'text-red-600 dark:text-red-400';
                     displayReason = '未打上班卡';
                     buttonHtml = `
@@ -567,7 +578,6 @@ function renderAbnormalRecords(records) {
                     break;
                     
                 case 'STATUS_PUNCH_OUT_MISSING':
-                    // 缺下班卡 - 紅色，可補打卡
                     reasonClass = 'text-red-600 dark:text-red-400';
                     displayReason = '未打下班卡';
                     buttonHtml = `
