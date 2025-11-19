@@ -512,61 +512,62 @@ function renderAbnormalRecords(records) {
             let reasonClass, displayReason, buttonHtml;
             
             switch(record.reason) {
-
-                    
                 case 'STATUS_REPAIR_PENDING':
                     reasonClass = 'text-yellow-600 dark:text-yellow-400';
-                    displayReason = record.punchTypes || '補打卡審核中';
+                    displayReason = record.punchTypes || t('STATUS_REPAIR_PENDING');
                     buttonHtml = `
                         <span class="text-sm font-semibold text-yellow-600 dark:text-yellow-400">
-                            ⏳ ${record.punchTypes || '審核中'}
+                            ⏳ ${record.punchTypes || t('STATUS_REPAIR_PENDING')}
                         </span>
                     `;
                     break;
                     
                 case 'STATUS_REPAIR_APPROVED':
                     reasonClass = 'text-green-600 dark:text-green-400';
-                    displayReason = record.punchTypes || '補打卡已通過';
+                    displayReason = record.punchTypes || t('STATUS_REPAIR_APPROVED');
                     buttonHtml = `
                         <span class="text-sm font-semibold text-green-600 dark:text-green-400">
-                            ✓ ${record.punchTypes || '已通過'}
+                            ✓ ${record.punchTypes || t('STATUS_REPAIR_APPROVED')}
                         </span>
                     `;
                     break;
                 
                 case 'STATUS_REPAIR_REJECTED':
                     reasonClass = 'text-orange-600 dark:text-orange-400';
-                    displayReason = record.punchTypes || '補打卡被拒絕';
-                    const rejectedType = record.punchTypes && record.punchTypes.includes('上班') ? '上班' : '下班';
+                    // ✅ 使用翻譯函數
+                    displayReason = record.punchTypes || t('STATUS_REPAIR_REJECTED');
+                    const rejectedType = record.punchTypes && record.punchTypes.includes(t('PUNCH_IN')) ? t('PUNCH_IN') : t('PUNCH_OUT');
                     buttonHtml = `
                         <button data-date="${record.date}" 
                                 data-type="${rejectedType}"
                                 class="adjust-btn px-4 py-2 text-sm font-semibold text-white bg-orange-600 dark:bg-orange-500 rounded-md hover:bg-orange-700 dark:hover:bg-orange-600 transition-colors">
-                            重新申請
+                            ${t('REAPPLY') || '重新申請'}
                         </button>
                     `;
                     break;
                     
                 case 'STATUS_PUNCH_IN_MISSING':
                     reasonClass = 'text-red-600 dark:text-red-400';
-                    displayReason = '未打上班卡';
+                    // ✅ 使用翻譯函數
+                    displayReason = t('STATUS_PUNCH_IN_MISSING');
                     buttonHtml = `
                         <button data-date="${record.date}" 
-                                data-type="上班"
+                                data-type="${t('PUNCH_IN')}"
                                 class="adjust-btn px-4 py-2 text-sm font-semibold text-white bg-indigo-600 dark:bg-indigo-500 rounded-md hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors">
-                            補上班
+                            ${t('BTN_ADJUST_IN') || '補上班'}
                         </button>
                     `;
                     break;
                     
                 case 'STATUS_PUNCH_OUT_MISSING':
                     reasonClass = 'text-red-600 dark:text-red-400';
-                    displayReason = '未打下班卡';
+                    // ✅ 使用翻譯函數
+                    displayReason = t('STATUS_PUNCH_OUT_MISSING');
                     buttonHtml = `
                         <button data-date="${record.date}" 
-                                data-type="下班"
+                                data-type="${t('PUNCH_OUT')}"
                                 class="adjust-btn px-4 py-2 text-sm font-semibold text-white bg-purple-600 dark:bg-purple-500 rounded-md hover:bg-purple-700 dark:hover:bg-purple-600 transition-colors">
-                            補下班
+                            ${t('BTN_ADJUST_OUT') || '補下班'}
                         </button>
                     `;
                     break;
