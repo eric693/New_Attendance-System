@@ -143,6 +143,13 @@
   "STATUS_REPAIR_APPROVED": "Make-up Punch Approved",
   "PUNCH_IN": "Punch In",
   "PUNCH_OUT": "Punch Out",
+  "PUNCH_SECTION_DESC": "Click a button to punch in or out.",
+  "STATUS_REPAIR_PENDING_IN": "Punch In Review Pending",
+  "STATUS_REPAIR_PENDING_OUT": "Punch Out Review Pending",
+  "STATUS_REPAIR_APPROVED_IN": "Punch In Approved",
+  "STATUS_REPAIR_APPROVED_OUT": "Punch Out Approved",
+  "STATUS_REPAIR_REJECTED_IN": "Punch In Rejected",
+  "STATUS_REPAIR_REJECTED_OUT": "Punch Out Rejected",
   "REAPPLY": "Reapply",
 
   "TAB_OVERTIME": "Overtime",

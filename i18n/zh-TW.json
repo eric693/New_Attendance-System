@@ -143,6 +143,16 @@
     "STATUS_REPAIR_APPROVED": "補打卡通過",
     "PUNCH_IN": "上班",
     "PUNCH_OUT": "下班",
+    "PUNCH_SECTION_DESC": "請點擊下方按鈕進行上班或下班打卡。",
+    "STATUS_REPAIR_PENDING_IN": "補上班審核中",
+    "STATUS_REPAIR_PENDING_OUT": "補下班審核中",
+    "STATUS_REPAIR_APPROVED_IN": "補上班通過",
+    "STATUS_REPAIR_APPROVED_OUT": "補下班通過",
+    "STATUS_REPAIR_REJECTED_IN": "補上班被拒絕",
+    "STATUS_REPAIR_REJECTED_OUT": "補下班被拒絕",
+    "REAPPLY": "重新申請",
+
+
 
     "TAB_OVERTIME": "加班",
     

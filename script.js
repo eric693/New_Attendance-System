@@ -476,7 +476,6 @@ async function ensureLogin() {
     });
 }
 // script.js - 在 checkAbnormal 函數附近加入
-
 /**
  * ⭐ 渲染異常記錄（從 initApp 返回的資料）
  */
@@ -511,63 +510,80 @@ function renderAbnormalRecords(records) {
             
             let reasonClass, displayReason, buttonHtml;
             
+            // ⭐⭐⭐ 新增翻譯映射函數
+            function translatePunchTypes(punchTypes) {
+                if (!punchTypes) return '';
+                
+                const translations = {
+                    '補上班審核中': t('STATUS_REPAIR_PENDING_IN') || 'Punch In Review Pending',
+                    '補下班審核中': t('STATUS_REPAIR_PENDING_OUT') || 'Punch Out Review Pending',
+                    '補上班通過': t('STATUS_REPAIR_APPROVED_IN') || 'Punch In Approved',
+                    '補下班通過': t('STATUS_REPAIR_APPROVED_OUT') || 'Punch Out Approved',
+                    '補上班被拒絕': t('STATUS_REPAIR_REJECTED_IN') || 'Punch In Rejected',
+                    '補下班被拒絕': t('STATUS_REPAIR_REJECTED_OUT') || 'Punch Out Rejected'
+                };
+                
+                return translations[punchTypes] || punchTypes;
+            }
+            
             switch(record.reason) {
                 case 'STATUS_REPAIR_PENDING':
                     reasonClass = 'text-yellow-600 dark:text-yellow-400';
-                    displayReason = record.punchTypes || t('STATUS_REPAIR_PENDING');
+                    displayReason = translatePunchTypes(record.punchTypes);
                     buttonHtml = `
                         <span class="text-sm font-semibold text-yellow-600 dark:text-yellow-400">
-                            ⏳ ${record.punchTypes || t('STATUS_REPAIR_PENDING')}
+                            ⏳ ${translatePunchTypes(record.punchTypes)}
                         </span>
                     `;
                     break;
                     
                 case 'STATUS_REPAIR_APPROVED':
                     reasonClass = 'text-green-600 dark:text-green-400';
-                    displayReason = record.punchTypes || t('STATUS_REPAIR_APPROVED');
+                    displayReason = translatePunchTypes(record.punchTypes);
                     buttonHtml = `
                         <span class="text-sm font-semibold text-green-600 dark:text-green-400">
-                            ✓ ${record.punchTypes || t('STATUS_REPAIR_APPROVED')}
+                            ✓ ${translatePunchTypes(record.punchTypes)}
                         </span>
                     `;
                     break;
                 
                 case 'STATUS_REPAIR_REJECTED':
                     reasonClass = 'text-orange-600 dark:text-orange-400';
-                    // ✅ 使用翻譯函數
-                    displayReason = record.punchTypes || t('STATUS_REPAIR_REJECTED');
-                    const rejectedType = record.punchTypes && record.punchTypes.includes(t('PUNCH_IN')) ? t('PUNCH_IN') : t('PUNCH_OUT');
+                    displayReason = translatePunchTypes(record.punchTypes);
+                    
+                    // ⭐ 判斷是上班還是下班
+                    const isIn = record.punchTypes && record.punchTypes.includes('上班');
+                    const punchType = isIn ? '上班' : '下班';
+                    
                     buttonHtml = `
                         <button data-date="${record.date}" 
-                                data-type="${rejectedType}"
+                                data-type="${punchType}"
                                 class="adjust-btn px-4 py-2 text-sm font-semibold text-white bg-orange-600 dark:bg-orange-500 rounded-md hover:bg-orange-700 dark:hover:bg-orange-600 transition-colors">
-                            ${t('REAPPLY') || '重新申請'}
+                            ${t('REAPPLY') || 'Reapply'}
                         </button>
                     `;
                     break;
                     
                 case 'STATUS_PUNCH_IN_MISSING':
                     reasonClass = 'text-red-600 dark:text-red-400';
-                    // ✅ 使用翻譯函數
                     displayReason = t('STATUS_PUNCH_IN_MISSING');
                     buttonHtml = `
                         <button data-date="${record.date}" 
-                                data-type="${t('PUNCH_IN')}"
+                                data-type="上班"
                                 class="adjust-btn px-4 py-2 text-sm font-semibold text-white bg-indigo-600 dark:bg-indigo-500 rounded-md hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors">
-                            ${t('BTN_ADJUST_IN') || '補上班'}
+                            ${t('BTN_ADJUST_IN')}
                         </button>
                     `;
                     break;
                     
                 case 'STATUS_PUNCH_OUT_MISSING':
                     reasonClass = 'text-red-600 dark:text-red-400';
-                    // ✅ 使用翻譯函數
                     displayReason = t('STATUS_PUNCH_OUT_MISSING');
                     buttonHtml = `
                         <button data-date="${record.date}" 
-                                data-type="${t('PUNCH_OUT')}"
+                                data-type="下班"
                                 class="adjust-btn px-4 py-2 text-sm font-semibold text-white bg-purple-600 dark:bg-purple-500 rounded-md hover:bg-purple-700 dark:hover:bg-purple-600 transition-colors">
-                            ${t('BTN_ADJUST_OUT') || '補下班'}
+                            ${t('BTN_ADJUST_OUT')}
                         </button>
                     `;
                     break;
