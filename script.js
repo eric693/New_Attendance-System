@@ -538,7 +538,21 @@ function renderAbnormalRecords(records) {
                         </span>
                     `;
                     break;
-                    
+                
+                case 'STATUS_REPAIR_REJECTED':
+                    // ❌ 被拒絕 - 橘色，可重新申請
+                    reasonClass = 'text-orange-600 dark:text-orange-400';
+                    displayReason = record.punchTypes || '補打卡被拒絕';
+                    // ✅ 判斷是上班還是下班
+                    const rejectedType = record.punchTypes && record.punchTypes.includes('上班') ? '上班' : '下班';
+                    buttonHtml = `
+                        <button data-date="${record.date}" 
+                                data-type="${rejectedType}"
+                                class="adjust-btn px-4 py-2 text-sm font-semibold text-white bg-orange-600 dark:bg-orange-500 rounded-md hover:bg-orange-700 dark:hover:bg-orange-600 transition-colors">
+                            重新申請
+                        </button>
+                    `;
+                    break;
                 case 'STATUS_PUNCH_IN_MISSING':
                     // 缺上班卡 - 紅色，可補打卡
                     reasonClass = 'text-red-600 dark:text-red-400';
@@ -690,6 +704,19 @@ async function checkAbnormal() {
                                         data-type="下班"
                                         class="adjust-btn px-4 py-2 text-sm font-semibold text-white bg-purple-600 dark:bg-purple-500 rounded-md hover:bg-purple-700 dark:hover:bg-purple-600 transition-colors">
                                     補下班
+                                </button>
+                            `;
+                            break;
+
+                        case 'STATUS_REPAIR_REJECTED':
+                            // ❌ 被拒絕 - 橘色，可重新申請
+                            reasonClass = 'text-orange-600 dark:text-orange-400';
+                            displayReason = record.punchTypes || '補打卡被拒絕';
+                            buttonHtml = `
+                                <button data-date="${record.date}" 
+                                        data-type="${record.punchTypes.includes('上班') ? '上班' : '下班'}"
+                                        class="adjust-btn px-4 py-2 text-sm font-semibold text-white bg-orange-600 dark:bg-orange-500 rounded-md hover:bg-orange-700 dark:hover:bg-orange-600 transition-colors">
+                                    重新申請
                                 </button>
                             `;
                             break;
