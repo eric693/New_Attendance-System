@@ -1832,65 +1832,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         return true;
     }
-    
-    // adjustmentFormContainer.addEventListener('click', async (e) => {
-        
-    //     // 修正 1：在這裡使用 e.target.closest() 來尋找按鈕
-    //     const button = e.target.closest('.submit-adjust-btn'); // 確保 selector 前面有 '.'
-
-    //     // 只有在點擊到按鈕時才繼續執行
-    //     if (button) {
-    //         const  loadingText = t('LOADING') || '處理中...';
-
-    //         const datetime = document.getElementById("adjustDateTime").value;
-    //         const type = button.dataset.type; // 應該從找到的 button 元素上讀取 data-type
-
-    //         if (!datetime) {
-    //             showNotification("請選擇補打卡日期時間", "error");
-    //             return;
-    //         }
-    //         if (!validateAdjustTime(datetime)) return;
-
-    //         // 步驟 A: 進入處理中狀態
-    //         generalButtonState(button, 'processing', loadingText);
-            
-    //         // ------------------ API 邏輯 ------------------
-    //         const dateObj = new Date(datetime);
-    //         const lat = 0;
-    //         const lng = 0;
-    //         const action = `adjustPunch&type=${type === 'in' ? "上班" : "下班"}&lat=${lat}&lng=${lng}&datetime=${dateObj.toISOString()}&note=${encodeURIComponent(navigator.userAgent)}`;
-            
-    //         try {
-    //             const res = await callApifetch(action, "loadingMsg");
-    //             const msg = t(res.code || "UNKNOWN_ERROR", res.params || {});
-    //             showNotification(msg, res.ok ? "success" : "error");
-
-    //             if (res.ok) {
-    //                 adjustmentFormContainer.innerHTML = '';
-    //                 checkAbnormal(); // 補打卡成功後，重新檢查異常紀錄
-    //             }
-
-    //         } catch (err) {
-    //             console.error(err);
-    //             showNotification(t('NETWORK_ERROR') || '網絡錯誤', 'error');
-                
-    //         } finally {
-    //             // 修正 3：操作完成後，必須在 finally 區塊恢復按鈕狀態
-    //             // **只有在沒有成功清空表單時才恢復按鈕**
-    //             // 因為成功時您已經清空了 adjustmentFormContainer.innerHTML = '';
-    //             // 如果成功時，按鈕已經消失，則不需要復原。
-                
-    //             // 判斷：如果容器沒有清空 (即請求失敗或有錯誤)，則恢復按鈕。
-    //             if (adjustmentFormContainer.innerHTML !== '') {
-    //                 generalButtonState(button, 'idle');
-    //             }
-    //         }
-    //     }
-    // });
 
 
     adjustmentFormContainer.addEventListener('click', async (e) => {
-        // ⭐ 使用 closest 找到提交按鈕
         const button = e.target.closest('#submit-adjust-btn');
         
         if (button) {
@@ -1898,7 +1842,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             const datetime = document.getElementById("adjustDateTime").value;
             const type = button.dataset.type;
-            const date = button.dataset.date; // ⭐ 從按鈕取得日期
+            const date = button.dataset.date;
             
             if (!datetime) {
                 showNotification("請選擇補打卡日期時間", "error");
@@ -1907,14 +1851,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             if (!validateAdjustTime(datetime)) return;
             
-            // 進入處理中狀態
             generalButtonState(button, 'processing', loadingText);
             
             try {
-                // 呼叫補打卡 API
                 const sessionToken = localStorage.getItem("sessionToken");
                 
-                // 取得當前位置
                 const position = await new Promise((resolve, reject) => {
                     navigator.geolocation.getCurrentPosition(resolve, reject);
                 });
@@ -1922,24 +1863,21 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const lat = position.coords.latitude;
                 const lng = position.coords.longitude;
                 
+                // ✅ 修正：note 改為裝置資訊
                 const params = new URLSearchParams({
                     token: sessionToken,
                     type: type,
                     lat: lat,
                     lng: lng,
                     datetime: datetime,
-                    note: `補打卡 - ${type}`
+                    note: navigator.userAgent  // ⭐ 改成裝置資訊
                 });
                 
                 const res = await callApifetch(`adjustPunch&${params.toString()}`);
                 
                 if (res.ok) {
                     showNotification("補打卡申請成功！等待管理員審核", "success");
-                    
-                    // ⭐ 重新檢查異常記錄
                     await checkAbnormal();
-                    
-                    // 關閉表單
                     adjustmentFormContainer.innerHTML = '';
                 } else {
                     showNotification(t(res.code) || "補打卡失敗", "error");
@@ -1950,7 +1888,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 showNotification("補打卡失敗", "error");
                 
             } finally {
-                // 恢復按鈕狀態（如果表單還在）
                 if (adjustmentFormContainer.innerHTML !== '') {
                     generalButtonState(button, 'idle');
                 }
